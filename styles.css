@@ -266,7 +266,7 @@ button{ font-family:inherit; }
 @media (max-width:760px){ .modal-grid{ grid-template-columns:1fr; } }
 .viewer{ position:relative; background:var(--washi); aspect-ratio:1/1; overflow:hidden; user-select:none; cursor:grab; }
 .viewer:active{ cursor:grabbing; }
-.viewer img{ width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.viewer img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
 .viewer .hint{
   position:absolute; bottom:2.6rem; left:0; right:0; text-align:center; font-size:.7rem;
   color:var(--ink-soft); letter-spacing:.03em; background:color-mix(in srgb, var(--washi) 70%, transparent); padding:.3rem 0;
@@ -276,9 +276,11 @@ button{ font-family:inherit; }
 .viewer-nav{ position:absolute; top:50%; transform:translateY(-50%); background:var(--paper); border:1px solid var(--line); color:var(--ink); width:32px; height:32px; border-radius:50%; cursor:pointer; }
 .viewer-nav.prev{ left:.7rem; } .viewer-nav.next{ right:.7rem; }
 .viewer-placeholder{
-  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:.5rem; height:100%; color:var(--ink-faint);
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:.5rem; color:var(--ink-faint);
   background:var(--washi);
 }
+.viewer-placeholder[hidden]{ display:none; }
 .viewer-placeholder .kanji{ font-family:'Shippori Mincho',serif; font-size:2rem; color:var(--ink-soft); opacity:.7; }
 .viewer-placeholder span{ font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; }
 
