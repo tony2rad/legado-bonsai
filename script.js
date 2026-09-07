@@ -207,6 +207,7 @@ function renderCatalog() {
       </div>`;
     grid.appendChild(card);
   });
+  observeReveal(grid);
 }
 
 /* -------------------------------------------------------------------- */
@@ -458,6 +459,24 @@ function renderFaq() {
 }
 
 /* -------------------------------------------------------------------- */
+/*  Revelado al hacer scroll                                             */
+/* -------------------------------------------------------------------- */
+
+let revealObserver = null;
+function observeReveal(root = document) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) { entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
+      });
+    }, { threshold: 0.14 });
+  }
+  root.querySelectorAll('.section-head, .pillar, .tier-card, .step, .testimonial, .blog-post, .quote-break-overlay, .card, .enso')
+    .forEach((el) => { if (!el.classList.contains('in-view')) revealObserver.observe(el); });
+}
+
+/* -------------------------------------------------------------------- */
 /*  Init                                                                 */
 /* -------------------------------------------------------------------- */
 
@@ -469,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFaq();
   renderCart();
   initViewerDrag();
+  observeReveal();
 
   // Filtros / orden
   ['filter-estilo', 'filter-ambiente', 'sort-by'].forEach(id => {
