@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legado Bonsai — 家族の木</title>
+<meta name="description" content="Legado Bonsai: junípero cultivado para heredarse. Tienda, acompañamiento de trasplante, poda y alambrado, y calendario de cuidado por fase lunar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav wrap">
+    <a class="brand" href="#inicio">
+      <img src="assets/img/logo-negro.png" alt="Legado Bonsai">
+      <span class="jp">家族の木</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#marca">Nuestro legado</a></li>
+      <li><a href="#catalogo">Catálogo</a></li>
+      <li><a href="#servicios">Acompañamiento</a></li>
+      <li><a href="#calendario">Cuidado lunar</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn" id="cart-open-btn" aria-label="Abrir carrito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/></svg>
+        <span class="cart-count visually-hidden" id="cart-count">0</span>
+      </button>
+      <button class="icon-btn nav-toggle" id="nav-toggle-btn" aria-label="Abrir menú" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="inicio">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="hero-kanji">永続 · 継承 — perpetuidad, herencia</div>
+        <h1>Un junípero que se cuida hoy y se hereda mañana.</h1>
+        <p class="lede">Legado Bonsai cultiva junípero de cuatro estilos distintos y te acompaña en cada trasplante, poda y alambrado — para que tu árbol crezca contigo y, algún día, con quien venga después.</p>
+        <div class="hero-ctas">
+          <a href="#catalogo" class="btn btn-primary">Explorar catálogo</a>
+          <a href="#marca" class="btn btn-ghost">Conoce el legado</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <div class="frame"><img src="imagenes/360/Bonsai1/bonsai1_01.jpg" alt="Junípero Legado Bonsai, estilo erguido"></div>
+        <figcaption>直幹 · Chokkan — fotografiado en nuestro propio set 360°</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- SOBRE LA MARCA -->
+  <section class="section" id="marca">
+    <div class="wrap brand-story">
+      <div class="prose">
+        <div class="eyebrow">Nuestro origen — 家族の木</div>
+        <h2>No vendemos plantas. Cultivamos legados.</h2>
+        <p><strong>Kazoku (家族)</strong> significa familia; <strong>Ki (木)</strong> significa árbol. Un bonsái exige generaciones de paciencia para formarse — igual que una familia. Cada junípero que sale de Legado Bonsai lleva ese doble significado: es una planta viva y, a la vez, el inicio de una tradición que alguien más continuará.</p>
+        <p>Por eso no terminamos la relación en la entrega. Te acompañamos en el trasplante, la poda y el alambrado durante todo el primer año — y, si lo eliges, durante todos los años que seas parte de la familia Legado.</p>
+      </div>
+      <div class="pillars">
+        <div class="pillar"><div class="jp">深緑</div><h4>Paciencia</h4><p>Un árbol que se forma durante años, no semanas.</p></div>
+        <div class="pillar"><div class="jp">和紙</div><h4>Cuidado</h4><p>Guías de riego, luz y sustrato para cada estilo.</p></div>
+        <div class="pillar"><div class="jp">琥珀</div><h4>Vínculo</h4><p>Acompañamiento real, no solo un manual en PDF.</p></div>
+        <div class="pillar"><div class="jp">金茶</div><h4>Herencia</h4><p>Un árbol pensado para pasar de generación en generación.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATALOGO -->
+  <section class="section alt" id="catalogo">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Catálogo</div>
+        <h2>Nuestros junípero</h2>
+        <p>Cada ejemplar es único: gira la imagen 360° antes de decidir. Precios y disponibilidad se actualizan directamente desde nuestro inventario.</p>
+      </div>
+
+      <div class="filters-bar">
+        <div class="filters-row">
+          <div class="filter-group">
+            <label for="filter-estilo">Estilo</label>
+            <select id="filter-estilo"><option value="all">Todos</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-ambiente">Ambiente</label>
+            <select id="filter-ambiente">
+              <option value="all">Todos</option>
+              <option value="exterior">Exterior</option>
+              <option value="interior">Interior</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label for="sort-by">Ordenar por</label>
+          <select id="sort-by">
+            <option value="default">Recomendados</option>
+            <option value="price-asc">Precio: menor a mayor</option>
+            <option value="price-desc">Precio: mayor a menor</option>
+            <option value="name-asc">Nombre: A-Z</option>
+            <option value="name-desc">Nombre: Z-A</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="catalog-status" class="catalog-status">Cargando el catálogo…</div>
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section class="section" id="servicios">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Acompañamiento</div>
+        <h2>El cuidado no termina en la entrega</h2>
+        <p>Elige un nivel al comprar tu árbol, o contrátalo después para uno que ya tengas.</p>
+      </div>
+      <div class="tiers-grid">
+        <div class="tier-card">
+          <div class="for">Para tu primer árbol</div>
+          <h3>Primeros Brotes</h3>
+          <ul>
+            <li>Guía digital de cuidado por especie.</li>
+            <li>1 videollamada de diagnóstico inicial.</li>
+            <li>Recordatorios por WhatsApp según fase lunar.</li>
+          </ul>
+        </div>
+        <div class="tier-card highlight">
+          <div class="for">Para el primer año del árbol</div>
+          <h3>Cultivo Guiado</h3>
+          <ul>
+            <li>Todo lo de Primeros Brotes.</li>
+            <li>1 trasplante y 2 sesiones de poda, en taller o a domicilio.</li>
+            <li>1 sesión de alambrado guiada, agendada en cuarto creciente.</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <div class="for">Para un regalo que trasciende</div>
+          <h3>Legado Completo</h3>
+          <ul>
+            <li>Todo lo de Cultivo Guiado, cada año.</li>
+            <li>Certificado y placa conmemorativa del árbol.</li>
+            <li>Prioridad de agenda de por vida.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDARIO LUNAR -->
+  <section class="section alt" id="calendario">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Cuidado lunar</div>
+        <h2>Cuidamos cada árbol según la fase lunar</h2>
+        <p>Trasplante, poda y alambrado se agendan en el momento del ciclo lunar en que el árbol cicatriza mejor.</p>
+      </div>
+      <div class="moon-highlight" id="moon-highlight">
+        <div class="phase">Cargando fase actual…</div>
+        <p></p>
+      </div>
+      <details>
+        <summary style="cursor:pointer; margin-bottom:1rem; color:var(--jade); font-weight:700; font-size:.9rem;">Ver calendario completo de los 12 meses</summary>
+        <div class="cal-wrap">
+          <table class="cal" id="cal-table">
+            <thead><tr><th>Mes</th><th>Fase lunar ideal</th><th>Acción recomendada</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="section" id="como-funciona">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Proceso</div>
+        <h2>¿Cómo funciona?</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="step-number">1</span><h3>Elige tu junípero</h3><p>Explora el catálogo y gira cada árbol en 360° antes de decidir.</p></div>
+        <div class="step"><span class="step-number">2</span><h3>Suma acompañamiento</h3><p>Agrega un plan de trasplante, poda y alambrado si lo deseas.</p></div>
+        <div class="step"><span class="step-number">3</span><h3>Cierra por WhatsApp</h3><p>Confirmamos disponibilidad, forma de pago y envío contigo directamente.</p></div>
+        <div class="step"><span class="step-number">4</span><h3>Recibe y cultiva</h3><p>Tu árbol llega con ficha de cuidado y tu primer recordatorio lunar.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIOS -->
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Comunidad</div>
+        <h2>Familias que ya empezaron su legado</h2>
+      </div>
+      <!-- TODO: reemplazar por testimonios reales de clientes -->
+      <div class="grid-2col">
+        <div class="testimonial"><p>"Mi junípero llegó perfecto y el recordatorio de poda por WhatsApp me salvó de podarlo en mal momento."</p><strong>— Juan Pérez</strong></div>
+        <div class="testimonial"><p>"Elegimos un Legado Completo como regalo de aniversario. El certificado hizo que se sintiera único."</p><strong>— María Gómez</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOG -->
+  <section class="section" id="blog">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Guías</div>
+        <h2>Blog y guías de cuidado</h2>
+      </div>
+      <div class="grid-2col">
+        <article class="blog-post"><h3>Cómo regar correctamente tu bonsái</h3><p>Cuándo y cuánto regar según la temporada, para que tu junípero se mantenga siempre fuerte.</p><a href="https://wa.me/593988731431?text=Quiero%20la%20gu%C3%ADa%20de%20riego" target="_blank" rel="noopener">Pedir guía por WhatsApp →</a></article>
+        <article class="blog-post"><h3>La importancia de la poda en el bonsái</h3><p>Qué herramientas usar y cuándo podar según la fase lunar para que cicatrice mejor.</p><a href="https://wa.me/593988731431?text=Quiero%20la%20gu%C3%ADa%20de%20poda" target="_blank" rel="noopener">Pedir guía por WhatsApp →</a></article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" id="contacto">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="jp">家族の木</div>
+        <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Facebook</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Explorar</h4>
+        <ul class="footer-links">
+          <li><a href="#catalogo">Catálogo</a></li>
+          <li><a href="#servicios">Acompañamiento</a></li>
+          <li><a href="#calendario">Cuidado lunar</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Términos y condiciones</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Escríbenos</h4>
+        <form class="contact-form" id="contact-form">
+          <input type="text" name="nombre" placeholder="Nombre" required>
+          <input type="email" name="correo" placeholder="Correo electrónico" required>
+          <textarea name="mensaje" placeholder="Mensaje" required></textarea>
+          <button type="submit" class="btn btn-primary btn-block">Enviar mensaje</button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; <span id="year"></span> Legado Bonsai · 家族の木. Todos los derechos reservados.</div>
+  </div>
+</footer>
+
+<!-- MODAL DE PRODUCTO -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">&times;</button>
+    <div class="modal-grid">
+      <div class="viewer" id="modal-viewer">
+        <div class="viewer-placeholder" id="modal-viewer-placeholder" hidden>
+          <div class="kanji">近日</div>
+          <span>Foto 360° próximamente</span>
+        </div>
+        <img id="modal-viewer-img" alt="">
+        <span class="hint">Arrastra para girar 360°</span>
+        <button class="viewer-nav prev" id="viewer-prev" aria-label="Anterior">&#8249;</button>
+        <button class="viewer-nav next" id="viewer-next" aria-label="Siguiente">&#8250;</button>
+        <div class="viewer-progress"><i id="viewer-progress-bar"></i></div>
+      </div>
+      <div class="modal-info">
+        <div class="style-tag" id="modal-style"></div>
+        <h2 id="modal-title"></h2>
+        <div class="species" id="modal-species"></div>
+        <p class="story" id="modal-story"></p>
+        <div class="spec-grid" id="modal-specs"></div>
+
+        <div class="care-accordion">
+          <details open>
+            <summary>Ficha de cuidado</summary>
+            <div id="modal-care"></div>
+          </details>
+        </div>
+
+        <div>
+          <label style="font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; display:block; margin-bottom:.5rem;">Acompañamiento (opcional)</label>
+          <div class="tier-picker" id="modal-tier-picker">
+            <label class="tier-opt"><input type="radio" name="tier" value=""><span><strong>Sin acompañamiento</strong><span> Solo el árbol.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Primeros Brotes"><span><strong>Primeros Brotes</strong><span> Guía + 1 videollamada.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Cultivo Guiado"><span><strong>Cultivo Guiado</strong><span> Trasplante, poda y alambrado el primer año.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Legado Completo"><span><strong>Legado Completo</strong><span> Acompañamiento de por vida + certificado.</span></span></label>
+          </div>
+        </div>
+
+        <div class="qty-row">
+          <div class="qty-stepper">
+            <button type="button" id="qty-minus" aria-label="Restar">&minus;</button>
+            <span id="qty-value">1</span>
+            <button type="button" id="qty-plus" aria-label="Sumar">&plus;</button>
+          </div>
+          <div class="modal-price" id="modal-price"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="modal-add-cart">Agregar al carrito</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARRITO -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer" aria-label="Carrito de compras">
+  <div class="cart-head">
+    <h3>Tu carrito</h3>
+    <button class="modal-close" id="cart-close-btn" style="position:static; background:none; color:var(--ink-soft);" aria-label="Cerrar carrito">&times;</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
+    <button class="btn btn-primary btn-block" id="cart-checkout-btn">Finalizar por WhatsApp</button>
+    <p style="font-size:.74rem; color:var(--ink-soft); text-align:center; margin:0;">Confirmamos disponibilidad, pago y envío directamente por WhatsApp.</p>
+  </div>
+</aside>
+
+<!-- POPUP NEWSLETTER -->
+<div class="popup-overlay" id="popup-overlay">
+  <div class="popup">
+    <button class="popup-close" id="popup-close-btn" aria-label="Cerrar">&times;</button>
+    <h2>10% en tu primer legado</h2>
+    <p>Suscríbete y recibe un código de descuento para tu primer junípero.</p>
+    <form id="subscribe-form">
+      <input type="email" placeholder="Tu correo electrónico" required>
+      <button type="submit" class="btn btn-primary">Suscribirme</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHAT FAQ -->
+<div id="chat-widget">
+  <button id="chat-button" aria-label="Abrir chat de ayuda">&#128172;</button>
+  <div id="chat-box">
+    <div id="chat-header">
+      <h3>Chat de ayuda</h3>
+      <button id="close-chat" aria-label="Cerrar chat">&times;</button>
+    </div>
+    <div id="chat-body">
+      <div class="message bot">¡Hola! Soy el asistente de Legado Bonsai. Elige una pregunta:</div>
+      <div id="faq-options"></div>
+    </div>
+    <div id="chat-footer">
+      <p>Para comprar, escríbenos directo al <a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a>.</p>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/593988731431" class="wa-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.2 8.7 3.2 15.7c0 2.5.7 4.8 1.9 6.8L3 29l6.7-2c1.9 1 4.1 1.6 6.3 1.6 7 0 12.8-5.7 12.8-12.7C28.8 8.7 23 3 16 3zm0 23.1c-2 0-3.9-.5-5.5-1.5l-.4-.2-4 1.1 1.1-3.9-.3-.4a10.4 10.4 0 0 1-1.6-5.5C5.3 9.9 10 5.2 16 5.2S26.7 9.9 26.7 15.9 22 26.1 16 26.1zm5.9-7.6c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.5-.1-.1-.3-.2-.6-.4z"/></svg>
+</a>
+
+<script src="script.js"></script>
+</body>
+</html>

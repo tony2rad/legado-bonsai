@@ -1,0 +1,7 @@
+# Documentos internos de marca / estrategia — no necesarios para el sitio público
+Informacion/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
