@@ -20,7 +20,7 @@
  * ==========================================================================
  */
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const CARPETA_FOTOS_RAIZ = 'Legado Bonsai — Fotos 360';
 const ZONA = 'America/Guayaquil';
 
@@ -111,9 +111,9 @@ function setup() {
     informe.push(nombre + ': ' + res);
   });
 
+  informe.push('CONFIG: ' + crearConfig_(ss));
   informe.push('CATALOGO: ' + crearCatalogo_(ss));
   informe.push('RESUMEN: ' + crearResumen_(ss));
-  informe.push('CONFIG: ' + crearConfig_(ss));
   aplicarValidaciones_(ss);
   rellenarEstilosJP_(ss);
   sembrarCalendario_(ss);
@@ -175,11 +175,12 @@ function crearCatalogo_(ss) {
   const inv = ss.getSheetByName('INVENTARIO');
   const col = columnasDe_(inv);
   const letraEstado = letraColumna_(col['Estado comercial'] + 1);
+  const ultima = letraColumna_(inv.getMaxColumns());
   let hoja = ss.getSheetByName('CATALOGO');
   if (!hoja) hoja = ss.insertSheet('CATALOGO');
   hoja.clear();
   hoja.getRange('A1').setFormula(formula_(
-    '=IFERROR(QUERY(INVENTARIO!A:ZZ; "select * where ' + letraEstado + ' = \'Disponible\'"; 1); "Sin ejemplares disponibles")'
+    '=IFERROR(QUERY(INVENTARIO!A:' + ultima + '; "select * where ' + letraEstado + ' = \'Disponible\'"; 1); "Sin ejemplares disponibles")'
   ));
   hoja.setFrozenRows(1);
   hoja.getRange('A1:ZZ1').setFontWeight('bold');
@@ -635,16 +636,23 @@ function formula_(f) {
   if (SEPARADOR_ === null) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const hoja = ss.getSheetByName('CONFIG') || ss.getSheets()[0];
-    const celda = hoja.getRange('ZZ1');
+    // Celda de prueba: última fila y columna de la hoja (siempre existe y está vacía).
+    const celda = hoja.getRange(hoja.getMaxRows(), hoja.getMaxColumns());
     try {
       celda.setFormula('=IF(1;2;3)');
       SpreadsheetApp.flush();
-      SEPARADOR_ = (celda.getValue() === 2) ? ';' : ',';
+      if (celda.getValue() === 2) SEPARADOR_ = ';';
+      else {
+        celda.setFormula('=IF(1,2,3)');
+        SpreadsheetApp.flush();
+        SEPARADOR_ = (celda.getValue() === 2) ? ',' : ';';
+      }
     } catch (e) {
-      SEPARADOR_ = ',';
+      SEPARADOR_ = ';';
     } finally {
       celda.clearContent();
     }
+    Logger.log('Separador de fórmulas detectado: "' + SEPARADOR_ + '"');
   }
   return SEPARADOR_ === ';' ? f : f.replace(/;/g, ',');
 }
