@@ -20,7 +20,7 @@
  * ==========================================================================
  */
 
-const VERSION = '1.0.1';
+const VERSION = '1.0.2';
 const CARPETA_FOTOS_RAIZ = 'Legado Bonsai — Fotos 360';
 const ZONA = 'America/Guayaquil';
 
@@ -464,9 +464,13 @@ function subirFoto_(p) {
   const nombre = String(p.id).toLowerCase() + '_' + (n < 10 ? '0' + n : n) + '.' + ext;
 
   const carpeta = carpetaEjemplar_(p.id);
-  // Reemplaza una foto anterior con el mismo nombre para no acumular versiones.
-  const previas = carpeta.getFilesByName(nombre);
-  while (previas.hasNext()) previas.next().setTrashed(true);
+  // Reemplaza la foto anterior con el mismo número (cualquier extensión) para no acumular versiones.
+  const prefijo = nombre.replace(/\.[a-z0-9]+$/i, '.');
+  const previas = carpeta.getFiles();
+  while (previas.hasNext()) {
+    const f = previas.next();
+    if (f.getName().toLowerCase().indexOf(prefijo) === 0) f.setTrashed(true);
+  }
 
   const bytes = Utilities.base64Decode(p.base64.replace(/^data:[^;]+;base64,/, ''));
   const archivo = carpeta.createFile(Utilities.newBlob(bytes, mime, nombre));
