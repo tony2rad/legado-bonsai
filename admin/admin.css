@@ -142,6 +142,10 @@ input:focus,select:focus,textarea:focus{ outline:2px solid var(--jade); outline-
 .thumb-item img{ width:100%; height:100%; object-fit:cover; }
 .thumb-item .num{ position:absolute; left:.25rem; top:.25rem; font-size:.7rem; background:rgba(0,0,0,.5); color:#fff; padding:0 .35rem; border-radius:3px; }
 .thumb-item .del{ position:absolute; right:.2rem; top:.2rem; width:24px; height:24px; border:0; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; font-size:.8rem; cursor:pointer; }
+.thumb-item .mov{ position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-between; }
+.thumb-item .mov button{ border:0; background:rgba(0,0,0,.5); color:#fff; font-size:.7rem; padding:.15rem .5rem; cursor:pointer; min-width:32px; min-height:26px; }
+.thumb-item .mov button:disabled{ opacity:.25; }
+.thumb-item img{ background:repeating-conic-gradient(var(--washi) 0 25%, var(--surface) 0 50%) 0 0/16px 16px; } /* tablero: se ve la transparencia */
 .preview-360{ display:grid; gap:.4rem; }
 .preview-viewer{ aspect-ratio:1/1; background:var(--washi); border-radius:var(--radius); overflow:hidden; }
 .preview-viewer img{ width:100%; height:100%; object-fit:cover; }

@@ -99,16 +99,16 @@
     <form id="form-ejemplar" class="form" autocomplete="off">
       <fieldset>
         <legend>Fotos 360°</legend>
-        <p class="hint">Coloca el bonsái sobre fondo liso y con buena luz. Toma entre 4 y 16 fotos dando la vuelta completa; el orden de captura es el orden de giro. En la cámara puedes elegir modo automático (base giratoria) o manual (tú disparas cada foto).</p>
+        <p class="hint">Dos caminos: <b>Galería</b>, para elegir fotos ya recortadas en Canva (PNG con transparencia; se conserva). O <b>Cámara 360°</b>, para tomarlas aquí mismo. Entre 4 y 16 fotos por vuelta; el orden es el orden de giro y puedes reordenarlas con las flechas.</p>
         <div class="row">
-          <button type="button" class="btn" id="btn-modo-360">◎ Cámara 360°</button>
-          <label class="btn file-btn">📷 Tomar / elegir fotos
-            <input type="file" id="input-fotos" accept="image/*" capture="environment" multiple hidden>
+          <label class="btn solid file-btn">🖼 Elegir de la galería
+            <input type="file" id="input-fotos" accept="image/png,image/jpeg,image/webp,image/*" multiple hidden>
           </label>
+          <button type="button" class="btn" id="btn-modo-360">◎ Cámara 360°</button>
         </div>
         <label class="check">
           <input type="checkbox" id="quitar-fondo">
-          <span>Quitar fondo con IA al guardar <small>(gratis, se procesa en el teléfono; tarda 10–40 s por foto la primera vez y descarga el modelo una sola vez)</small></span>
+          <span>Quitar fondo con IA al guardar <small>(solo si las fotos aún tienen fondo; gratis, se procesa en el teléfono y el resultado es básico. Si ya las recortaste en Canva, déjalo desmarcado)</small></span>
         </label>
         <div id="fotos-vacias" class="empty">Aún no hay fotos.</div>
         <div id="preview-360" class="preview-360" hidden>

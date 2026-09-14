@@ -326,7 +326,12 @@ async function guardarEjemplar(ev) {
         const etiqueta = `Foto ${i + 1} de ${total}`;
         paso = etiqueta + ' · preparar';
         setProg(base, etiqueta + ': preparando…');
-        let blob = await redimensionar(state.capturas[i].blob, MAX_LADO, quitar ? 'image/png' : 'image/jpeg');
+        const original = state.capturas[i].blob;
+        // PNG/WebP (p. ej. recortadas en Canva) pueden traer transparencia: se conserva.
+        const conAlfa = !quitar && /png|webp/i.test(original.type);
+        let blob = conAlfa
+          ? await redimensionarConAlfa(original)
+          : await redimensionar(original, MAX_LADO, quitar ? 'image/png' : 'image/jpeg');
         if (quitar) {
           paso = etiqueta + ' · quitar fondo';
           try {
@@ -504,7 +509,12 @@ function renderCapturas() {
   $('fotos-vacias').hidden = n > 0;
   $('preview-360').hidden = n === 0;
   $('thumbs').innerHTML = state.capturas.map((c, i) =>
-    `<div class="thumb-item"><img src="${c.url}" alt=""><span class="num">${i + 1}</span><button type="button" class="del" data-del="${i}" aria-label="Quitar">✕</button></div>`).join('');
+    `<div class="thumb-item"><img src="${c.url}" alt=""><span class="num">${i + 1}</span>
+      <button type="button" class="del" data-del="${i}" aria-label="Quitar">✕</button>
+      <div class="mov">
+        <button type="button" data-mov="${i}" data-dir="-1" aria-label="Mover antes" ${i === 0 ? 'disabled' : ''}>◀</button>
+        <button type="button" data-mov="${i}" data-dir="1" aria-label="Mover después" ${i === n - 1 ? 'disabled' : ''}>▶</button>
+      </div></div>`).join('');
   if (n) {
     const r = $('preview-range');
     r.max = n - 1; r.value = Math.min(r.value, n - 1);
@@ -560,22 +570,27 @@ async function quitarFondo(blob, onProgress) {
     output: { format: 'image/png', quality: 0.9 },
     progress: (key, cur, total) => { if (total) onProgress(`${key.includes('fetch') ? 'descargando' : 'procesando'} ${Math.round(cur / total * 100)} %`); }
   });
-  // WebP con alfa pesa ~5x menos que PNG; si el navegador no lo soporta, queda PNG.
-  const bmp = await crearBitmap(png);
-  const canvas = document.createElement('canvas');
-  canvas.width = bmp.width; canvas.height = bmp.height;
-  canvas.getContext('2d').drawImage(bmp, 0, 0);
-  const webp = await new Promise(res => canvas.toBlob(b => res(b), 'image/webp', 0.88));
-  if (webp && webp.type === 'image/webp') return webp;
-  // Sin WebP (Safari): PNG con transparencia pero a 900 px para que pese menos
-  // (~1 MB → ~500 KB). La tienda lo muestra igual de nítido en el móvil.
-  const lado = Math.min(1, 900 / Math.max(bmp.width, bmp.height));
-  if (lado < 1) {
-    canvas.width = Math.round(bmp.width * lado); canvas.height = Math.round(bmp.height * lado);
+  return redimensionarConAlfa(png);
+}
+
+/**
+ * Redimensiona conservando la transparencia. WebP con alfa pesa ~5x menos que
+ * PNG; si el navegador no sabe generarlo (Safari), PNG a 900 px para que pese
+ * la mitad. La tienda lo muestra igual de nítido en el móvil.
+ */
+async function redimensionarConAlfa(blob) {
+  const bmp = await crearBitmap(blob);
+  const dibujar = (max) => {
+    const esc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * esc); canvas.height = Math.round(bmp.height * esc);
     canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    const pngChico = await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
-    if (pngChico) return pngChico;
-  }
+    return canvas;
+  };
+  const webp = await new Promise(res => dibujar(MAX_LADO).toBlob(b => res(b), 'image/webp', 0.88));
+  if (webp && webp.type === 'image/webp') return webp;
+  const png = await new Promise(res => dibujar(900).toBlob(b => res(b), 'image/png'));
+  if (!png) throw new Error('El navegador no pudo generar la imagen PNG');
   return png;
 }
 
@@ -764,11 +779,19 @@ document.addEventListener('DOMContentLoaded', () => {
     ev.target.value = '';
   });
   $('thumbs').addEventListener('click', (ev) => {
-    const b = ev.target.closest('[data-del]');
-    if (!b) return;
-    const [c] = state.capturas.splice(parseInt(b.dataset.del, 10), 1);
-    URL.revokeObjectURL(c.url);
-    renderCapturas();
+    const del = ev.target.closest('[data-del]');
+    const mov = ev.target.closest('[data-mov]');
+    if (del) {
+      const [c] = state.capturas.splice(parseInt(del.dataset.del, 10), 1);
+      URL.revokeObjectURL(c.url);
+      renderCapturas();
+    } else if (mov) {
+      const i = parseInt(mov.dataset.mov, 10), j = i + parseInt(mov.dataset.dir, 10);
+      if (j < 0 || j >= state.capturas.length) return;
+      [state.capturas[i], state.capturas[j]] = [state.capturas[j], state.capturas[i]];
+      $('preview-range').value = j;
+      renderCapturas();
+    }
   });
   $('preview-range').addEventListener('input', (ev) => mostrarPreview(parseInt(ev.target.value, 10)));
 
