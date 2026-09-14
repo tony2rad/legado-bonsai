@@ -22,5 +22,13 @@ window.LEGADO_CONFIG = {
   WHATSAPP_NUMBER: '593988731431',
 
   /* Fotos de respaldo dentro del repo: imagenes/360/<Carpeta imagen>/ */
-  LOCAL_IMAGES_PATH: 'imagenes/360/'
+  LOCAL_IMAGES_PATH: 'imagenes/360/',
+
+  /* Popup "10% en tu primer legado": el correo se envía a este Google Form
+     (Formulario → Respuestas → vinculado a un Sheet). Para cambiar de
+     formulario: abre el nuevo en forms.google.com, copia la URL de
+     /viewform y cámbiala aquí por /formResponse; el ENTRY_ID se saca del
+     HTML público del form (busca "entry.<numero>" en FB_PUBLIC_LOAD_DATA_). */
+  NEWSLETTER_FORM_ACTION: 'https://docs.google.com/forms/d/e/1FAIpQLSdnpE4UbsuSAc1soP72zLMFEEv1Zh33N4KfLpE3U6eO-MH9Uw/formResponse',
+  NEWSLETTER_EMAIL_ENTRY: 'entry.1798076899'
 };

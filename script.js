@@ -20,6 +20,8 @@ const WHATSAPP_NUMBER = CFG.WHATSAPP_NUMBER || '593988731431';
 const API_URL = CFG.API_URL || '';
 const SHEET_CSV_URL = CFG.SHEET_CSV_URL || '';
 const LOCAL_IMAGES_PATH = CFG.LOCAL_IMAGES_PATH || 'imagenes/360/';
+const NEWSLETTER_FORM_ACTION = CFG.NEWSLETTER_FORM_ACTION || '';
+const NEWSLETTER_EMAIL_ENTRY = CFG.NEWSLETTER_EMAIL_ENTRY || '';
 const CART_KEY = 'legadoBonsaiCart';
 
 let PRODUCTS = [];
@@ -426,6 +428,19 @@ function initCarouselNav() {
 let modalProduct = null;
 let modalImgIndex = 0;
 let modalQty = 1;
+let autoRotateTimer = null;
+const AUTO_ROTATE_MS = 900;
+
+/* Gira el visor solo, despacio, como si el árbol se mostrara en una base
+   giratoria — se detiene apenas la persona toma el control manualmente. */
+function startAutoRotate() {
+  stopAutoRotate();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  autoRotateTimer = setInterval(() => stepViewer(1), AUTO_ROTATE_MS);
+}
+function stopAutoRotate() {
+  if (autoRotateTimer) { clearInterval(autoRotateTimer); autoRotateTimer = null; }
+}
 
 function openModal(id) {
   const p = PRODUCTS.find(x => x.id === id);
@@ -453,6 +468,7 @@ function openModal(id) {
 
   updateModalPrice();
   updateViewer();
+  startAutoRotate();
   loadProductImages(p).then(imgs => {
     if (modalProduct !== p) return;
     updateViewer();
@@ -469,6 +485,7 @@ function closeModal() {
   document.getElementById('product-modal').classList.remove('open');
   document.body.style.overflow = '';
   modalProduct = null;
+  stopAutoRotate();
 }
 
 function updateViewer() {
@@ -484,7 +501,14 @@ function updateViewer() {
   }
   img.hidden = false;
   placeholder.hidden = true;
-  setImgConReintento(img, images[modalImgIndex]);
+  const nextSrc = images[modalImgIndex];
+  if (img.dataset.src !== nextSrc) {
+    // Pequeño cruce de opacidad entre fotos — el giro se siente pausado,
+    // no un parpadeo entre cuadros.
+    img.style.opacity = '0';
+    img.onload = () => { img.style.opacity = '1'; };
+    setImgConReintento(img, nextSrc);
+  }
   img.alt = modalProduct.nombre + ' — foto ' + (modalImgIndex + 1);
   bar.style.width = ((modalImgIndex + 1) / images.length * 100) + '%';
 }
@@ -508,7 +532,7 @@ function initViewerDrag() {
   let dragging = false, startX = 0, acc = 0;
   const THRESHOLD = 24;
 
-  const start = (x) => { dragging = true; startX = x; acc = 0; };
+  const start = (x) => { dragging = true; startX = x; acc = 0; stopAutoRotate(); };
   const move = (x) => {
     if (!dragging || !modalProduct || !(modalProduct.images || []).length) return;
     const dx = x - startX;
@@ -865,8 +889,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Modal
   on('modal-close-btn', 'click', closeModal);
   on('product-modal', 'click', (e) => { if (e.target.id === 'product-modal') closeModal(); });
-  on('viewer-prev', 'click', () => stepViewer(-1));
-  on('viewer-next', 'click', () => stepViewer(1));
+  on('viewer-prev', 'click', () => { stopAutoRotate(); stepViewer(-1); });
+  on('viewer-next', 'click', () => { stopAutoRotate(); stepViewer(1); });
   on('qty-minus', 'click', () => { modalQty = Math.max(1, modalQty - 1); $('qty-value').textContent = modalQty; updateModalPrice(); });
   on('qty-plus', 'click', () => { modalQty += 1; $('qty-value').textContent = modalQty; updateModalPrice(); });
   on('modal-add-cart', 'click', () => {
@@ -921,10 +945,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 6000);
     on('popup-close-btn', 'click', () => popupOverlay.classList.remove('open'));
     popupOverlay.addEventListener('click', (e) => { if (e.target.id === 'popup-overlay') popupOverlay.classList.remove('open'); });
-    on('subscribe-form', 'submit', (e) => {
+    on('subscribe-form', 'submit', async (e) => {
       e.preventDefault();
-      alert('¡Gracias por suscribirte! Tu código de descuento es: LEGADO10');
-      popupOverlay.classList.remove('open');
+      const form = e.target;
+      const email = form.querySelector('input[type="email"]').value.trim();
+      const btn = form.querySelector('button[type="submit"]');
+      if (!email) return;
+
+      if (!NEWSLETTER_FORM_ACTION || !NEWSLETTER_EMAIL_ENTRY) {
+        console.warn('Newsletter: falta NEWSLETTER_FORM_ACTION/NEWSLETTER_EMAIL_ENTRY en config.js — el correo no se guardó.');
+        alert('¡Gracias por suscribirte! Tu código de descuento es: LEGADO10');
+        popupOverlay.classList.remove('open');
+        return;
+      }
+
+      const textoOriginal = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
+      try {
+        // Los Google Forms públicos no responden CORS: 'no-cors' hace el
+        // POST igual, solo no deja leer la respuesta (por eso no hay .ok que
+        // chequear — si el fetch no lanza error, se considera enviado).
+        await fetch(NEWSLETTER_FORM_ACTION, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: new URLSearchParams({ [NEWSLETTER_EMAIL_ENTRY]: email })
+        });
+        alert('¡Gracias por suscribirte! Tu código de descuento es: LEGADO10');
+        form.reset();
+        popupOverlay.classList.remove('open');
+      } catch (err) {
+        console.error('No se pudo registrar el correo:', err);
+        alert('No pudimos registrar tu correo — revisa tu conexión e intenta de nuevo.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = textoOriginal;
+      }
     });
   }
 
