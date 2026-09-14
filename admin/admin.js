@@ -578,7 +578,28 @@ const cam = { stream: null, timer: null, activo: false };
 async function abrirCamara() {
   $('overlay-360').hidden = false;
   $('cam-msg').textContent = '';
+  cambiarModoCamara();
   await iniciarStream();
+}
+
+/** Automático (base giratoria, disparo por intervalo) o Manual (botón por foto). */
+function cambiarModoCamara() {
+  const manual = $('cam-modo').value === 'manual';
+  detener360();
+  $('cam-controles-auto').hidden = manual;
+  $('cam-controles-manual').hidden = !manual;
+  $('cam-hint-auto').hidden = manual;
+  $('cam-hint-manual').hidden = !manual;
+  $('cam-int').parentElement.style.opacity = manual ? '.4' : '';
+  $('cam-msg').textContent = manual ? `Fotos tomadas: ${state.capturas.length}` : '';
+}
+
+async function fotoManual() {
+  if (!cam.stream) return;
+  await capturarFrame();
+  if (navigator.vibrate) navigator.vibrate(40);
+  const n = parseInt($('cam-n').value, 10);
+  $('cam-msg').textContent = `Fotos tomadas: ${state.capturas.length}` + (state.capturas.length >= n ? ' — ya tienes las previstas, pulsa Listo (o sigue tomando)' : ` de ${n}`);
 }
 
 async function iniciarStream() {
@@ -720,6 +741,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-cerrar-360').addEventListener('click', cerrarCamara);
   $('btn-iniciar-360').addEventListener('click', iniciar360);
   $('btn-detener-360').addEventListener('click', detener360);
+  $('cam-modo').addEventListener('change', cambiarModoCamara);
+  $('btn-foto-manual').addEventListener('click', fotoManual);
+  $('btn-listo-360').addEventListener('click', () => { toast(`${state.capturas.length} fotos en el formulario`); cerrarCamara(); });
   $('cam-facing').addEventListener('change', iniciarStream);
 
   $('form-venta').addEventListener('submit', guardarVenta);

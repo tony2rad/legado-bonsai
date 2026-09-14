@@ -99,9 +99,9 @@
     <form id="form-ejemplar" class="form" autocomplete="off">
       <fieldset>
         <legend>Fotos 360°</legend>
-        <p class="hint">Coloca el bonsái en la base giratoria sobre fondo liso y con buena luz. Toma entre 8 y 16 fotos dando la vuelta completa; el orden de captura es el orden de giro.</p>
+        <p class="hint">Coloca el bonsái sobre fondo liso y con buena luz. Toma entre 4 y 16 fotos dando la vuelta completa; el orden de captura es el orden de giro. En la cámara puedes elegir modo automático (base giratoria) o manual (tú disparas cada foto).</p>
         <div class="row">
-          <button type="button" class="btn" id="btn-modo-360">◎ Modo 360° automático</button>
+          <button type="button" class="btn" id="btn-modo-360">◎ Cámara 360°</button>
           <label class="btn file-btn">📷 Tomar / elegir fotos
             <input type="file" id="input-fotos" accept="image/*" capture="environment" multiple hidden>
           </label>
@@ -271,7 +271,7 @@
 <!-- ============ OVERLAY MODO 360 ============ -->
 <div id="overlay-360" class="overlay" hidden>
   <div class="overlay-head">
-    <strong>Modo 360° automático</strong>
+    <strong>Cámara 360°</strong>
     <button type="button" class="icon-btn" id="btn-cerrar-360" aria-label="Cerrar">✕</button>
   </div>
   <div class="cam-wrap">
@@ -280,14 +280,20 @@
     <div class="cam-overlay" id="cam-countdown"></div>
   </div>
   <div class="cam-settings">
-    <label>Fotos<select id="cam-n"><option>8</option><option selected>12</option><option>16</option><option>24</option></select></label>
+    <label>Modo<select id="cam-modo"><option value="auto" selected>Automático</option><option value="manual">Manual</option></select></label>
+    <label>Fotos<select id="cam-n"><option>4</option><option>6</option><option selected>8</option><option>12</option><option>16</option><option>24</option></select></label>
     <label>Cada (s)<select id="cam-int"><option>1.5</option><option selected>2</option><option>3</option><option>4</option></select></label>
     <label>Cámara<select id="cam-facing"><option value="environment" selected>Trasera</option><option value="user">Frontal</option></select></label>
   </div>
-  <p class="hint light">Enciende la base giratoria, encuadra el árbol dentro de la guía y pulsa Iniciar. La app toma una foto cada intervalo hasta completar la vuelta. Ajusta el intervalo a la velocidad de tu base: una vuelta completa ≈ fotos × intervalo.</p>
-  <div class="row center">
+  <p class="hint light" id="cam-hint-auto">Enciende la base giratoria, encuadra el árbol dentro de la guía y pulsa Iniciar. La app toma una foto cada intervalo hasta completar la cantidad elegida. Una vuelta completa ≈ fotos × intervalo.</p>
+  <p class="hint light" id="cam-hint-manual" hidden>Gira el árbol un poco entre foto y foto (por ejemplo un cuarto de vuelta si son 4 fotos) y pulsa el botón redondo cada vez. Cuando termines, pulsa Listo.</p>
+  <div class="row center" id="cam-controles-auto">
     <button type="button" class="btn solid big" id="btn-iniciar-360">Iniciar</button>
     <button type="button" class="btn big" id="btn-detener-360" hidden>Detener</button>
+  </div>
+  <div class="cam-manual" id="cam-controles-manual" hidden>
+    <button type="button" class="shutter" id="btn-foto-manual" aria-label="Tomar foto"><span></span></button>
+    <button type="button" class="btn big" id="btn-listo-360">Listo</button>
   </div>
   <p class="msg light" id="cam-msg"></p>
 </div>
