@@ -1,0 +1,15 @@
+{
+  "name": "Legado Bonsai — Registro",
+  "short_name": "Registro LB",
+  "description": "Registro de inventario, fotos 360°, ventas y cuidados de Legado Bonsai.",
+  "start_url": "./index.html#/inicio",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFAF6",
+  "theme_color": "#1B241F",
+  "lang": "es",
+  "icons": [
+    { "src": "../assets/img/logo-negro.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

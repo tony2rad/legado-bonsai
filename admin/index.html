@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Legado Bonsai — Registro</title>
+<meta name="theme-color" content="#1B241F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../assets/img/logo-negro.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="#/inicio" class="brand"><img src="../assets/img/logo-negro.png" alt="Legado Bonsai"><span>Registro <em>家族の木</em></span></a>
+  <div class="topbar-actions">
+    <span id="estado-conexion" class="dot" title="Estado de conexión"></span>
+    <button id="btn-refrescar" class="icon-btn" aria-label="Actualizar datos" title="Actualizar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============ CONFIGURACIÓN ============ -->
+  <section class="view" data-view="config" hidden>
+    <h1>Conexión</h1>
+    <p class="lead">Pega aquí la URL del Web App y el token que generó <code>setup()</code> en el sheet (pestaña CONFIG).</p>
+    <form id="form-config" class="form">
+      <label>URL del Web App (termina en /exec)
+        <input type="url" name="apiUrl" placeholder="https://script.google.com/macros/s/…/exec" required>
+      </label>
+      <label>Token de la app
+        <input type="password" name="token" autocomplete="off" required>
+      </label>
+      <div class="row">
+        <button type="submit" class="btn solid">Guardar y conectar</button>
+        <button type="button" id="btn-probar" class="btn">Probar conexión</button>
+      </div>
+      <p id="config-msg" class="msg"></p>
+    </form>
+    <details class="help">
+      <summary>¿Cómo obtengo estos datos?</summary>
+      <ol>
+        <li>Abre el sheet <b>Legado Bonsai — Sistema de Gestión</b> → Extensiones → Apps Script.</li>
+        <li>Pega el contenido de <code>apps-script/Code.gs</code>, guarda y ejecuta <code>setup</code>.</li>
+        <li>Implementar → Nueva implementación → Aplicación web → Ejecutar como <b>yo</b>, acceso <b>Cualquier persona</b>. Copia la URL.</li>
+        <li>El token aparece en la pestaña <b>CONFIG</b> del sheet.</li>
+      </ol>
+    </details>
+  </section>
+
+  <!-- ============ INICIO ============ -->
+  <section class="view" data-view="inicio" hidden>
+    <h1>Hoy</h1>
+    <div class="kpis" id="kpis"></div>
+    <div class="quick">
+      <a href="#/nuevo" class="btn solid big">＋ Nuevo ejemplar</a>
+      <a href="#/venta" class="btn big">Registrar venta</a>
+      <a href="#/cuidado" class="btn big">Registrar cuidado</a>
+    </div>
+    <h2>Últimos movimientos</h2>
+    <ul class="timeline" id="timeline"></ul>
+  </section>
+
+  <!-- ============ EJEMPLARES ============ -->
+  <section class="view" data-view="ejemplares" hidden>
+    <h1>Ejemplares</h1>
+    <div class="filters">
+      <input type="search" id="buscar" placeholder="Buscar por ID, nombre, especie…">
+      <select id="filtro-estado">
+        <option value="">Todos los estados</option>
+        <option>Disponible</option><option>Reservado</option><option>Vendido</option><option>En formación</option><option>Baja</option>
+      </select>
+    </div>
+    <p class="count" id="ejemplares-count"></p>
+    <div class="list" id="lista-ejemplares"></div>
+  </section>
+
+  <!-- ============ DETALLE ============ -->
+  <section class="view" data-view="ejemplar" hidden>
+    <a href="#/ejemplares" class="back">← Ejemplares</a>
+    <div id="detalle"></div>
+  </section>
+
+  <!-- ============ NUEVO / EDITAR ============ -->
+  <section class="view" data-view="formulario" hidden>
+    <a href="#/ejemplares" class="back">← Cancelar</a>
+    <h1 id="form-titulo">Nuevo ejemplar</h1>
+    <p class="lead" id="form-id-hint">El código único (LB-0001, LB-0002, …) se asigna automáticamente al guardar.</p>
+
+    <form id="form-ejemplar" class="form" autocomplete="off">
+      <fieldset>
+        <legend>Fotos 360°</legend>
+        <p class="hint">Coloca el bonsái en la base giratoria sobre fondo liso y con buena luz. Toma entre 8 y 16 fotos dando la vuelta completa; el orden de captura es el orden de giro.</p>
+        <div class="row">
+          <button type="button" class="btn" id="btn-modo-360">◎ Modo 360° automático</button>
+          <label class="btn file-btn">📷 Tomar / elegir fotos
+            <input type="file" id="input-fotos" accept="image/*" capture="environment" multiple hidden>
+          </label>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="quitar-fondo">
+          <span>Quitar fondo con IA al guardar <small>(gratis, se procesa en el teléfono; tarda 10–40 s por foto la primera vez y descarga el modelo una sola vez)</small></span>
+        </label>
+        <div id="fotos-vacias" class="empty">Aún no hay fotos.</div>
+        <div id="preview-360" class="preview-360" hidden>
+          <div class="preview-viewer"><img id="preview-img" alt="Vista previa 360°"></div>
+          <input type="range" id="preview-range" min="0" max="0" value="0">
+          <span class="preview-count" id="preview-count"></span>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+        <div id="fotos-existentes" class="existing" hidden>
+          <p class="hint">Este ejemplar ya tiene <b id="fotos-existentes-n">0</b> fotos publicadas. Si tomas fotos nuevas, reemplazan a las anteriores.</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Identificación</legend>
+        <label>Nombre comercial *<input name="Nombre comercial" required placeholder="Junípero Shimpaku"></label>
+        <label>Especie<input name="Especie" list="dl-especies" placeholder="Juniperus chinensis 'Shimpaku'"></label>
+        <div class="grid2">
+          <label>Estilo<select name="Estilo" id="sel-estilo"><option value="">— Sin definir —</option></select></label>
+          <label>Ambiente<select name="Ambiente"><option value="">—</option><option>Exterior</option><option>Interior</option><option>Semi-sombra</option></select></label>
+        </div>
+        <label>Código SKU (opcional, código antiguo o etiqueta)<input name="Código SKU" placeholder="AFTAB1"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Medidas y estado</legend>
+        <div class="grid2">
+          <label>Altura (cm)<input name="Altura (cm)" type="number" inputmode="decimal" min="0" step="0.5"></label>
+          <label>Edad (años)<input name="Edad (años)" type="number" inputmode="numeric" min="0" step="1"></label>
+        </div>
+        <div class="grid2">
+          <label>Maceta<input name="Maceta" list="dl-macetas" placeholder="Ovalada"></label>
+          <label>Ubicación física<input name="Ubicación física" list="dl-ubicaciones" placeholder="Vivero, mesa 2"></label>
+        </div>
+        <div class="grid2">
+          <label>Estado de salud<select name="Estado de salud"><option value="">—</option><option>Excelente</option><option>Bien</option><option>Normal</option><option>En observación</option><option>Enfermo</option></select></label>
+          <label>Estado comercial<select name="Estado comercial"><option>Disponible</option><option>Reservado</option><option>Vendido</option><option>En formación</option><option>Baja</option></select></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Precio</legend>
+        <div class="grid2">
+          <label>Costo total ($)<input name="Costo total" type="number" inputmode="decimal" min="0" step="0.01"></label>
+          <label>Precio de venta ($) *<input name="Precio venta" type="number" inputmode="decimal" min="0" step="0.01" required></label>
+        </div>
+        <p class="hint" id="margen-hint"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ficha para la tienda</legend>
+        <label>Riego<input name="Riego" list="dl-riego" placeholder="Moderado"></label>
+        <label>Historia (1–2 frases que verá el cliente)<textarea name="Historia" rows="3"></textarea></label>
+        <label class="check"><input type="checkbox" name="Destacado" value="Sí"><span>Destacado en la portada</span></label>
+        <label>Notas internas<textarea name="Notas" rows="2"></textarea></label>
+        <details class="help"><summary>Avanzado</summary>
+          <label>Carpeta de fotos local (respaldo, ej. Bonsai1)<input name="Carpeta imagen"></label>
+        </details>
+      </fieldset>
+
+      <div class="sticky-actions">
+        <button type="submit" class="btn solid big" id="btn-guardar">Guardar ejemplar</button>
+      </div>
+      <div id="progreso" class="progress" hidden>
+        <div class="progress-bar"><i id="progreso-bar"></i></div>
+        <p id="progreso-msg"></p>
+        <button type="button" class="btn small" id="btn-reintentar" hidden>Reintentar</button>
+      </div>
+    </form>
+
+    <datalist id="dl-especies">
+      <option value="Juniperus chinensis 'Shimpaku'"><option value="Juniperus procumbens 'Nana'"><option value="Juniperus chinensis 'San José'">
+      <option value="Juniperus squamata"><option value="Buxus sp."><option value="Ficus retusa"><option value="Ulmus parvifolia">
+    </datalist>
+    <datalist id="dl-macetas"><option value="Ovalada"><option value="Redonda"><option value="Rectangular"><option value="Cuadrada"><option value="Plástico de formación"><option value="Cerámica esmaltada"></datalist>
+    <datalist id="dl-ubicaciones"><option value="Vivero"><option value="Casa"><option value="Bodega principal"><option value="Exhibición"></datalist>
+    <datalist id="dl-riego"><option value="Moderado"><option value="Abundante"><option value="Escaso"><option value="Diario en verano"></datalist>
+  </section>
+
+  <!-- ============ VENTA ============ -->
+  <section class="view" data-view="venta" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Registrar venta</h1>
+    <form id="form-venta" class="form">
+      <label>Ejemplar *<select name="id" id="venta-ejemplar" required></select></label>
+      <label>Cliente *<input name="cliente" required></label>
+      <label>Contacto (WhatsApp / correo)<input name="contacto"></label>
+      <div class="grid2">
+        <label>Precio final ($) *<input name="precioFinal" type="number" inputmode="decimal" min="0" step="0.01" required></label>
+        <label>Fecha<input name="fecha" type="date"></label>
+      </div>
+      <div class="grid2">
+        <label>Plan de acompañamiento<select name="plan"><option value="">Sin acompañamiento</option><option>Primeros Brotes</option><option>Cultivo Guiado</option><option>Legado Completo</option></select></label>
+        <label>Estado<select name="estado"><option>Pagado</option><option>Pendiente</option></select></label>
+      </div>
+      <label>Notas<textarea name="notas" rows="2"></textarea></label>
+      <p class="hint">Al guardar, el ejemplar pasa a <b>Vendido</b> (o <b>Reservado</b> si el pago está pendiente) y desaparece de la tienda.</p>
+      <button type="submit" class="btn solid big">Guardar venta</button>
+      <p class="msg" id="venta-msg"></p>
+    </form>
+  </section>
+
+  <!-- ============ CUIDADO ============ -->
+  <section class="view" data-view="cuidado" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Registrar cuidado</h1>
+    <form id="form-cuidado" class="form">
+      <label>Ejemplar *<select name="id" id="cuidado-ejemplar" required></select></label>
+      <div class="grid2">
+        <label>Tipo *<select name="tipo" required><option>Poda</option><option>Trasplante</option><option>Alambrado</option><option>Fertilización</option><option>Riego</option><option>Tratamiento</option><option>Revisión</option></select></label>
+        <label>Fecha<input name="fecha" type="date"></label>
+      </div>
+      <div class="grid2">
+        <label>Fase lunar<select name="faseLunar"><option value="">—</option><option>Luna nueva</option><option>Cuarto creciente</option><option>Luna llena</option><option>Cuarto menguante</option></select></label>
+        <label>Estado de salud (si cambió)<select name="estadoSalud"><option value="">Sin cambio</option><option>Excelente</option><option>Bien</option><option>Normal</option><option>En observación</option><option>Enfermo</option></select></label>
+      </div>
+      <label>Detalle<textarea name="detalle" rows="3" placeholder="Qué se hizo, con qué material, observaciones"></textarea></label>
+      <div class="grid2">
+        <label>Responsable<input name="responsable"></label>
+        <label>Próxima revisión<input name="proxima" type="date"></label>
+      </div>
+      <button type="submit" class="btn solid big">Guardar cuidado</button>
+      <p class="msg" id="cuidado-msg"></p>
+    </form>
+  </section>
+
+  <!-- ============ MATERIALES ============ -->
+  <section class="view" data-view="materiales" hidden>
+    <h1>Materiales</h1>
+    <p class="count" id="materiales-total"></p>
+    <div class="table-wrap"><table class="table" id="tabla-materiales"></table></div>
+    <h2>Agregar o ajustar</h2>
+    <form id="form-material" class="form">
+      <label>Material *<input name="nombre" list="dl-materiales" required placeholder="Alambre bonsái calibre 2"></label>
+      <div class="grid2">
+        <label>Ajuste de cantidad (+ entrada / − salida)<input name="ajuste" type="number" inputmode="decimal" step="any" placeholder="-1"></label>
+        <label>o cantidad total<input name="cantidad" type="number" inputmode="decimal" min="0" step="any"></label>
+      </div>
+      <div class="grid2">
+        <label>Unidad<input name="unidad" placeholder="Rollo"></label>
+        <label>Costo unitario ($)<input name="costoUnitario" type="number" inputmode="decimal" min="0" step="0.01"></label>
+      </div>
+      <label>Observaciones<input name="observaciones"></label>
+      <button type="submit" class="btn solid big">Guardar</button>
+      <p class="msg" id="material-msg"></p>
+    </form>
+    <datalist id="dl-materiales"></datalist>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <a href="#/inicio" data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</a>
+  <a href="#/ejemplares" data-tab="ejemplares"><svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zM4 11h16v4H4zM4 17h16v3H4z"/></svg>Ejemplares</a>
+  <a href="#/nuevo" data-tab="formulario" class="tab-add"><span>＋</span>Nuevo</a>
+  <a href="#/materiales" data-tab="materiales"><svg viewBox="0 0 24 24"><path d="M4 7h16l-1.5 13h-13zM9 7V4h6v3"/></svg>Materiales</a>
+  <a href="#/config" data-tab="config"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8 4-2 .6a6.6 6.6 0 0 1-.7 1.6l1 1.8-2 2-1.8-1a6.6 6.6 0 0 1-1.6.7L12.6 20h-1.2l-.6-2.3a6.6 6.6 0 0 1-1.6-.7l-1.8 1-2-2 1-1.8a6.6 6.6 0 0 1-.7-1.6L4 12v-1.2l2.3-.6c.2-.6.4-1.1.7-1.6L6 6.8l2-2 1.8 1c.5-.3 1-.5 1.6-.7L12 3h1.2l.6 2.3c.6.2 1.1.4 1.6.7l1.8-1 2 2-1 1.8c.3.5.5 1 .7 1.6L20 10.8z"/></svg>Ajustes</a>
+</nav>
+
+<!-- ============ OVERLAY MODO 360 ============ -->
+<div id="overlay-360" class="overlay" hidden>
+  <div class="overlay-head">
+    <strong>Modo 360° automático</strong>
+    <button type="button" class="icon-btn" id="btn-cerrar-360" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="cam-wrap">
+    <video id="cam" autoplay playsinline muted></video>
+    <div class="cam-guide"></div>
+    <div class="cam-overlay" id="cam-countdown"></div>
+  </div>
+  <div class="cam-settings">
+    <label>Fotos<select id="cam-n"><option>8</option><option selected>12</option><option>16</option><option>24</option></select></label>
+    <label>Cada (s)<select id="cam-int"><option>1.5</option><option selected>2</option><option>3</option><option>4</option></select></label>
+    <label>Cámara<select id="cam-facing"><option value="environment" selected>Trasera</option><option value="user">Frontal</option></select></label>
+  </div>
+  <p class="hint light">Enciende la base giratoria, encuadra el árbol dentro de la guía y pulsa Iniciar. La app toma una foto cada intervalo hasta completar la vuelta. Ajusta el intervalo a la velocidad de tu base: una vuelta completa ≈ fotos × intervalo.</p>
+  <div class="row center">
+    <button type="button" class="btn solid big" id="btn-iniciar-360">Iniciar</button>
+    <button type="button" class="btn big" id="btn-detener-360" hidden>Detener</button>
+  </div>
+  <p class="msg light" id="cam-msg"></p>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="../config.js"></script>
+<script type="module" src="admin.js"></script>
+</body>
+</html>

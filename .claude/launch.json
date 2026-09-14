@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "legado-bonsai",
+      "runtimeExecutable": "powershell.exe",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "C:/Users/Usuario/iCloudDrive/PROYECTO HTML BONSAI/.claude/static-server.ps1"
+      ],
+      "port": 5500
+    }
+  ]
+}

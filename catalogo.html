@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo — Legado Bonsai · 家族の木</title>
+<meta name="description" content="Catálogo completo de junípero bonsái de Legado Bonsai: filtra por estilo, ambiente y precio, gira cada árbol en 360° y reserva por WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  (function(){
+    var t = localStorage.getItem('legadoBonsaiTheme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/img/logo-negro.png" alt="Legado Bonsai">
+      <span class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html#marca">Nuestro legado</a></li>
+      <li><a href="index.html#estilos">Estilos</a></li>
+      <li><a href="catalogo.html" aria-current="page">Catálogo</a></li>
+      <li><a href="index.html#servicios">Acompañamiento</a></li>
+      <li><a href="index.html#talleres">Talleres</a></li>
+      <li><a href="index.html#calendario">Cuidado lunar</a></li>
+      <li><a href="index.html#contacto">Contacto</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle-btn" aria-label="Cambiar a modo oscuro">
+        <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+        <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7"/></svg>
+      </button>
+      <button class="icon-btn" id="cart-open-btn" aria-label="Abrir carrito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/></svg>
+        <span class="cart-count visually-hidden" id="cart-count">0</span>
+      </button>
+      <button class="icon-btn nav-toggle" id="nav-toggle-btn" aria-label="Abrir menú" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <section class="catalog-page-head">
+    <div class="wrap">
+      <a class="back" href="index.html">← Volver al inicio</a>
+      <div class="eyebrow">Catálogo completo</div>
+      <h1>Todos nuestros junípero</h1>
+      <p>Cada ejemplar es único: gira la imagen 360° antes de decidir. Precios y disponibilidad se actualizan directamente desde nuestro inventario.</p>
+    </div>
+  </section>
+
+  <div class="catalog-toolbar">
+    <div class="wrap">
+      <div class="toolbar-row">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="catalog-search" placeholder="Buscar por nombre, estilo o especie" autocomplete="off">
+        </div>
+        <div class="toolbar-controls">
+          <div class="filter-group">
+            <label for="filter-ambiente">Ambiente</label>
+            <select id="filter-ambiente">
+              <option value="all">Todos</option>
+              <option value="exterior">Exterior</option>
+              <option value="interior">Interior</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="sort-by">Ordenar por</label>
+            <select id="sort-by">
+              <option value="default">Recomendados</option>
+              <option value="price-asc">Precio: menor a mayor</option>
+              <option value="price-desc">Precio: mayor a menor</option>
+              <option value="name-asc">Nombre: A-Z</option>
+              <option value="name-desc">Nombre: Z-A</option>
+            </select>
+          </div>
+          <div class="catalog-count" id="catalog-count">Cargando…</div>
+        </div>
+      </div>
+      <div class="chips" id="style-chips"></div>
+    </div>
+  </div>
+
+  <section class="catalog-body">
+    <div class="wrap">
+      <div id="catalog-status" class="catalog-status">Cargando el catálogo…</div>
+      <div class="product-grid dense" id="product-grid"></div>
+      <div class="catalog-more" id="catalog-more-wrap" hidden>
+        <button class="btn btn-outline" id="catalog-more-btn">Ver más productos</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="kintsugi" aria-hidden="true"></div>
+
+<footer class="site-footer" id="contacto">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">
+          <div class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></div>
+          <span class="hanko" aria-hidden="true">永</span>
+        </div>
+        <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Facebook</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Explorar</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="index.html#servicios">Acompañamiento</a></li>
+          <li><a href="index.html#talleres">Talleres</a></li>
+          <li><a href="index.html#calendario">Cuidado lunar</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Términos y condiciones</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Escríbenos</h4>
+        <form class="contact-form" id="contact-form">
+          <input type="text" name="nombre" placeholder="Nombre" required>
+          <input type="email" name="correo" placeholder="Correo electrónico" required>
+          <textarea name="mensaje" placeholder="Mensaje" required></textarea>
+          <button type="submit" class="btn btn-primary btn-block">Enviar mensaje</button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; <span id="year"></span> Legado Bonsai · 家族の木. Todos los derechos reservados.</div>
+  </div>
+</footer>
+
+<!-- MODAL DE PRODUCTO -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">&times;</button>
+    <div class="modal-grid">
+      <div class="viewer" id="modal-viewer">
+        <div class="viewer-placeholder" id="modal-viewer-placeholder" hidden>
+          <div class="kanji">近日</div>
+          <span>Foto 360° próximamente</span>
+        </div>
+        <img id="modal-viewer-img" alt="">
+        <span class="hint">Arrastra para girar 360°</span>
+        <button class="viewer-nav prev" id="viewer-prev" aria-label="Anterior">&#8249;</button>
+        <button class="viewer-nav next" id="viewer-next" aria-label="Siguiente">&#8250;</button>
+        <div class="viewer-progress"><i id="viewer-progress-bar"></i></div>
+      </div>
+      <div class="modal-info">
+        <div class="style-tag" id="modal-style"></div>
+        <h2 id="modal-title"></h2>
+        <div class="species" id="modal-species"></div>
+        <p class="story" id="modal-story"></p>
+        <div class="spec-grid" id="modal-specs"></div>
+
+        <div class="care-accordion">
+          <details open>
+            <summary>Ficha de cuidado</summary>
+            <div id="modal-care"></div>
+          </details>
+        </div>
+
+        <div>
+          <label style="font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; display:block; margin-bottom:.5rem;">Acompañamiento (opcional)</label>
+          <div class="tier-picker" id="modal-tier-picker">
+            <label class="tier-opt"><input type="radio" name="tier" value=""><span><strong>Sin acompañamiento</strong><span> Solo el árbol.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Primeros Brotes"><span><strong>Primeros Brotes</strong><span> Guía + 1 videollamada.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Cultivo Guiado"><span><strong>Cultivo Guiado</strong><span> Trasplante, poda y alambrado el primer año.</span></span></label>
+            <label class="tier-opt"><input type="radio" name="tier" value="Legado Completo"><span><strong>Legado Completo</strong><span> Acompañamiento de por vida + certificado.</span></span></label>
+          </div>
+        </div>
+
+        <div class="qty-row">
+          <div class="qty-stepper">
+            <button type="button" id="qty-minus" aria-label="Restar">&minus;</button>
+            <span id="qty-value">1</span>
+            <button type="button" id="qty-plus" aria-label="Sumar">&plus;</button>
+          </div>
+          <div class="modal-price" id="modal-price"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="modal-add-cart">Agregar al carrito</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARRITO -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer" aria-label="Carrito de compras">
+  <div class="cart-head">
+    <h3>Tu carrito</h3>
+    <button class="modal-close" id="cart-close-btn" style="position:static; background:none; color:var(--ink-soft);" aria-label="Cerrar carrito">&times;</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
+    <button class="btn btn-primary btn-block" id="cart-checkout-btn">Finalizar por WhatsApp</button>
+    <p style="font-size:.74rem; color:var(--ink-soft); text-align:center; margin:0;">Confirmamos disponibilidad, pago y envío directamente por WhatsApp.</p>
+  </div>
+</aside>
+
+<!-- CHAT FAQ -->
+<div id="chat-widget">
+  <button id="chat-button" aria-label="Abrir chat de ayuda">&#128172;</button>
+  <div id="chat-box">
+    <div id="chat-header">
+      <h3>Chat de ayuda</h3>
+      <button id="close-chat" aria-label="Cerrar chat">&times;</button>
+    </div>
+    <div id="chat-body">
+      <div class="message bot">¡Hola! Soy el asistente de Legado Bonsai. Elige una pregunta:</div>
+      <div id="faq-options"></div>
+    </div>
+    <div id="chat-footer">
+      <p>Para comprar, escríbenos directo al <a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a>.</p>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/593988731431" class="wa-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.2 8.7 3.2 15.7c0 2.5.7 4.8 1.9 6.8L3 29l6.7-2c1.9 1 4.1 1.6 6.3 1.6 7 0 12.8-5.7 12.8-12.7C28.8 8.7 23 3 16 3zm0 23.1c-2 0-3.9-.5-5.5-1.5l-.4-.2-4 1.1 1.1-3.9-.3-.4a10.4 10.4 0 0 1-1.6-5.5C5.3 9.9 10 5.2 16 5.2S26.7 9.9 26.7 15.9 22 26.1 16 26.1zm5.9-7.6c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.5-.1-.1-.3-.2-.6-.4z"/></svg>
+</a>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

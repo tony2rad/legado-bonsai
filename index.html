@@ -8,6 +8,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script>
+  (function(){
+    var t = localStorage.getItem('legadoBonsaiTheme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 </head>
 <body>
 
@@ -15,16 +21,22 @@
   <nav class="nav wrap">
     <a class="brand" href="#inicio">
       <img src="assets/img/logo-negro.png" alt="Legado Bonsai">
-      <span class="jp">家族の木</span>
+      <span class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></span>
     </a>
     <ul class="nav-links">
       <li><a href="#marca">Nuestro legado</a></li>
-      <li><a href="#catalogo">Catálogo</a></li>
+      <li><a href="#estilos">Estilos</a></li>
+      <li><a href="catalogo.html">Catálogo</a></li>
       <li><a href="#servicios">Acompañamiento</a></li>
+      <li><a href="#talleres">Talleres</a></li>
       <li><a href="#calendario">Cuidado lunar</a></li>
       <li><a href="#contacto">Contacto</a></li>
     </ul>
     <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle-btn" aria-label="Cambiar a modo oscuro">
+        <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+        <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7"/></svg>
+      </button>
       <button class="icon-btn" id="cart-open-btn" aria-label="Abrir carrito">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.5" r="1.3" fill="currentColor" stroke="none"/></svg>
         <span class="cart-count visually-hidden" id="cart-count">0</span>
@@ -46,11 +58,12 @@
         <h1>Un junípero que se cuida hoy y se hereda mañana.</h1>
         <p class="lede">Legado Bonsai cultiva junípero de cuatro estilos distintos y te acompaña en cada trasplante, poda y alambrado — para que tu árbol crezca contigo y, algún día, con quien venga después.</p>
         <div class="hero-ctas">
-          <a href="#catalogo" class="btn btn-primary">Explorar catálogo</a>
+          <a href="catalogo.html" class="btn btn-primary">Explorar catálogo</a>
           <a href="#marca" class="btn btn-ghost">Conoce el legado</a>
         </div>
       </div>
       <figure class="hero-figure">
+        <div class="vertical-jp" aria-hidden="true">一期一会</div>
         <div class="frame"><img src="imagenes/360/Bonsai1/bonsai1_01.jpg" alt="Junípero Legado Bonsai, estilo erguido"></div>
         <figcaption>直幹 · Chokkan — fotografiado en nuestro propio set 360°</figcaption>
       </figure>
@@ -89,6 +102,100 @@
     </div>
   </section>
 
+  <!-- ESTILOS -->
+  <section class="section" id="estilos">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Los 4 estilos</div>
+        <h2>Cada estilo, un carácter distinto</h2>
+        <p>Compara los cuatro estilos de junípero que cultivamos antes de elegir el tuyo en el catálogo.</p>
+      </div>
+      <div class="styles-compare-wrap">
+        <table class="styles-compare">
+          <thead>
+            <tr>
+              <th class="row-label"></th>
+              <th>
+                <div class="style-col">
+                  <svg class="style-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 40h18l-2.5 5h-13z"/>
+                    <path d="M24 40V10"/>
+                    <path d="M24 18l7-5M24 24l-6-4M24 12l5-3"/>
+                  </svg>
+                  <span class="style-jp">直幹</span>
+                  <span class="style-name">Chokkan · Erguido</span>
+                </div>
+              </th>
+              <th>
+                <div class="style-col">
+                  <svg class="style-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 40h18l-2.5 5h-13z"/>
+                    <path d="M24 40c0-6 8-8 8-14s-10-6-10-13"/>
+                    <path d="M22 20l-6-3M28 26l6-2"/>
+                  </svg>
+                  <span class="style-jp">模様木</span>
+                  <span class="style-name">Moyogi · Inclinado</span>
+                </div>
+              </th>
+              <th>
+                <div class="style-col">
+                  <svg class="style-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 40h18l-2.5 5h-13z"/>
+                    <path d="M20 40c0-4 6-3 7-8s-4-6-2-11"/>
+                    <path d="M25 21c2 5-2 8-4 13s0 9-3 12"/>
+                  </svg>
+                  <span class="style-jp">懸崖</span>
+                  <span class="style-name">Kengai · Cascada</span>
+                </div>
+              </th>
+              <th>
+                <div class="style-col">
+                  <svg class="style-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 40c2-6 4-9 4-9h16s2 3 4 9z"/>
+                    <path d="M24 31V14"/>
+                    <path d="M18 31c1-4 3-6 3-6M30 31c-1-4-3-6-3-6"/>
+                  </svg>
+                  <span class="style-jp">石上根</span>
+                  <span class="style-name">Sekijoju · Raíz sobre roca</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Significado</td>
+              <td>El tronco crece recto y vertical, sin curvas — la forma más antigua y disciplinada del bonsái.</td>
+              <td>El tronco serpentea en curvas suaves, como si lo hubiera formado el viento con los años.</td>
+              <td>El tronco cae por debajo del borde de la maceta, imitando un árbol aferrado a un acantilado.</td>
+              <td>Las raíces se aferran visiblemente a una roca antes de llegar al sustrato.</td>
+            </tr>
+            <tr>
+              <td class="row-label">Ambiente ideal</td>
+              <td>Exterior, sol directo</td>
+              <td>Exterior o interior luminoso</td>
+              <td>Exterior, sombra parcial</td>
+              <td>Interior luminoso o exterior</td>
+            </tr>
+            <tr>
+              <td class="row-label">Nivel de cuidado</td>
+              <td>●●○ Moderado</td>
+              <td>●●○ Moderado</td>
+              <td>●●● Exigente</td>
+              <td>●●○ Moderado</td>
+            </tr>
+            <tr>
+              <td class="row-label">Ideal para</td>
+              <td>Quien busca fuerza y quietud en un solo trazo.</td>
+              <td>El estilo más versátil — un buen primer bonsái.</td>
+              <td>Quien quiere una pieza dramática y de exhibición.</td>
+              <td>Quien busca una historia visual de perseverancia.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- CATALOGO -->
   <section class="section alt" id="catalogo">
     <div class="wrap">
@@ -98,35 +205,27 @@
         <p>Cada ejemplar es único: gira la imagen 360° antes de decidir. Precios y disponibilidad se actualizan directamente desde nuestro inventario.</p>
       </div>
 
-      <div class="filters-bar">
-        <div class="filters-row">
-          <div class="filter-group">
-            <label for="filter-estilo">Estilo</label>
-            <select id="filter-estilo"><option value="all">Todos</option></select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-ambiente">Ambiente</label>
-            <select id="filter-ambiente">
-              <option value="all">Todos</option>
-              <option value="exterior">Exterior</option>
-              <option value="interior">Interior</option>
-            </select>
-          </div>
+      <div id="catalog-status" class="catalog-status">Cargando el catálogo…</div>
+
+      <div class="carousel-wrap" id="carousel-wrap" hidden>
+        <div class="carousel-head">
+          <h3>Destacados</h3>
+          <a href="catalogo.html" class="carousel-see-all">Ver catálogo completo →</a>
         </div>
-        <div class="filter-group">
-          <label for="sort-by">Ordenar por</label>
-          <select id="sort-by">
-            <option value="default">Recomendados</option>
-            <option value="price-asc">Precio: menor a mayor</option>
-            <option value="price-desc">Precio: mayor a menor</option>
-            <option value="name-asc">Nombre: A-Z</option>
-            <option value="name-desc">Nombre: Z-A</option>
-          </select>
+        <div class="carousel-track-wrap">
+          <button class="carousel-nav prev" id="carousel-prev" aria-label="Anterior">&#8249;</button>
+          <div class="carousel-track" id="carousel-track"></div>
+          <button class="carousel-nav next" id="carousel-next" aria-label="Siguiente">&#8250;</button>
         </div>
       </div>
 
-      <div id="catalog-status" class="catalog-status">Cargando el catálogo…</div>
-      <div class="product-grid" id="product-grid"></div>
+      <div class="catalog-cta" id="catalog-cta" hidden>
+        <div>
+          <div class="catalog-cta-count" id="catalog-cta-count"></div>
+          <p>Filtra por estilo, ambiente o precio y encuentra el que va contigo.</p>
+        </div>
+        <a href="catalogo.html" class="btn btn-primary">Ver catálogo completo</a>
+      </div>
     </div>
   </section>
 
@@ -169,6 +268,59 @@
       </div>
     </div>
   </section>
+
+  <!-- TALLERES -->
+  <section class="section alt" id="talleres">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Talleres presenciales</div>
+        <h2>No hace falta tener un árbol para empezar</h2>
+        <p>Sesiones prácticas en grupos pequeños o uno a uno, en nuestro taller o a domicilio. Practicas sobre bonsáis reales — los tuyos o los del taller.</p>
+      </div>
+      <!-- TODO: confirmar cupos, fechas y precios vigentes antes de publicar -->
+      <div class="workshop-grid">
+        <div class="workshop-card">
+          <div class="jp">入門</div>
+          <h3>Introducción al Bonsái</h3>
+          <div class="meta">2 horas · Sin experiencia previa</div>
+          <p>Ubicación, luz, riego y cómo leer las señales de tu árbol. Ideal antes de comprar tu primer junípero.</p>
+          <div class="workshop-price">$25 <span>por persona</span></div>
+          <a class="btn btn-outline btn-block" href="https://wa.me/593988731431?text=Quiero%20reservar%20cupo%20en%20el%20taller%20de%20Introducci%C3%B3n%20al%20Bonsai" target="_blank" rel="noopener">Reservar cupo</a>
+        </div>
+        <div class="workshop-card highlight">
+          <div class="jp">針金と剪定</div>
+          <h3>Alambrado y Poda</h3>
+          <div class="meta">3 horas · Ya tienes un árbol</div>
+          <p>Practicas la técnica de pellizcar y aplicar alambre sobre un árbol real, con acompañamiento directo.</p>
+          <div class="workshop-price">$40 <span>incluye alambre</span></div>
+          <a class="btn btn-primary btn-block" href="https://wa.me/593988731431?text=Quiero%20reservar%20cupo%20en%20el%20taller%20de%20Alambrado%20y%20Poda" target="_blank" rel="noopener">Reservar cupo</a>
+        </div>
+        <div class="workshop-card">
+          <div class="jp">植え替え</div>
+          <h3>Trasplante Guiado</h3>
+          <div class="meta">2.5 horas · Nivel intermedio</div>
+          <p>Trasplantas tu propio árbol con sustrato y guía profesional, sin arriesgar la raíz.</p>
+          <div class="workshop-price">$35 <span>+ sustrato</span></div>
+          <a class="btn btn-outline btn-block" href="https://wa.me/593988731431?text=Quiero%20reservar%20cupo%20en%20el%20taller%20de%20Trasplante%20Guiado" target="_blank" rel="noopener">Reservar cupo</a>
+        </div>
+        <div class="workshop-card">
+          <div class="jp">贈り物</div>
+          <h3>Experiencia en Pareja</h3>
+          <div class="meta">2 horas · Para 2 personas</div>
+          <p>Cada quien forma su propio junípero para llevarse a casa. Un regalo distinto para una fecha especial.</p>
+          <div class="workshop-price">$90 <span>incluye 2 junípero</span></div>
+          <a class="btn btn-outline btn-block" href="https://wa.me/593988731431?text=Quiero%20reservar%20la%20Experiencia%20en%20Pareja" target="_blank" rel="noopener">Reservar cupo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shodo" aria-hidden="true">
+    <svg viewBox="0 0 240 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 14c30-10 60 6 90-2s54-10 84 0 46 8 58 2" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+      <path d="M4 14c30-10 60 6 90-2s54-10 84 0 46 8 58 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+    </svg>
+  </div>
 
   <!-- CALENDARIO LUNAR -->
   <section class="section alt" id="calendario">
@@ -241,13 +393,16 @@
 
 </main>
 
-<div class="seigaiha" aria-hidden="true"></div>
+<div class="kintsugi" aria-hidden="true"></div>
 
 <footer class="site-footer" id="contacto">
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="jp">家族の木</div>
+        <div class="footer-mark">
+          <div class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></div>
+          <span class="hanko" aria-hidden="true">永</span>
+        </div>
         <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
         <ul class="footer-links">
           <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
@@ -258,8 +413,9 @@
       <div>
         <h4>Explorar</h4>
         <ul class="footer-links">
-          <li><a href="#catalogo">Catálogo</a></li>
+          <li><a href="catalogo.html">Catálogo</a></li>
           <li><a href="#servicios">Acompañamiento</a></li>
+          <li><a href="#talleres">Talleres</a></li>
           <li><a href="#calendario">Cuidado lunar</a></li>
           <li><a href="#">Política de privacidad</a></li>
           <li><a href="#">Términos y condiciones</a></li>
@@ -384,6 +540,7 @@
   <svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.2 8.7 3.2 15.7c0 2.5.7 4.8 1.9 6.8L3 29l6.7-2c1.9 1 4.1 1.6 6.3 1.6 7 0 12.8-5.7 12.8-12.7C28.8 8.7 23 3 16 3zm0 23.1c-2 0-3.9-.5-5.5-1.5l-.4-.2-4 1.1 1.1-3.9-.3-.4a10.4 10.4 0 0 1-1.6-5.5C5.3 9.9 10 5.2 16 5.2S26.7 9.9 26.7 15.9 22 26.1 16 26.1zm5.9-7.6c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.5-.1-.1-.3-.2-.6-.4z"/></svg>
 </a>
 
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

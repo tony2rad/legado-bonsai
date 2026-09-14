@@ -1,24 +1,25 @@
 /* ==========================================================================
    Legado Bonsai — lógica de la tienda
-   Fuente de inventario: Google Sheet publicado como CSV (misma hoja que ya
-   usaba el sitio). Columnas ya existentes: Nombre, Imagen, Altura, Maceta,
-   Edad, Ubicación, Riego, Precio.
-   Columnas OPCIONALES nuevas que enriquecen la ficha si las agregas a la
-   hoja (si faltan, se usa un texto genérico y no se rompe nada):
-     Estilo        -> ej. "Erguido"        (nombre del estilo en español)
-     EstiloJP       -> ej. "直幹 · Chokkan" (nombre del estilo en japonés)
-     Especie        -> ej. "Juniperus chinensis"
-     Ambiente       -> "Interior" o "Exterior" (para el filtro)
-     Historia       -> 1-2 frases de historia/significado del estilo
-     Ventilacion    -> texto de cuidado
-     Poda           -> texto de cuidado
-     Trasplante     -> texto de cuidado
-     Alambrado      -> texto de cuidado
-     Stock          -> número; 0 = agotado
+   Fuente de inventario (en este orden, ver config.js):
+     1. API_URL       -> Web App de Apps Script (apps-script/Code.gs) que
+                         devuelve JSON con los ejemplares "Disponible" de la
+                         pestaña INVENTARIO del Sheet "Sistema de Gestión".
+     2. SHEET_CSV_URL -> respaldo: pestaña CATALOGO publicada como CSV.
+   Ambas fuentes entregan filas con los encabezados del Sheet. Cada campo
+   acepta varios nombres de columna (ver `campo()` en normalizeProduct), así
+   la hoja puede usar "Nombre comercial" o "Nombre", "Altura (cm)" o "Altura".
+   Campos OPCIONALES que enriquecen la ficha (si faltan, texto genérico):
+     Estilo, EstiloJP / Estilo JP, Especie, Ambiente, Historia, Ventilacion,
+     Poda, Trasplante, Alambrado, Stock, Destacado.
+   Fotos: columna `Fotos` (URLs separadas por coma, subidas por la app de
+   registro a Drive) o, como respaldo, carpeta local imagenes/360/<Imagen>/.
    ========================================================================== */
 
-const WHATSAPP_NUMBER = '593988731431';
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7aPPBgI7Z-jHXECrFKBI9gbYMJiSHOYOyZiMqlzNEckqxuatlIeDuOhgyx2MEamadhFFqD4pk64hQ/pub?gid=1316703737&single=true&output=csv';
+const CFG = window.LEGADO_CONFIG || {};
+const WHATSAPP_NUMBER = CFG.WHATSAPP_NUMBER || '593988731431';
+const API_URL = CFG.API_URL || '';
+const SHEET_CSV_URL = CFG.SHEET_CSV_URL || '';
+const LOCAL_IMAGES_PATH = CFG.LOCAL_IMAGES_PATH || 'imagenes/360/';
 const CART_KEY = 'legadoBonsaiCart';
 
 let PRODUCTS = [];
@@ -70,57 +71,111 @@ function slugify(str) {
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 
+const $ = (id) => document.getElementById(id);
+/* Registra un listener solo si el elemento existe: el mismo script sirve a
+   index.html (portada) y catalogo.html (catálogo completo). */
+function on(id, evt, fn) { const el = $(id); if (el) el.addEventListener(evt, fn); }
+function normalizeText(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
 /* -------------------------------------------------------------------- */
 /*  Carga e interpretación del catálogo                                  */
 /* -------------------------------------------------------------------- */
 
+/* Intenta la API (JSON) y, si falla o no está configurada, el CSV publicado. */
+async function loadCatalogRows() {
+  const errores = [];
+  if (API_URL) {
+    try {
+      const res = await fetch(API_URL + (API_URL.includes('?') ? '&' : '?') + 'action=catalogo', { redirect: 'follow' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
+      return data.productos || [];
+    } catch (err) { errores.push('API: ' + err.message); }
+  }
+  if (SHEET_CSV_URL) {
+    try {
+      const res = await fetch(SHEET_CSV_URL);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return parseCsv(await res.text());
+    } catch (err) { errores.push('CSV: ' + err.message); }
+  }
+  throw new Error(errores.length ? errores.join(' | ') : 'Sin fuente de catálogo configurada (config.js)');
+}
+
 async function fetchCatalog() {
   const statusEl = document.getElementById('catalog-status');
   try {
-    const res = await fetch(SHEET_CSV_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const csv = await res.text();
-    const rows = parseCsv(csv);
-    if (!rows.length) throw new Error('Hoja vacía');
-    const products = await Promise.all(rows.map(normalizeProduct));
+    const rows = await loadCatalogRows();
+    if (!rows.length) throw new Error('Catálogo vacío');
+    const products = rows.map((row, i) => normalizeProduct(row, i));
     PRODUCTS = products;
-    statusEl.hidden = true;
-    populateStyleFilter(products);
-    renderCatalog();
+    if (statusEl) statusEl.hidden = true;
+    if ($('carousel-track')) renderCarousel();
+    if ($('catalog-cta')) renderCatalogCta();
+    if ($('product-grid')) {
+      renderStyleChips();
+      applyCatalogUrlParams();
+      renderCatalog();
+    }
   } catch (err) {
     console.error('No se pudo cargar el catálogo:', err);
+    if (!statusEl) return;
     statusEl.hidden = false;
     statusEl.innerHTML = 'No pudimos cargar el catálogo en este momento. ' +
       '<a href="https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hola, quiero ver los junípero disponibles') + '" target="_blank" rel="noopener" style="color:var(--kohaku); font-weight:700;">Escríbenos por WhatsApp</a> y te mostramos el stock al momento.';
   }
 }
 
-async function normalizeProduct(row) {
-  const carpeta = row.Imagen || '';
-  const images = carpeta ? await detectImages(carpeta) : [];
+function normalizeProduct(row, index) {
+  // Un campo puede venir con el encabezado de la tienda o el del Sheet de
+  // gestión: se toma el primero que tenga valor.
+  const campo = (...nombres) => {
+    for (const n of nombres) {
+      const v = row[n];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  };
+  const conUnidad = (valor, unidad) => (valor && /^[\d.,]+$/.test(valor)) ? valor + ' ' + unidad : valor;
+
+  const carpeta = campo('Carpeta imagen', 'Imagen');
+  const nombre = campo('Nombre comercial', 'Nombre') || 'Junípero Legado';
+  const fotos = campo('Fotos').split(/[\n,]/).map(s => s.trim()).filter(s => /^https?:\/\//.test(s));
+  const stockTxt = campo('Stock');
+  const estadoComercial = campo('Estado comercial');
+  // El ID del Sheet (LB-0001) es estable; si la fila no lo trae, se usa el
+  // número de fila para que el modal y el carrito correspondan a la tarjeta.
+  const id = campo('ID') || (slugify(nombre || carpeta || 'junipero') + '-' + (index + 1));
+
   return {
-    id: slugify(row.Nombre || carpeta || Math.random().toString(36).slice(2)),
-    nombre: row.Nombre || 'Junípero Legado',
-    estilo: row.Estilo || '',
-    estiloJp: row.EstiloJP || '',
-    especie: row.Especie || '',
-    ambiente: (row.Ambiente || '').toLowerCase(),
-    altura: row.Altura || '',
-    edad: row.Edad || '',
-    maceta: row.Maceta || '',
-    historia: row.Historia || 'Cada junípero se forma durante años de poda y alambrado cuidadoso — el tuyo continúa esa historia desde hoy.',
+    id,
+    nombre,
+    estilo: campo('Estilo'),
+    estiloJp: campo('EstiloJP', 'Estilo JP'),
+    especie: campo('Especie'),
+    ambiente: campo('Ambiente').toLowerCase(),
+    altura: conUnidad(campo('Altura', 'Altura (cm)'), 'cm'),
+    edad: conUnidad(campo('Edad', 'Edad (años)'), 'años'),
+    maceta: campo('Maceta'),
+    destacado: /^(s[ií]|yes|true|1)$/i.test(campo('Destacado')),
+    historia: campo('Historia') || 'Cada junípero se forma durante años de poda y alambrado cuidadoso — el tuyo continúa esa historia desde hoy.',
     cuidado: {
-      Ubicación: row['Ubicación'] || 'Luz solar directa varias horas al día; consúltanos según tu ciudad.',
-      Riego: row.Riego || 'Riega cuando la capa superior del sustrato esté seca al tacto.',
-      Ventilación: row.Ventilacion || row['Ventilación'] || 'Prefiere espacios con buena circulación de aire, idealmente al aire libre.',
-      Poda: row.Poda || 'Poda de mantenimiento según la fase lunar — te enviamos el calendario.',
-      Trasplante: row.Trasplante || 'Cada 2 a 3 años, preferiblemente en luna menguante.',
-      Alambrado: row.Alambrado || 'Disponible como parte del plan Cultivo Guiado.'
+      Ubicación: campo('Ubicación', 'Ambiente') || 'Luz solar directa varias horas al día; consúltanos según tu ciudad.',
+      Riego: campo('Riego') || 'Riega cuando la capa superior del sustrato esté seca al tacto.',
+      Ventilación: campo('Ventilacion', 'Ventilación') || 'Prefiere espacios con buena circulación de aire, idealmente al aire libre.',
+      Poda: campo('Poda') || 'Poda de mantenimiento según la fase lunar — te enviamos el calendario.',
+      Trasplante: campo('Trasplante') || 'Cada 2 a 3 años, preferiblemente en luna menguante.',
+      Alambrado: campo('Alambrado') || 'Disponible como parte del plan Cultivo Guiado.'
     },
-    precio: parsePrice(row.Precio),
-    precioTexto: row.Precio || '',
-    stock: row.Stock === undefined || row.Stock === '' ? null : parseInt(row.Stock, 10),
-    images
+    precio: parsePrice(campo('Precio', 'Precio venta')),
+    precioTexto: campo('Precio', 'Precio venta'),
+    stock: stockTxt !== '' ? parseInt(stockTxt, 10)
+      : (estadoComercial && estadoComercial !== 'Disponible' ? 0 : null),
+    carpeta,
+    fotos,
+    images: null,
+    imagesPromise: null
   };
 }
 
@@ -128,7 +183,7 @@ function detectImages(carpeta) {
   const prefix = carpeta.toLowerCase();
   const tryLoad = (n) => new Promise((resolve) => {
     const img = new Image();
-    const src = `imagenes/360/${carpeta}/${prefix}_${pad2(n)}.jpg`;
+    const src = `${LOCAL_IMAGES_PATH}${carpeta}/${prefix}_${pad2(n)}.jpg`;
     img.onload = () => resolve(src);
     img.onerror = () => resolve(null);
     img.src = src;
@@ -137,28 +192,94 @@ function detectImages(carpeta) {
     .then(results => results.filter(Boolean));
 }
 
+/* Carga las fotos de un producto solo cuando hace falta (tarjeta visible o
+   modal abierto) — evita disparar cientos de peticiones de golpe con un
+   catálogo grande. */
+function loadProductImages(p) {
+  if (p.images) return Promise.resolve(p.images);
+  if (!p.imagesPromise) {
+    // Prioridad: URLs de la columna Fotos (Drive); respaldo: carpeta local.
+    const fuente = (p.fotos && p.fotos.length) ? Promise.resolve(p.fotos)
+      : (p.carpeta ? detectImages(p.carpeta) : Promise.resolve([]));
+    p.imagesPromise = fuente.then(imgs => { p.images = imgs; return imgs; });
+  }
+  return p.imagesPromise;
+}
+
 /* -------------------------------------------------------------------- */
 /*  Render catálogo                                                      */
 /* -------------------------------------------------------------------- */
 
-function populateStyleFilter(products) {
-  const sel = document.getElementById('filter-estilo');
-  const estilos = [...new Set(products.map(p => p.estilo).filter(Boolean))];
-  estilos.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e; opt.textContent = e;
-    sel.appendChild(opt);
-  });
+const CATALOG_PAGE_SIZE = 16;
+let catalogVisibleCount = CATALOG_PAGE_SIZE;
+let activeEstilo = 'all';
+let searchQuery = '';
+
+function catalogStyles() {
+  return [...new Set(PRODUCTS.map(p => p.estilo).filter(Boolean))];
+}
+
+function renderStyleChips() {
+  const wrap = $('style-chips');
+  if (!wrap) return;
+  wrap.innerHTML = ['all', ...catalogStyles()].map(e => {
+    const label = e === 'all' ? 'Todos' : e;
+    const count = e === 'all' ? PRODUCTS.length : PRODUCTS.filter(p => p.estilo === e).length;
+    return `<button type="button" class="chip${e === activeEstilo ? ' active' : ''}" data-estilo="${e}">${label} <span>${count}</span></button>`;
+  }).join('');
+}
+
+function syncStyleChips() {
+  document.querySelectorAll('#style-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.estilo === activeEstilo));
+}
+
+function setActiveEstilo(estilo) {
+  activeEstilo = estilo;
+  syncStyleChips();
+  catalogVisibleCount = CATALOG_PAGE_SIZE;
+  syncCatalogUrl();
+  renderCatalog();
+}
+
+/* Permite enlaces profundos tipo catalogo.html?estilo=Cascada&q=shimpaku */
+function applyCatalogUrlParams() {
+  const params = new URLSearchParams(location.search);
+  const estilo = params.get('estilo');
+  if (estilo && catalogStyles().includes(estilo)) activeEstilo = estilo;
+  const q = params.get('q');
+  if (q) { searchQuery = q; const input = $('catalog-search'); if (input) input.value = q; }
+  syncStyleChips();
+}
+
+function syncCatalogUrl() {
+  const params = new URLSearchParams();
+  if (activeEstilo !== 'all') params.set('estilo', activeEstilo);
+  if (searchQuery) params.set('q', searchQuery);
+  const qs = params.toString();
+  history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+}
+
+function clearCatalogFilters() {
+  activeEstilo = 'all';
+  searchQuery = '';
+  const input = $('catalog-search'); if (input) input.value = '';
+  const amb = $('filter-ambiente'); if (amb) amb.value = 'all';
+  const sort = $('sort-by'); if (sort) sort.value = 'default';
+  syncStyleChips();
+  catalogVisibleCount = CATALOG_PAGE_SIZE;
+  syncCatalogUrl();
+  renderCatalog();
 }
 
 function getFilteredSorted() {
-  const estilo = document.getElementById('filter-estilo').value;
-  const ambiente = document.getElementById('filter-ambiente').value;
-  const sort = document.getElementById('sort-by').value;
+  const ambiente = $('filter-ambiente')?.value || 'all';
+  const sort = $('sort-by')?.value || 'default';
+  const q = normalizeText(searchQuery).trim();
 
   let list = PRODUCTS.filter(p => {
-    if (estilo !== 'all' && p.estilo !== estilo) return false;
+    if (activeEstilo !== 'all' && p.estilo !== activeEstilo) return false;
     if (ambiente !== 'all' && p.ambiente && p.ambiente !== ambiente) return false;
+    if (q && !normalizeText([p.nombre, p.estilo, p.estiloJp, p.especie].join(' ')).includes(q)) return false;
     return true;
   });
 
@@ -171,43 +292,106 @@ function getFilteredSorted() {
   return list;
 }
 
+/* Crea la tarjeta de producto y resuelve su foto de portada de forma
+   perezosa (placeholder washi mientras carga). */
+function buildProductCard(p) {
+  const card = document.createElement('article');
+  card.className = 'card';
+  const agotado = p.stock === 0;
+  const tag = [p.estiloJp || p.estilo, p.especie].filter(Boolean).join(' · ');
+  card.innerHTML = `
+    <div class="card-media" data-open-modal="${p.id}">
+      ${agotado ? `<span class="stock-badge">Agotado</span>` : ''}
+    </div>
+    <div class="card-body">
+      <div class="card-top">
+        <h3>${p.nombre}</h3>
+        <span class="price">${p.precio ? money(p.precio) : p.precioTexto || 'Consultar'}</span>
+      </div>
+      ${tag ? `<div class="card-tag">${tag}</div>` : ''}
+      <div class="card-actions">
+        <button class="mini-btn" data-open-modal="${p.id}">Ver detalle</button>
+        <button class="mini-btn solid" data-quick-add="${p.id}" ${agotado ? 'disabled' : ''}>Agregar</button>
+      </div>
+    </div>`;
+
+  const media = card.querySelector('.card-media');
+  loadProductImages(p).then(imgs => {
+    const badge = agotado ? `<span class="stock-badge">Agotado</span>` : '';
+    media.innerHTML = imgs[0]
+      ? `<img src="${imgs[0]}" alt="${p.nombre}" loading="lazy">${badge}`
+      : `<div class="viewer-placeholder" style="position:absolute; inset:0;"><div class="kanji">近日</div><span>Foto próximamente</span></div>${badge}`;
+  });
+
+  return card;
+}
+
 function renderCatalog() {
-  const grid = document.getElementById('product-grid');
-  const statusEl = document.getElementById('catalog-status');
+  const grid = $('product-grid');
+  const statusEl = $('catalog-status');
+  const moreWrap = $('catalog-more-wrap');
+  const countEl = $('catalog-count');
   const list = getFilteredSorted();
   grid.innerHTML = '';
 
+  if (countEl) {
+    countEl.textContent = list.length === PRODUCTS.length
+      ? `${PRODUCTS.length} árboles`
+      : `${list.length} de ${PRODUCTS.length} árboles`;
+  }
+
   if (!list.length) {
     statusEl.hidden = false;
-    statusEl.textContent = 'No hay junípero que coincidan con ese filtro por ahora.';
+    statusEl.innerHTML = 'No hay junípero que coincidan con esa búsqueda. <button type="button" class="link-btn" id="catalog-clear-btn">Limpiar filtros</button>';
+    moreWrap.hidden = true;
     return;
   }
   statusEl.hidden = true;
 
-  list.forEach(p => {
-    const card = document.createElement('article');
-    card.className = 'card';
-    const agotado = p.stock === 0;
-    const tag = [p.estiloJp || p.estilo, p.especie].filter(Boolean).join(' · ');
-    card.innerHTML = `
-      <div class="card-media" data-open-modal="${p.id}">
-        ${p.images[0] ? `<img src="${p.images[0]}" alt="${p.nombre}" loading="lazy">` : `<div class="viewer-placeholder" style="position:absolute; inset:0;"><div class="kanji">近日</div><span>Foto próximamente</span></div>`}
-        ${agotado ? `<span class="stock-badge">Agotado</span>` : ''}
-      </div>
-      <div class="card-body">
-        <div class="card-top">
-          <h3>${p.nombre}</h3>
-          <span class="price">${p.precio ? money(p.precio) : p.precioTexto || 'Consultar'}</span>
-        </div>
-        ${tag ? `<div class="card-tag">${tag}</div>` : ''}
-        <div class="card-actions">
-          <button class="mini-btn" data-open-modal="${p.id}">Ver detalle</button>
-          <button class="mini-btn solid" data-quick-add="${p.id}" ${agotado ? 'disabled' : ''}>Agregar</button>
-        </div>
-      </div>`;
-    grid.appendChild(card);
-  });
+  const visible = list.slice(0, catalogVisibleCount);
+  visible.forEach(p => grid.appendChild(buildProductCard(p)));
+
+  const remaining = list.length - visible.length;
+  if (remaining > 0) {
+    moreWrap.hidden = false;
+    $('catalog-more-btn').textContent = `Ver más productos (${remaining} restantes)`;
+  } else {
+    moreWrap.hidden = true;
+  }
   observeReveal(grid);
+}
+
+/* Franja horizontal de destacados en la portada: los primeros productos del
+   inventario, para explorar rápido sin pasar por filtros. */
+function renderCarousel() {
+  const wrap = $('carousel-wrap');
+  const track = $('carousel-track');
+  if (!wrap || !track) return;
+  if (!PRODUCTS.length) { wrap.hidden = true; return; }
+  track.innerHTML = '';
+  // Los marcados como "Destacado" en el Sheet van primero en la portada.
+  const orden = [...PRODUCTS.filter(p => p.destacado), ...PRODUCTS.filter(p => !p.destacado)];
+  orden.slice(0, 8).forEach(p => track.appendChild(buildProductCard(p)));
+  wrap.hidden = false;
+}
+
+function renderCatalogCta() {
+  const cta = $('catalog-cta');
+  if (!cta) return;
+  const n = PRODUCTS.length;
+  const estilos = catalogStyles().length;
+  $('catalog-cta-count').textContent =
+    `${n} ${n === 1 ? 'árbol disponible' : 'árboles disponibles'}` +
+    (estilos ? ` · ${estilos} ${estilos === 1 ? 'estilo' : 'estilos'}` : '');
+  cta.hidden = false;
+}
+
+function initCarouselNav() {
+  const track = $('carousel-track');
+  if (!track) return;
+  const step = () => Math.min(track.clientWidth * 0.8, 400);
+  on('carousel-prev', 'click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+  on('carousel-next', 'click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
 }
 
 /* -------------------------------------------------------------------- */
@@ -244,6 +428,7 @@ function openModal(id) {
 
   updateModalPrice();
   updateViewer();
+  loadProductImages(p).then(() => { if (modalProduct === p) updateViewer(); });
 
   const overlay = document.getElementById('product-modal');
   overlay.classList.add('open');
@@ -260,7 +445,7 @@ function updateViewer() {
   const img = document.getElementById('modal-viewer-img');
   const placeholder = document.getElementById('modal-viewer-placeholder');
   const bar = document.getElementById('viewer-progress-bar');
-  const images = modalProduct.images;
+  const images = modalProduct.images || [];
   if (!images.length) {
     img.hidden = true;
     placeholder.hidden = false;
@@ -275,7 +460,7 @@ function updateViewer() {
 }
 
 function stepViewer(delta) {
-  if (!modalProduct || !modalProduct.images.length) return;
+  if (!modalProduct || !modalProduct.images || !modalProduct.images.length) return;
   const n = modalProduct.images.length;
   modalImgIndex = (modalImgIndex + delta + n) % n;
   updateViewer();
@@ -288,13 +473,14 @@ function updateModalPrice() {
 }
 
 function initViewerDrag() {
-  const viewer = document.getElementById('modal-viewer');
+  const viewer = $('modal-viewer');
+  if (!viewer) return;
   let dragging = false, startX = 0, acc = 0;
   const THRESHOLD = 24;
 
   const start = (x) => { dragging = true; startX = x; acc = 0; };
   const move = (x) => {
-    if (!dragging || !modalProduct || !modalProduct.images.length) return;
+    if (!dragging || !modalProduct || !(modalProduct.images || []).length) return;
     const dx = x - startX;
     acc += dx;
     startX = x;
@@ -332,22 +518,28 @@ function addToCart(product, qty, tier) {
   if (existing) existing.cantidad += qty;
   else cart.push({
     key, id: product.id, nombre: product.nombre, precio: product.precio,
-    precioTexto: product.precioTexto, imagen: product.images[0] || '',
+    precioTexto: product.precioTexto, imagen: (product.images && product.images[0]) || '',
     cantidad: qty, tier: tier || ''
   });
   saveCart();
   renderCart();
+  loadProductImages(product).then(imgs => {
+    const item = cart.find(i => i.key === key);
+    if (item && !item.imagen && imgs[0]) { item.imagen = imgs[0]; saveCart(); renderCart(); }
+  });
 }
 
 function updateCartCount() {
   const count = cart.reduce((sum, i) => sum + i.cantidad, 0);
-  const badge = document.getElementById('cart-count');
+  const badge = $('cart-count');
+  if (!badge) return;
   badge.textContent = count;
   badge.classList.toggle('visually-hidden', count === 0);
 }
 
 function renderCart() {
-  const wrap = document.getElementById('cart-items');
+  const wrap = $('cart-items');
+  if (!wrap) return;
   if (!cart.length) {
     wrap.innerHTML = '<p class="cart-empty">Tu carrito está vacío. Explora el catálogo y elige tu primer legado.</p>';
   } else {
@@ -416,11 +608,20 @@ const LUNAR_CALENDAR = [
   { mes: 'Diciembre', fase: 'Cuarto menguante', accion: 'Poda ligera y preparación del árbol para su descanso.' }
 ];
 
+function seasonForMonth(m) {
+  if ([2, 3, 4].includes(m)) return 'spring';
+  if ([5, 6, 7].includes(m)) return 'summer';
+  if ([8, 9, 10].includes(m)) return 'autumn';
+  return 'winter';
+}
+
 function renderLunarCalendar() {
   const tbody = document.querySelector('#cal-table tbody');
+  if (!tbody) return;
   const currentMonth = new Date().getMonth();
+  const season = seasonForMonth(currentMonth);
   tbody.innerHTML = LUNAR_CALENDAR.map((row, i) => `
-    <tr class="${i === currentMonth ? 'current' : ''}">
+    <tr class="${i === currentMonth ? 'current season-' + season : ''}">
       <td class="month">${row.mes}</td>
       <td class="fase">${row.fase}</td>
       <td>${row.accion}</td>
@@ -428,6 +629,7 @@ function renderLunarCalendar() {
 
   const current = LUNAR_CALENDAR[currentMonth];
   const highlight = document.getElementById('moon-highlight');
+  highlight.className = 'moon-highlight season-' + season;
   highlight.querySelector('.phase').textContent = current.mes + ' — ' + current.fase;
   highlight.querySelector('p').textContent = current.accion;
 }
@@ -446,6 +648,7 @@ const FAQ = [
   { q: '¿Puedo elegir la maceta?', a: '🪴 ¡Sí! Tenemos opciones de maceta. Cuéntanos tu preferencia por WhatsApp.' },
   { q: '¿Qué estilos de junípero tienen?', a: '🌳 Manejamos junípero en 4 estilos: erguido, inclinado, cascada y raíz sobre roca.' },
   { q: '¿Puedo pedir un acompañamiento personalizado?', a: '🎨 Sí, cuéntanos qué necesitas (poda, trasplante, alambrado) y armamos un plan.' },
+  { q: '¿Dan talleres presenciales?', a: '🌳 Sí, tenemos talleres de Introducción al Bonsái, Alambrado y Poda, Trasplante Guiado, y una Experiencia en Pareja — no necesitas tener un árbol para tomarlos.' },
   { q: '¿Cómo sé si un junípero es de interior o exterior?', a: '🏡 Lo indicamos en cada ficha de producto. Dinos cuál te interesa y te asesoramos.' },
   { q: '¿Tienen redes sociales?', a: '📲 Sí, estamos en Instagram y Facebook. Te pasamos los links por WhatsApp.' },
   { q: '¿Cómo hago mi pedido?', a: '🛍️ Agrega tus junípero al carrito y presiona "Finalizar por WhatsApp".' },
@@ -454,7 +657,8 @@ const FAQ = [
 ];
 
 function renderFaq() {
-  const wrap = document.getElementById('faq-options');
+  const wrap = $('faq-options');
+  if (!wrap) return;
   wrap.innerHTML = FAQ.map(f => `<button class="faq-question" data-q="${f.q}">${f.q}</button>`).join('');
 }
 
@@ -463,6 +667,9 @@ function renderFaq() {
 /* -------------------------------------------------------------------- */
 
 let revealObserver = null;
+const REVEAL_SELECTOR = '.section-head, .pillar, .tier-card, .workshop-card, .step, .testimonial, ' +
+  '.blog-post, .quote-break-overlay, .card, .enso, .style-col, .prose, .moon-highlight, .cal-wrap, .catalog-cta';
+
 function observeReveal(root = document) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (!revealObserver) {
@@ -472,8 +679,98 @@ function observeReveal(root = document) {
       });
     }, { threshold: 0.14 });
   }
-  root.querySelectorAll('.section-head, .pillar, .tier-card, .step, .testimonial, .blog-post, .quote-break-overlay, .card, .enso')
-    .forEach((el) => { if (!el.classList.contains('in-view')) revealObserver.observe(el); });
+  root.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+    if (el.classList.contains('in-view')) return;
+    // Efecto cascada: los elementos de un mismo grupo (p. ej. una fila de
+    // tarjetas) aparecen con un pequeño desfase entre sí, no todos a la vez.
+    if (!el.dataset.revealStaggered) {
+      const siblings = Array.from(el.parentElement?.children || [])
+        .filter(c => c.matches(REVEAL_SELECTOR));
+      const idx = Math.min(siblings.indexOf(el), 5);
+      if (idx > 0) el.style.transitionDelay = (idx * 70) + 'ms';
+      el.dataset.revealStaggered = '1';
+    }
+    revealObserver.observe(el);
+  });
+}
+
+/* -------------------------------------------------------------------- */
+/*  Modo oscuro                                                          */
+/* -------------------------------------------------------------------- */
+
+const THEME_KEY = 'legadoBonsaiTheme';
+
+function applyTheme(theme) {
+  if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
+  else document.documentElement.removeAttribute('data-theme');
+
+  const isDark = theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const btn = $('theme-toggle-btn');
+  if (!btn) return;
+  $('theme-icon-dark').style.display = isDark ? 'none' : 'block';
+  $('theme-icon-light').style.display = isDark ? 'block' : 'none';
+  btn.setAttribute('aria-label', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+}
+
+function initTheme() {
+  applyTheme(localStorage.getItem(THEME_KEY));
+  on('theme-toggle-btn', 'click', () => {
+    const current = document.documentElement.getAttribute('data-theme')
+      || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
+}
+
+/* -------------------------------------------------------------------- */
+/*  Botones magnéticos (CTA primario)                                    */
+/* -------------------------------------------------------------------- */
+
+function initMagneticButtons() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia('(hover: none)').matches) return;
+  const strength = 14;
+  document.querySelectorAll('.btn-primary').forEach((btn) => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = ((e.clientX - rect.left - rect.width / 2) / rect.width) * strength;
+      const y = ((e.clientY - rect.top - rect.height / 2) / rect.height) * strength;
+      btn.style.transform = `translate(${x}px, ${y}px)`;
+    });
+    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+  });
+}
+
+/* -------------------------------------------------------------------- */
+/*  Parallax sutil (hero + cita a pantalla completa)                     */
+/* -------------------------------------------------------------------- */
+
+function initParallax() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const heroImg = document.querySelector('.hero-figure .frame img');
+  const quoteImg = document.querySelector('.quote-break img');
+  if (!heroImg && !quoteImg) return;
+
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  let ticking = false;
+
+  function update() {
+    ticking = false;
+    if (heroImg) {
+      const top = heroImg.closest('.hero-figure').getBoundingClientRect().top;
+      heroImg.style.transform = `translate3d(0, ${clamp(top * 0.08, -40, 40)}px, 0)`;
+    }
+    if (quoteImg) {
+      const top = quoteImg.closest('.quote-break').getBoundingClientRect().top;
+      quoteImg.style.transform = `translate3d(0, ${clamp(top * -0.15, -60, 60)}px, 0)`;
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  update();
 }
 
 /* -------------------------------------------------------------------- */
@@ -481,7 +778,8 @@ function observeReveal(root = document) {
 /* -------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('year').textContent = new Date().getFullYear();
+  const yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   fetchCatalog();
   renderLunarCalendar();
@@ -489,14 +787,40 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCart();
   initViewerDrag();
   observeReveal();
+  initTheme();
+  initMagneticButtons();
+  initParallax();
+  initCarouselNav();
 
-  // Filtros / orden
-  ['filter-estilo', 'filter-ambiente', 'sort-by'].forEach(id => {
-    document.getElementById(id).addEventListener('change', renderCatalog);
+  // Filtros / orden / búsqueda (página de catálogo)
+  ['filter-ambiente', 'sort-by'].forEach(id => on(id, 'change', () => {
+    catalogVisibleCount = CATALOG_PAGE_SIZE;
+    renderCatalog();
+  }));
+  let searchTimer = null;
+  on('catalog-search', 'input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      searchQuery = e.target.value;
+      catalogVisibleCount = CATALOG_PAGE_SIZE;
+      syncCatalogUrl();
+      renderCatalog();
+    }, 150);
+  });
+  on('style-chips', 'click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) setActiveEstilo(chip.dataset.estilo);
+  });
+  on('catalog-status', 'click', (e) => {
+    if (e.target.id === 'catalog-clear-btn') clearCatalogFilters();
+  });
+  on('catalog-more-btn', 'click', () => {
+    catalogVisibleCount += CATALOG_PAGE_SIZE;
+    renderCatalog();
   });
 
-  // Delegación de clics en el grid (ver detalle / agregar rápido)
-  document.getElementById('product-grid').addEventListener('click', (e) => {
+  // Delegación de clics en tarjetas (ver detalle / agregar rápido)
+  const handleProductGridClick = (e) => {
     const openId = e.target.closest('[data-open-modal]')?.getAttribute('data-open-modal');
     const quickId = e.target.closest('[data-quick-add]')?.getAttribute('data-quick-add');
     if (openId) openModal(openId);
@@ -504,16 +828,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const p = PRODUCTS.find(x => x.id === quickId);
       if (p) { addToCart(p, 1, ''); openCart(); }
     }
-  });
+  };
+  on('product-grid', 'click', handleProductGridClick);
+  on('carousel-track', 'click', handleProductGridClick);
 
   // Modal
-  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
-  document.getElementById('product-modal').addEventListener('click', (e) => { if (e.target.id === 'product-modal') closeModal(); });
-  document.getElementById('viewer-prev').addEventListener('click', () => stepViewer(-1));
-  document.getElementById('viewer-next').addEventListener('click', () => stepViewer(1));
-  document.getElementById('qty-minus').addEventListener('click', () => { modalQty = Math.max(1, modalQty - 1); document.getElementById('qty-value').textContent = modalQty; updateModalPrice(); });
-  document.getElementById('qty-plus').addEventListener('click', () => { modalQty += 1; document.getElementById('qty-value').textContent = modalQty; updateModalPrice(); });
-  document.getElementById('modal-add-cart').addEventListener('click', () => {
+  on('modal-close-btn', 'click', closeModal);
+  on('product-modal', 'click', (e) => { if (e.target.id === 'product-modal') closeModal(); });
+  on('viewer-prev', 'click', () => stepViewer(-1));
+  on('viewer-next', 'click', () => stepViewer(1));
+  on('qty-minus', 'click', () => { modalQty = Math.max(1, modalQty - 1); $('qty-value').textContent = modalQty; updateModalPrice(); });
+  on('qty-plus', 'click', () => { modalQty += 1; $('qty-value').textContent = modalQty; updateModalPrice(); });
+  on('modal-add-cart', 'click', () => {
     if (!modalProduct) return;
     const tier = document.querySelector('#modal-tier-picker input:checked')?.value || '';
     addToCart(modalProduct, modalQty, tier);
@@ -523,21 +849,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Menú móvil
   const navLinks = document.querySelector('.nav-links');
-  const navToggleBtn = document.getElementById('nav-toggle-btn');
-  navToggleBtn.addEventListener('click', () => {
-    const open = navLinks.classList.toggle('open');
-    navToggleBtn.setAttribute('aria-expanded', String(open));
-  });
-  navLinks.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A') { navLinks.classList.remove('open'); navToggleBtn.setAttribute('aria-expanded', 'false'); }
-  });
+  const navToggleBtn = $('nav-toggle-btn');
+  if (navLinks && navToggleBtn) {
+    navToggleBtn.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      navToggleBtn.setAttribute('aria-expanded', String(open));
+    });
+    navLinks.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') { navLinks.classList.remove('open'); navToggleBtn.setAttribute('aria-expanded', 'false'); }
+    });
+  }
 
   // Carrito
-  document.getElementById('cart-open-btn').addEventListener('click', openCart);
-  document.getElementById('cart-close-btn').addEventListener('click', closeCart);
-  document.getElementById('cart-overlay').addEventListener('click', closeCart);
-  document.getElementById('cart-checkout-btn').addEventListener('click', checkoutViaWhatsapp);
-  document.getElementById('cart-items').addEventListener('click', (e) => {
+  on('cart-open-btn', 'click', openCart);
+  on('cart-close-btn', 'click', closeCart);
+  on('cart-overlay', 'click', closeCart);
+  on('cart-checkout-btn', 'click', checkoutViaWhatsapp);
+  on('cart-items', 'click', (e) => {
     const minusKey = e.target.closest('[data-cart-minus]')?.getAttribute('data-cart-minus');
     const plusKey = e.target.closest('[data-cart-plus]')?.getAttribute('data-cart-plus');
     const removeKey = e.target.closest('[data-cart-remove]')?.getAttribute('data-cart-remove');
@@ -553,29 +881,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Popup newsletter (no interrumpe si hay un modal o el carrito abiertos)
-  const popupOverlay = document.getElementById('popup-overlay');
-  setTimeout(() => {
-    const modalOpen = document.getElementById('product-modal').classList.contains('open');
-    const cartOpen = document.getElementById('cart-drawer').classList.contains('open');
-    if (!modalOpen && !cartOpen) popupOverlay.classList.add('open');
-  }, 6000);
-  document.getElementById('popup-close-btn').addEventListener('click', () => popupOverlay.classList.remove('open'));
-  popupOverlay.addEventListener('click', (e) => { if (e.target.id === 'popup-overlay') popupOverlay.classList.remove('open'); });
-  document.getElementById('subscribe-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('¡Gracias por suscribirte! Tu código de descuento es: LEGADO10');
-    popupOverlay.classList.remove('open');
-  });
+  // Popup newsletter (solo portada; no interrumpe si hay un modal o el carrito abiertos)
+  const popupOverlay = $('popup-overlay');
+  if (popupOverlay) {
+    setTimeout(() => {
+      const modalOpen = $('product-modal')?.classList.contains('open');
+      const cartOpen = $('cart-drawer')?.classList.contains('open');
+      if (!modalOpen && !cartOpen) popupOverlay.classList.add('open');
+    }, 6000);
+    on('popup-close-btn', 'click', () => popupOverlay.classList.remove('open'));
+    popupOverlay.addEventListener('click', (e) => { if (e.target.id === 'popup-overlay') popupOverlay.classList.remove('open'); });
+    on('subscribe-form', 'submit', (e) => {
+      e.preventDefault();
+      alert('¡Gracias por suscribirte! Tu código de descuento es: LEGADO10');
+      popupOverlay.classList.remove('open');
+    });
+  }
 
   // Chat FAQ
-  const chatBox = document.getElementById('chat-box');
-  document.getElementById('chat-button').addEventListener('click', () => chatBox.classList.toggle('visible'));
-  document.getElementById('close-chat').addEventListener('click', () => chatBox.classList.remove('visible'));
-  document.getElementById('faq-options').addEventListener('click', (e) => {
+  const chatBox = $('chat-box');
+  on('chat-button', 'click', () => chatBox.classList.toggle('visible'));
+  on('close-chat', 'click', () => chatBox.classList.remove('visible'));
+  on('faq-options', 'click', (e) => {
     const q = e.target.closest('.faq-question')?.getAttribute('data-q');
     if (!q) return;
-    const chatBody = document.getElementById('chat-body');
+    const chatBody = $('chat-body');
     const answer = FAQ.find(f => f.q === q)?.a || 'No tenemos información sobre eso todavía.';
     const userMsg = document.createElement('div');
     userMsg.className = 'message'; userMsg.style.fontWeight = '600'; userMsg.style.color = 'var(--ink)';
@@ -587,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Formulario de contacto -> abre el correo del usuario con el mensaje precargado
-  document.getElementById('contact-form').addEventListener('submit', (e) => {
+  on('contact-form', 'submit', (e) => {
     e.preventDefault();
     const f = e.target;
     const body = `Nombre: ${f.nombre.value}\nCorreo: ${f.correo.value}\n\n${f.mensaje.value}`;

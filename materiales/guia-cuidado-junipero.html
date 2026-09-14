@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía de Cuidado — Junípero · Legado Bonsai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF6;
+    --ink:#1B241F;
+    --ink-soft:#4B5A53;
+    --ink-faint:#7C8A83;
+    --jade:#2F5D50;
+    --jade-deep:#16241F;
+    --jade-deeper:#0F1915;
+    --kohaku:#9B2C2C;
+    --gold:#B8892B;
+    --line:rgba(27,36,31,.16);
+    --washi:#F1EAE1;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Zen Kaku Gothic New','Hiragino Sans',sans-serif;
+    color:var(--ink);
+    font-size:11pt;
+    line-height:1.6;
+    background:#fff;
+  }
+  h1,h2,h3{
+    font-family:'Shippori Mincho',serif;
+    color:var(--ink);
+    line-height:1.3;
+    margin:0 0 .4em;
+    font-weight:600;
+    letter-spacing:-.01em;
+  }
+  p{ margin:0 0 .8em; }
+  strong{ color:var(--ink); font-weight:700; }
+  @page{ size:A4; margin:0; }
+  .page{
+    width:210mm; min-height:297mm; padding:20mm 18mm; margin:0 auto;
+    page-break-after:always; position:relative; overflow:hidden;
+  }
+  .page:last-child{ page-break-after:auto; }
+
+  /* ---------- PORTADA ---------- */
+  .cover{
+    background:var(--jade-deeper); color:#EDEAE3; padding:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+  }
+  .cover .enso{
+    position:absolute; top:50%; left:50%; width:150mm; height:150mm;
+    transform:translate(-50%,-50%); opacity:.07; pointer-events:none;
+  }
+  .cover .kanji-big{ font-family:'Shippori Mincho',serif; font-size:15mm; letter-spacing:.06em; margin-bottom:6mm; }
+  .cover .eyebrow{ font-size:9pt; letter-spacing:.24em; text-transform:uppercase; color:#B9C2BC; margin-bottom:10mm; }
+  .cover h1{ color:#fff; font-size:24pt; font-weight:500; max-width:130mm; margin:0 auto 6mm; letter-spacing:-.01em; }
+  .cover .sub{ color:#B9C2BC; font-size:11pt; max-width:110mm; margin:0 auto; }
+  .cover .brandline{ position:absolute; bottom:18mm; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:2mm; }
+  .cover .brandline img{ height:9mm; filter:brightness(0) invert(1); opacity:.9; }
+  .cover .brandline .jp{ font-family:'Shippori Mincho',serif; font-size:9pt; color:#8A968E; letter-spacing:.06em; }
+
+  /* ---------- PÁGINAS DE CONTENIDO ---------- */
+  .kicker{ font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-bottom:2mm; }
+  .page h2{ font-size:19pt; margin-bottom:8mm; }
+  .page h2 .jp-accent{ font-size:11pt; color:var(--ink-faint); font-weight:400; display:block; margin-top:1mm; letter-spacing:.04em; }
+
+  .block{ margin-bottom:9mm; }
+  .block h3{ font-size:12.5pt; color:var(--jade); font-weight:700; font-family:'Zen Kaku Gothic New',sans-serif; margin-bottom:2mm; display:flex; align-items:baseline; gap:2mm; }
+  .block h3 .jp{ font-family:'Shippori Mincho',serif; color:var(--ink-faint); font-size:11pt; font-weight:400; }
+  .block p{ color:var(--ink-soft); font-size:10.3pt; }
+  .block ul{ margin:0 0 .8em; padding-left:4.5mm; color:var(--ink-soft); font-size:10.3pt; }
+  .block li{ margin-bottom:1.6mm; }
+  .block li strong{ color:var(--ink); }
+
+  .wire-steps{ display:flex; gap:6mm; margin:5mm 0 3mm; }
+  .wire-steps .wire-step{ flex:1; text-align:left; }
+  .wire-steps img{ width:13mm; height:13mm; object-fit:contain; margin-bottom:2mm; display:block; }
+  .wire-steps h4{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:10pt; font-weight:700; color:var(--ink); margin:0 0 1mm; }
+  .wire-steps p{ font-size:8.8pt; color:var(--ink-soft); margin:0; }
+  .icon-credit{ font-size:6.6pt; color:var(--ink-faint); margin:0 0 6mm; }
+  .icon-credit a{ color:inherit; }
+
+  .callout{
+    background:var(--washi); border-left:3px solid var(--jade); padding:4mm 5mm;
+    font-size:9.8pt; color:var(--ink-soft); margin-top:2mm;
+  }
+  .callout strong{ color:var(--jade); }
+
+  .warn{
+    background:#F7EDEC; border-left:3px solid var(--kohaku); padding:4mm 5mm;
+    font-size:9.8pt; color:var(--ink-soft); margin-top:2mm;
+  }
+  .warn strong{ color:var(--kohaku); }
+
+  .footer-note{
+    position:absolute; bottom:12mm; left:18mm; right:18mm;
+    font-size:8pt; color:var(--ink-faint); border-top:1px solid var(--line); padding-top:3mm;
+    display:flex; justify-content:space-between;
+  }
+
+  .two-col{ display:flex; gap:10mm; }
+  .two-col > div{ flex:1; }
+
+  /* ---------- TABLA RESUMEN ---------- */
+  table.resumen{ width:100%; border-collapse:collapse; font-size:9.6pt; }
+  table.resumen th, table.resumen td{ text-align:left; padding:3mm 3mm; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.resumen thead th{ font-size:8pt; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); border-bottom:1px solid var(--ink); }
+  table.resumen td.aspecto{ font-weight:700; color:var(--jade); white-space:nowrap; width:32mm; }
+
+  /* ---------- CONTRAPORTADA / ACOMPAÑAMIENTO ---------- */
+  .back{ background:var(--jade-deeper); color:#EDEAE3; }
+  .back .kicker{ color:#8A968E; }
+  .back h2{ color:#fff; }
+  .back p{ color:#B9C2BC; }
+  .tier{ border-top:1px solid rgba(255,255,255,.15); padding:5mm 0; }
+  .tier h4{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:11.5pt; font-weight:700; color:#fff; margin:0 0 1.5mm; }
+  .tier p{ font-size:9.6pt; margin:0; color:#9FACA5; }
+  .contact-box{
+    margin-top:10mm; padding:6mm; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+    display:flex; align-items:center; justify-content:space-between; gap:6mm;
+  }
+  .contact-box .hanko{
+    display:inline-flex; align-items:center; justify-content:center; flex:none;
+    width:11mm; height:11mm; background:var(--kohaku); color:#F4EEDF;
+    font-family:'Shippori Mincho',serif; font-size:6mm; border-radius:1mm; transform:rotate(-4deg);
+  }
+  .contact-box .msg strong{ color:#fff; display:block; font-size:11pt; margin-bottom:1mm; }
+  .contact-box .msg span{ color:#9FACA5; font-size:9.5pt; }
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="page cover">
+  <svg class="enso" viewBox="0 0 200 200" aria-hidden="true">
+    <path d="M100,24 A76,76 0 1,1 98,24.2" fill="none" stroke="#EDEAE3" stroke-width="6" stroke-linecap="round"/>
+  </svg>
+  <div class="kanji-big">家族の木</div>
+  <div class="eyebrow">Legado Bonsai — Guía de cuidado</div>
+  <h1>Todo lo básico para cuidar tu junípero bonsái</h1>
+  <p class="sub">Luz, riego, sustrato, poda, alambrado y trasplante — explicado paso a paso para que tu árbol crezca fuerte desde el primer día.</p>
+  <div class="brandline">
+    <img src="../assets/img/logo-blanco.png" alt="Legado Bonsai">
+    <div class="jp">永続 · 継承 — perpetuidad, herencia</div>
+  </div>
+</section>
+
+<!-- ===================== INTRO + LUZ + RIEGO ===================== -->
+<section class="page">
+  <div class="kicker">Lo primero que hay que saber</div>
+  <h2>Tu junípero es un árbol de exterior<span class="jp-accent">屋外の木 — "árbol de afuera"</span></h2>
+
+  <div class="block">
+    <p>Un bonsái no es una planta decorativa de escritorio: es un árbol real, en miniatura, que vive según las mismas reglas que un junípero de jardín. La diferencia más importante frente a otras plantas de interior es esta: <strong>el junípero necesita vivir afuera, con sol directo, para mantenerse sano</strong>. Puedes traerlo a interior uno o dos días para una ocasión especial, pero su lugar es el exterior — balcón, terraza, jardín o patio.</p>
+  </div>
+
+  <div class="block">
+    <h3>Ubicación y luz <span class="jp">日当たり</span></h3>
+    <ul>
+      <li>Necesita entre <strong>5 y 6 horas de sol directo al día</strong> para mantener el follaje denso y verde.</li>
+      <li>Ideal: un lugar con sol de mañana o tarde suave, sin sombra de paredes o árboles grandes.</li>
+      <li>En días muy calurosos, un poco de sombra al mediodía evita que las puntas se quemen.</li>
+      <li>Buena circulación de aire — evita rincones cerrados o muy húmedos.</li>
+    </ul>
+    <div class="warn"><strong>Importante:</strong> si tu junípero pasa semanas en interior, el follaje empieza a amarillear y secarse desde adentro hacia afuera. No es una falla del árbol — es que necesita volver afuera.</div>
+  </div>
+
+  <div class="block">
+    <h3>Riego <span class="jp">水やり</span></h3>
+    <ul>
+      <li>Nunca riegues "por calendario". Revisa el sustrato: si el primer centímetro está seco al tacto, es momento de regar.</li>
+      <li>Riega abundante, hasta que el agua salga por los orificios de drenaje de la maceta.</li>
+      <li>Evita dos extremos: el sustrato encharcado (pudre la raíz) y la sequía prolongada (seca el árbol).</li>
+      <li>La frecuencia cambia según el clima: más seguido en temporada seca y calurosa, más espaciado en meses frescos o lluviosos.</li>
+    </ul>
+    <div class="callout"><strong>Tip:</strong> mete un dedo o un palito de madera en el sustrato — si sale húmedo, todavía no toca regar.</div>
+  </div>
+
+  <div class="footer-note"><span>Legado Bonsai · Guía de cuidado del junípero</span><span>家族の木</span></div>
+</section>
+
+<!-- ===================== SUSTRATO + TRASPLANTE + FERTILIZACIÓN ===================== -->
+<section class="page">
+  <div class="kicker">La base bajo la superficie</div>
+  <h2>Sustrato, trasplante y alimento<span class="jp-accent">土と養分 — tierra y nutrientes</span></h2>
+
+  <div class="block">
+    <h3>Sustrato y maceta <span class="jp">用土</span></h3>
+    <ul>
+      <li>Usa siempre sustrato específico para bonsái, de <strong>drenaje rápido</strong> — nunca tierra de jardín común, que se compacta y ahoga la raíz.</li>
+      <li>La maceta debe tener orificios de drenaje suficientes; sin buen drenaje, ningún cuidado posterior compensa.</li>
+      <li>Si nos compras el árbol, ya sale con el sustrato correcto — solo debes mantenerlo, no cambiarlo por tierra normal.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h3>Trasplante <span class="jp">植え替え</span></h3>
+    <ul>
+      <li>Árboles jóvenes: cada <strong>2 años aproximadamente</strong>.</li>
+      <li>Árboles ya formados y maduros: pueden esperar entre <strong>3 y 5 años</strong>.</li>
+      <li>Hazlo al iniciar un nuevo ciclo de crecimiento activo del árbol.</li>
+      <li>A diferencia de otras especies, el junípero tolera mal la poda agresiva de raíz — el corte de raíz debe ser moderado, nunca drástico.</li>
+      <li>No fertilices durante el primer mes después de trasplantar: la raíz necesita estabilizarse antes de recibir nutrientes extra.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h3>Fertilización <span class="jp">肥料</span></h3>
+    <ul>
+      <li>Fertiliza durante la temporada de crecimiento activo del árbol — se nota por brotes nuevos y follaje fresco.</li>
+      <li>Opción líquida: diluido en cada riego, semanalmente. Opción sólida: fertilizante de liberación lenta, una vez al mes.</li>
+      <li>Reduce o pausa la fertilización cuando el árbol crece más lento.</li>
+      <li>Nunca fertilices un árbol recién trasplantado, enfermo o con estrés visible en el follaje.</li>
+    </ul>
+  </div>
+
+  <div class="footer-note"><span>Legado Bonsai · Guía de cuidado del junípero</span><span>家族の木</span></div>
+</section>
+
+<!-- ===================== PODA/PINZADO + ALAMBRADO ===================== -->
+<section class="page">
+  <div class="kicker">Dar forma al árbol</div>
+  <h2>Poda y alambrado<span class="jp-accent">剪定と針金 — el arte de formar</span></h2>
+
+  <div class="block">
+    <h3>Poda de mantenimiento — pellizcar, no cortar <span class="jp">摘み取り</span></h3>
+    <p>Esta es la regla más importante y más específica del junípero, distinta a la de otras especies de bonsái:</p>
+    <div class="warn"><strong>Nunca cortes las puntas del junípero con tijera.</strong> El corte con filo deja la punta de la aguja marrón y seca, porque abre el tejido verde. En el junípero, el mantenimiento se hace <strong>pellizcando con los dedos</strong> el crecimiento nuevo.</div>
+    <ul>
+      <li>Cuando un brote nuevo sobresalga de la silueta del árbol, tómalo entre los dedos y arráncalo suavemente (no lo cortes).</li>
+      <li>Deja el follaje interno y sano intacto — solo retira lo que sobresale.</li>
+      <li>La poda de ramas gruesas (poda de estructura) sí requiere herramienta y experiencia — ideal hacerla acompañado o en taller.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h3>Alambrado <span class="jp">針金かけ</span></h3>
+    <p>No se alambra el árbol completo: <strong>solo se seleccionan las ramas que necesitan corregir su dirección</strong>, y el resto se deja crecer libre. El proceso tiene tres momentos:</p>
+
+    <div class="wire-steps">
+      <div class="wire-step">
+        <img src="icons/wire-coil.png" alt="Alambre">
+        <h4>1. Selecciona</h4>
+        <p>Solo se alambran pocas ramas — las que van a corregir su forma. Las demás quedan libres.</p>
+      </div>
+      <div class="wire-step">
+        <img src="icons/magnifying-glass.png" alt="Lupa">
+        <h4>2. Observa</h4>
+        <p>Cada pocas semanas, revisa de cerca cómo el alambre va marcando la corteza al crecer la rama.</p>
+      </div>
+      <div class="wire-step">
+        <img src="icons/pliers.png" alt="Alicate">
+        <h4>3. Libera</h4>
+        <p>Retíralo a tiempo, antes de que se incruste en la corteza y deje una marca permanente.</p>
+      </div>
+    </div>
+    <p class="icon-credit">Iconos: Flaticon.com (Magnific)</p>
+
+    <ul>
+      <li>El alambre (cobre o aluminio) es lo que le da al junípero su forma característica: erguido, inclinado, cascada o raíz sobre roca.</li>
+      <li>Se aplica mejor cuando el crecimiento del árbol se ha ralentizado un poco — la rama mantiene la forma con menos riesgo de dañarse.</li>
+      <li>Envuelve la rama con firmeza pero sin apretar de más; en ramas jóvenes y flexibles se puede doblar con más libertad, la madera envejecida es más frágil.</li>
+    </ul>
+    <div class="callout"><strong>Con nosotros:</strong> el plan Cultivo Guiado incluye una sesión de alambrado guiada — no tienes que aprenderlo solo la primera vez.</div>
+  </div>
+
+  <div class="footer-note"><span>Legado Bonsai · Guía de cuidado del junípero</span><span>家族の木</span></div>
+</section>
+
+<!-- ===================== PLAGAS + CLIMA ECUADOR + TABLA RESUMEN ===================== -->
+<section class="page">
+  <div class="kicker">Cuidados adicionales</div>
+  <h2>Plagas, clima local y resumen rápido<span class="jp-accent">害虫と気候 — plagas y clima</span></h2>
+
+  <div class="block">
+    <h3>Plagas y señales de alerta <span class="jp">害虫</span></h3>
+    <ul>
+      <li><strong>Ácaros (araña roja):</strong> puntos amarillentos o bronceados en el follaje y telarañas finas entre las ramas.</li>
+      <li><strong>Pulgones y cochinilla:</strong> pequeños insectos agrupados en brotes tiernos o bajo las ramas.</li>
+      <li><strong>Follaje que amarillea o cae desde el interior hacia afuera:</strong> puede ser plaga, exceso o falta de riego, o falta de luz — no siempre es lo mismo, por eso conviene revisar con calma.</li>
+    </ul>
+    <div class="callout"><strong>Antes de aplicar cualquier producto:</strong> escríbenos por WhatsApp con una foto clara de la zona afectada. Te ayudamos a identificar la causa real antes de tratarla.</div>
+  </div>
+
+  <div class="block">
+    <h3>Nota sobre el clima de Ecuador <span class="jp">地域の気候</span></h3>
+    <p>El junípero es originalmente un árbol de clima templado. En Ecuador no enfrenta heladas ni inviernos fríos, así que no necesita la protección invernal que sí requieren estos árboles en climas fríos — pero eso no reemplaza su necesidad de sol directo diario y buena ventilación. Evita balcones cerrados, esquinas sin luz o ambientes con humedad estancada todo el día.</p>
+  </div>
+
+  <div class="block">
+    <h3>Resumen rápido</h3>
+    <table class="resumen">
+      <thead><tr><th>Aspecto</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td class="aspecto">Luz</td><td>Exterior siempre — 5 a 6 horas de sol directo al día.</td></tr>
+        <tr><td class="aspecto">Riego</td><td>Cuando el sustrato esté seco al tacto; regar hasta que drene.</td></tr>
+        <tr><td class="aspecto">Sustrato</td><td>Mezcla específica de bonsái, nunca tierra de jardín.</td></tr>
+        <tr><td class="aspecto">Fertilización</td><td>En temporada de crecimiento; pausar tras trasplantar.</td></tr>
+        <tr><td class="aspecto">Poda</td><td>Pellizcar con los dedos el brote nuevo — nunca cortar con tijera.</td></tr>
+        <tr><td class="aspecto">Alambrado</td><td>Cobre o aluminio; revisar cada pocos meses.</td></tr>
+        <tr><td class="aspecto">Trasplante</td><td>Cada 2 años (joven) a 5 años (maduro); corte de raíz moderado.</td></tr>
+        <tr><td class="aspecto">Plagas</td><td>Revisión visual semanal; consulta con foto ante cualquier duda.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note"><span>Legado Bonsai · Guía de cuidado del junípero</span><span>家族の木</span></div>
+</section>
+
+<!-- ===================== CONTRAPORTADA / ACOMPAÑAMIENTO ===================== -->
+<section class="page back">
+  <div class="kicker">No tienes que hacerlo solo</div>
+  <h2>Acompañamiento Legado Bonsai</h2>
+  <p>Esta guía cubre lo básico — pero el trasplante, la poda de estructura y el alambrado se aprenden mejor acompañado. Por eso ofrecemos tres niveles de acompañamiento, en taller o a domicilio:</p>
+
+  <div class="tier">
+    <h4>Primeros Brotes</h4>
+    <p>Guía digital de cuidado, 1 videollamada de diagnóstico inicial y recordatorios por WhatsApp.</p>
+  </div>
+  <div class="tier">
+    <h4>Cultivo Guiado</h4>
+    <p>Todo lo anterior, más 1 trasplante, 2 sesiones de poda y 1 sesión de alambrado guiada durante el primer año.</p>
+  </div>
+  <div class="tier">
+    <h4>Legado Completo</h4>
+    <p>Acompañamiento cada año, certificado y placa conmemorativa del árbol, prioridad de agenda de por vida.</p>
+  </div>
+
+  <div class="contact-box">
+    <span class="hanko" aria-hidden="true">永</span>
+    <div class="msg">
+      <strong>¿Dudas con tu junípero?</strong>
+      <span>Escríbenos por WhatsApp al +593 98 873 1431 — te respondemos con gusto.</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
