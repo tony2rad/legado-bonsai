@@ -125,6 +125,14 @@ function renderConfig() {
   const f = $('form-config');
   f.apiUrl.value = state.cfg.apiUrl || '';
   f.token.value = state.cfg.token || '';
+  const c = document.createElement('canvas');
+  const info = [
+    ES_SAFARI ? 'Safari' : 'Chrome/otro',
+    navigator.mediaDevices?.getUserMedia ? 'cámara: sí' : 'cámara: no',
+    c.toDataURL('image/webp').startsWith('data:image/webp') ? 'WebP: sí' : 'WebP: no',
+    location.protocol === 'https:' || location.hostname === 'localhost' ? 'HTTPS: sí' : 'HTTPS: no (la cámara no funcionará)'
+  ];
+  $('config-info').textContent = 'Este dispositivo: ' + info.join(' · ');
 }
 
 function renderInicio() {
@@ -295,11 +303,13 @@ async function guardarEjemplar(ev) {
   btn.disabled = true;
   const prog = $('progreso'); prog.hidden = false; $('btn-reintentar').hidden = true;
   const setProg = (pct, msg) => { $('progreso-bar').style.width = pct + '%'; $('progreso-msg').textContent = msg; };
+  let paso = 'inicio';   // para que un error diga exactamente dónde ocurrió
 
   try {
     // 1) Datos del ejemplar
     let id = state.editId;
     if (!state.subida) {
+      paso = 'guardar datos';
       setProg(4, 'Guardando datos…');
       if (id) await api('actualizar', { id, cambios: datos });
       else { const r = await api('crear', datos); id = r.id; }
@@ -309,24 +319,40 @@ async function guardarEjemplar(ev) {
 
     // 2) Fotos (procesadas una a una para no agotar memoria en el teléfono)
     if (state.capturas.length) {
-      const quitar = $('quitar-fondo').checked;
+      let quitar = $('quitar-fondo').checked;
       const total = state.capturas.length;
       for (let i = state.subida.idx; i < total; i++) {
         const base = 8 + (i / total) * 88;
-        setProg(base, `Foto ${i + 1} de ${total}: preparando…`);
+        const etiqueta = `Foto ${i + 1} de ${total}`;
+        paso = etiqueta + ' · preparar';
+        setProg(base, etiqueta + ': preparando…');
         let blob = await redimensionar(state.capturas[i].blob, MAX_LADO, quitar ? 'image/png' : 'image/jpeg');
         if (quitar) {
-          blob = await quitarFondo(blob, (p) => setProg(base, `Foto ${i + 1} de ${total}: quitando fondo… ${p}`));
+          paso = etiqueta + ' · quitar fondo';
+          try {
+            blob = await quitarFondo(blob, (p) => setProg(base, etiqueta + ': quitando fondo… ' + p));
+          } catch (errFondo) {
+            // No detiene el guardado: la foto se sube con fondo.
+            console.warn('Quitar fondo falló', errFondo);
+            toast('No se pudo quitar el fondo en este teléfono; se suben con fondo', true);
+            quitar = false;
+            blob = await redimensionar(state.capturas[i].blob, MAX_LADO, 'image/jpeg');
+          }
         }
-        setProg(base + (44 / total), `Foto ${i + 1} de ${total}: subiendo…`);
-        const r = await api('subirFoto', { id, indice: i + 1, base64: await aBase64(blob), mime: blob.type }, { silencioso: true });
+        paso = etiqueta + ' · convertir';
+        const base64 = await aBase64(blob);
+        paso = etiqueta + ' · subir';
+        setProg(base + (44 / total), etiqueta + ': subiendo…');
+        const r = await api('subirFoto', { id, indice: i + 1, base64, mime: blob.type || 'image/jpeg' }, { silencioso: true });
         state.subida.urls.push(r.url);
         state.subida.idx = i + 1;
       }
+      paso = 'publicar fotos';
       setProg(97, 'Publicando fotos…');
       await api('actualizar', { id, cambios: { 'Fotos': state.subida.urls.join(', ') } });
     }
 
+    paso = 'final';
     setProg(100, 'Listo');
     toast(`${id} guardado${state.capturas.length ? ' con ' + state.capturas.length + ' fotos' : ''}`);
     state.subida = null;
@@ -334,7 +360,9 @@ async function guardarEjemplar(ev) {
     await cargarDatos({ forzar: true });
     location.hash = '#/ejemplar/' + encodeURIComponent(id);
   } catch (err) {
-    setProg(parseFloat($('progreso-bar').style.width) || 0, 'Error: ' + err.message);
+    const detalle = `Error en "${paso}": ${err.name || 'Error'} — ${err.message}`;
+    console.error(detalle, err);
+    setProg(parseFloat($('progreso-bar').style.width) || 0, detalle + (state.subida ? ` (ejemplar ${state.subida.id} ya creado; pulsa Reintentar para continuar con las fotos)` : ''));
     $('btn-reintentar').hidden = false;
     btn.disabled = false;
     toast(err.message, true);
@@ -493,19 +521,24 @@ async function redimensionar(blob, max, tipo) {
   canvas.width = w; canvas.height = h;
   canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
   if (bmp.close) bmp.close();
-  return new Promise(res => canvas.toBlob(b => res(b), tipo, CALIDAD_JPG));
+  const out = await new Promise(res => canvas.toBlob(b => res(b), tipo, CALIDAD_JPG));
+  if (!out) throw new Error('El navegador no pudo generar la imagen ' + tipo);
+  return out;
 }
 
-/** createImageBitmap respeta la orientación EXIF; fallback con <img>. */
+/** Decodifica la imagen. En Safari se usa <img> (respeta EXIF y evita
+    incompatibilidades de createImageBitmap); en el resto, createImageBitmap. */
+const ES_SAFARI = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
 async function crearBitmap(blob) {
-  if ('createImageBitmap' in window) {
+  if (!ES_SAFARI && 'createImageBitmap' in window) {
     try { return await createImageBitmap(blob, { imageOrientation: 'from-image' }); } catch { /* sigue */ }
   }
   return new Promise((res, rej) => {
     const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = rej;
-    img.src = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    img.onload = () => { URL.revokeObjectURL(url); res(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('No se pudo leer la imagen (' + (blob.type || 'tipo desconocido') + ')')); };
+    img.src = url;
   });
 }
 
