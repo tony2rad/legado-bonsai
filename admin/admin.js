@@ -348,8 +348,15 @@ async function guardarEjemplar(ev) {
         state.subida.idx = i + 1;
       }
       paso = 'publicar fotos';
-      setProg(97, 'Publicando fotos…');
+      setProg(96, 'Publicando fotos…');
       await api('actualizar', { id, cambios: { 'Fotos': state.subida.urls.join(', ') } });
+      // "Calienta" cada foto pidiéndola una vez, en orden: Google la genera y
+      // la deja en caché, así el primer cliente que abra la ficha la ve al instante.
+      paso = 'preparar fotos para la tienda';
+      for (let i = 0; i < state.subida.urls.length; i++) {
+        setProg(96 + (i + 1) / state.subida.urls.length * 3, `Preparando foto ${i + 1} de ${state.subida.urls.length} para la tienda…`);
+        await calentarFoto(state.subida.urls[i]);
+      }
     }
 
     paso = 'final';
@@ -559,7 +566,35 @@ async function quitarFondo(blob, onProgress) {
   canvas.width = bmp.width; canvas.height = bmp.height;
   canvas.getContext('2d').drawImage(bmp, 0, 0);
   const webp = await new Promise(res => canvas.toBlob(b => res(b), 'image/webp', 0.88));
-  return (webp && webp.type === 'image/webp') ? webp : png;
+  if (webp && webp.type === 'image/webp') return webp;
+  // Sin WebP (Safari): PNG con transparencia pero a 900 px para que pese menos
+  // (~1 MB → ~500 KB). La tienda lo muestra igual de nítido en el móvil.
+  const lado = Math.min(1, 900 / Math.max(bmp.width, bmp.height));
+  if (lado < 1) {
+    canvas.width = Math.round(bmp.width * lado); canvas.height = Math.round(bmp.height * lado);
+    canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const pngChico = await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
+    if (pngChico) return pngChico;
+  }
+  return png;
+}
+
+/** Pide la foto hasta 4 veces (con espera creciente) hasta que Google la sirva. Nunca falla: solo avisa. */
+async function calentarFoto(url) {
+  const esperas = [0, 2000, 4000, 8000];
+  for (const ms of esperas) {
+    if (ms) await espera(ms);
+    const ok = await new Promise(res => {
+      const i = new Image();
+      i.onload = () => res(true);
+      i.onerror = () => res(false);
+      i.src = url + (ms ? '?w=' + ms : '');
+      setTimeout(() => res(false), 10000);
+    });
+    if (ok) return true;
+  }
+  console.warn('La foto aún no está lista en Google:', url);
+  return false;
 }
 
 function aBase64(blob) {

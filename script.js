@@ -179,6 +179,29 @@ function normalizeProduct(row, index) {
   };
 }
 
+/* Las fotos alojadas en Drive a veces fallan la primera vez que se piden
+   (Google las genera bajo demanda) o con conexiones lentas: se reintenta
+   hasta 3 veces con espera creciente antes de darlas por perdidas. */
+const ESPERAS_REINTENTO = [2000, 5000, 10000, 20000];
+function setImgConReintento(img, src, intento = 0) {
+  img.onerror = () => {
+    if (intento >= ESPERAS_REINTENTO.length || img.dataset.src !== src) return;
+    setTimeout(() => { if (img.dataset.src === src) setImgConReintento(img, src, intento + 1); }, ESPERAS_REINTENTO[intento]);
+  };
+  img.dataset.src = src;
+  img.src = intento === 0 ? src : src + (src.includes('?') ? '&' : '?') + 'r=' + intento;
+}
+
+/* Precarga una lista de fotos DE UNA EN UNA (Google limita las ráfagas). */
+function precargarSecuencial(srcs) {
+  return srcs.reduce((cadena, src) => cadena.then(() => new Promise(res => {
+    const pre = new Image();
+    pre.onload = pre.onerror = () => res();
+    pre.src = src;
+    setTimeout(res, 8000);
+  })), Promise.resolve());
+}
+
 function detectImages(carpeta) {
   const prefix = carpeta.toLowerCase();
   const tryLoad = (n) => new Promise((resolve) => {
@@ -319,8 +342,10 @@ function buildProductCard(p) {
   loadProductImages(p).then(imgs => {
     const badge = agotado ? `<span class="stock-badge">Agotado</span>` : '';
     media.innerHTML = imgs[0]
-      ? `<img src="${imgs[0]}" alt="${p.nombre}" loading="lazy">${badge}`
+      ? `<img alt="${p.nombre}" loading="lazy">${badge}`
       : `<div class="viewer-placeholder" style="position:absolute; inset:0;"><div class="kanji">近日</div><span>Foto próximamente</span></div>${badge}`;
+    const img = media.querySelector('img');
+    if (img) setImgConReintento(img, imgs[0]);
   });
 
   return card;
@@ -428,7 +453,12 @@ function openModal(id) {
 
   updateModalPrice();
   updateViewer();
-  loadProductImages(p).then(() => { if (modalProduct === p) updateViewer(); });
+  loadProductImages(p).then(imgs => {
+    if (modalProduct !== p) return;
+    updateViewer();
+    // Precarga el resto de fotos, en orden, para que el giro sea fluido.
+    precargarSecuencial(imgs.slice(1));
+  });
 
   const overlay = document.getElementById('product-modal');
   overlay.classList.add('open');
@@ -454,7 +484,7 @@ function updateViewer() {
   }
   img.hidden = false;
   placeholder.hidden = true;
-  img.src = images[modalImgIndex];
+  setImgConReintento(img, images[modalImgIndex]);
   img.alt = modalProduct.nombre + ' — foto ' + (modalImgIndex + 1);
   bar.style.width = ((modalImgIndex + 1) / images.length * 100) + '%';
 }
