@@ -170,7 +170,7 @@ function asegurarHoja_(ss, nombre, def) {
   return nota + (agregadas ? ', +' + agregadas + ' columnas' : '') + (renombradas ? ', ' + renombradas + ' renombradas' : '');
 }
 
-/** Pestaña CATALOGO: vista en vivo de los ejemplares Disponibles (fórmula). */
+/** Pestaña CATALOGO: vista en vivo de los ejemplares Disponibles (fórmula QUERY con encabezados). */
 function crearCatalogo_(ss) {
   const inv = ss.getSheetByName('INVENTARIO');
   const col = columnasDe_(inv);
@@ -178,10 +178,9 @@ function crearCatalogo_(ss) {
   let hoja = ss.getSheetByName('CATALOGO');
   if (!hoja) hoja = ss.insertSheet('CATALOGO');
   hoja.clear();
-  hoja.getRange('A1').setFormula('=INVENTARIO!1:1');
-  hoja.getRange('A2').setFormula(
-    '=IFERROR(FILTER(INVENTARIO!A2:ZZ, INVENTARIO!' + letraEstado + '2:' + letraEstado + '="Disponible"), "")'
-  );
+  hoja.getRange('A1').setFormula(formula_(
+    '=IFERROR(QUERY(INVENTARIO!A:ZZ; "select * where ' + letraEstado + ' = \'Disponible\'"; 1); "Sin ejemplares disponibles")'
+  ));
   hoja.setFrozenRows(1);
   hoja.getRange('A1:ZZ1').setFontWeight('bold');
   return 'regenerada (solo lectura, publicable como CSV si se desea)';
@@ -206,33 +205,34 @@ function crearResumen_(ss) {
   let hoja = ss.getSheetByName('RESUMEN');
   if (!hoja) hoja = ss.insertSheet('RESUMEN');
   hoja.clear();
+  // Las fórmulas se escriben con ';' y formula_() las adapta al idioma de la hoja.
   const filas = [
     ['Indicador', 'Valor'],
     ['Ejemplares en inventario', '=COUNTA(INVENTARIO!A2:A)'],
-    ['Disponibles', '=COUNTIF(INVENTARIO!' + est + '2:' + est + ', "Disponible")'],
-    ['Reservados', '=COUNTIF(INVENTARIO!' + est + '2:' + est + ', "Reservado")'],
-    ['Vendidos', '=COUNTIF(INVENTARIO!' + est + '2:' + est + ', "Vendido")'],
-    ['En formación', '=COUNTIF(INVENTARIO!' + est + '2:' + est + ', "En formación")'],
-    ['Valor de inventario disponible', '=SUMIF(INVENTARIO!' + est + '2:' + est + ', "Disponible", INVENTARIO!' + precio + '2:' + precio + ')'],
+    ['Disponibles', '=COUNTIF(INVENTARIO!' + est + '2:' + est + '; "Disponible")'],
+    ['Reservados', '=COUNTIF(INVENTARIO!' + est + '2:' + est + '; "Reservado")'],
+    ['Vendidos', '=COUNTIF(INVENTARIO!' + est + '2:' + est + '; "Vendido")'],
+    ['En formación', '=COUNTIF(INVENTARIO!' + est + '2:' + est + '; "En formación")'],
+    ['Valor de inventario disponible', '=SUMIF(INVENTARIO!' + est + '2:' + est + '; "Disponible"; INVENTARIO!' + precio + '2:' + precio + ')'],
     ['Costo total invertido (registrado)', '=SUM(INVENTARIO!' + costo + '2:' + costo + ')'],
     ['', ''],
     ['Ventas registradas', '=COUNTA(VENTAS!A2:A)'],
-    ['Ingresos por ventas (pagadas)', '=SUMIF(VENTAS!' + vEstado + '2:' + vEstado + ', "Pagado", VENTAS!' + vPrecio + '2:' + vPrecio + ')'],
+    ['Ingresos por ventas (pagadas)', '=SUMIF(VENTAS!' + vEstado + '2:' + vEstado + '; "Pagado"; VENTAS!' + vPrecio + '2:' + vPrecio + ')'],
     ['', ''],
     ['Cuidados registrados', '=COUNTA(CUIDADOS!A2:A)'],
-    ['Podas registradas', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + ', "Poda")'],
-    ['Trasplantes registrados', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + ', "Trasplante")'],
-    ['Alambrados registrados', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + ', "Alambrado")'],
+    ['Podas registradas', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + '; "Poda")'],
+    ['Trasplantes registrados', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + '; "Trasplante")'],
+    ['Alambrados registrados', '=COUNTIF(CUIDADOS!' + tipo + '2:' + tipo + '; "Alambrado")'],
     ['', ''],
-    ['Mes actual', '=TEXT(TODAY(), "mmmm")'],
-    ['Fase lunar ideal este mes', '=IFERROR(VLOOKUP(MONTH(TODAY()), CALENDARIO_LUNAR!A:D, 3, FALSE), "")'],
-    ['Acción recomendada este mes', '=IFERROR(VLOOKUP(MONTH(TODAY()), CALENDARIO_LUNAR!A:D, 4, FALSE), "")'],
+    ['Mes actual', '=TEXT(TODAY(); "mmmm")'],
+    ['Fase lunar ideal este mes', '=IFERROR(VLOOKUP(MONTH(TODAY()); CALENDARIO_LUNAR!A:D; 3; FALSE); "")'],
+    ['Acción recomendada este mes', '=IFERROR(VLOOKUP(MONTH(TODAY()); CALENDARIO_LUNAR!A:D; 4; FALSE); "")'],
     ['', ''],
     ['Valor de herramientas y materiales', '=SUM(MATERIALES!' + mTotal + '2:' + mTotal + ')']
   ];
   filas.forEach((f, i) => {
     hoja.getRange(i + 1, 1).setValue(f[0]);
-    if (String(f[1]).charAt(0) === '=') hoja.getRange(i + 1, 2).setFormula(f[1]);
+    if (String(f[1]).charAt(0) === '=') hoja.getRange(i + 1, 2).setFormula(formula_(f[1]));
     else hoja.getRange(i + 1, 2).setValue(f[1]);
   });
   hoja.getRange('A1:B1').setFontWeight('bold').setBackground('#1B241F').setFontColor('#FAFAF6');
@@ -547,7 +547,7 @@ function registrarMaterial_(p) {
     escribirFila_(hoja, fila, cambios);
   }
   const cu = letraColumna_(c['Costo unitario'] + 1), ca = letraColumna_(c['Cantidad'] + 1);
-  hoja.getRange(fila, c['Costo total'] + 1).setFormula('=IF(' + cu + fila + '="","",' + ca + fila + '*' + cu + fila + ')');
+  hoja.getRange(fila, c['Costo total'] + 1).setFormula(formula_('=IF(' + cu + fila + '="";"";' + ca + fila + '*' + cu + fila + ')'));
   return { fila };
 }
 
@@ -621,8 +621,32 @@ function siguienteId_(hoja) {
 
 function ponerFormulasMargen_(hoja, fila, c) {
   const costo = letraColumna_(c['Costo total'] + 1), precio = letraColumna_(c['Precio venta'] + 1);
-  hoja.getRange(fila, c['Margen $'] + 1).setFormula('=IF(OR(' + costo + fila + '="",' + precio + fila + '=""),"",' + precio + fila + '-' + costo + fila + ')');
-  hoja.getRange(fila, c['Margen %'] + 1).setFormula('=IF(OR(' + costo + fila + '="",' + precio + fila + '="",' + precio + fila + '=0),"",(' + precio + fila + '-' + costo + fila + ')/' + precio + fila + ')');
+  hoja.getRange(fila, c['Margen $'] + 1).setFormula(formula_('=IF(OR(' + costo + fila + '="";' + precio + fila + '="");"";' + precio + fila + '-' + costo + fila + ')'));
+  hoja.getRange(fila, c['Margen %'] + 1).setFormula(formula_('=IF(OR(' + costo + fila + '="";' + precio + fila + '="";' + precio + fila + '=0);"";(' + precio + fila + '-' + costo + fila + ')/' + precio + fila + ')'));
+}
+
+/**
+ * Separador de argumentos de fórmula: ',' en hojas en inglés, ';' en español
+ * y otros idiomas con coma decimal. Se detecta probando una fórmula real, una
+ * vez por ejecución. Las fórmulas del script se escriben siempre con ';'.
+ */
+let SEPARADOR_ = null;
+function formula_(f) {
+  if (SEPARADOR_ === null) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const hoja = ss.getSheetByName('CONFIG') || ss.getSheets()[0];
+    const celda = hoja.getRange('ZZ1');
+    try {
+      celda.setFormula('=IF(1;2;3)');
+      SpreadsheetApp.flush();
+      SEPARADOR_ = (celda.getValue() === 2) ? ';' : ',';
+    } catch (e) {
+      SEPARADOR_ = ',';
+    } finally {
+      celda.clearContent();
+    }
+  }
+  return SEPARADOR_ === ';' ? f : f.replace(/;/g, ',');
 }
 
 function letraColumna_(n) {
