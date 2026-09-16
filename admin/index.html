@@ -65,6 +65,8 @@
       <a href="#/nuevo" class="btn solid big">＋ Nuevo ejemplar</a>
       <a href="#/venta" class="btn big">Registrar venta</a>
       <a href="#/cuidado" class="btn big">Registrar cuidado</a>
+      <a href="#/macetas" class="btn big">Producción macetas</a>
+      <a href="#/maquina" class="btn big">Máquina de macetas</a>
     </div>
     <h2>Últimos movimientos</h2>
     <ul class="timeline" id="timeline"></ul>
@@ -73,6 +75,11 @@
   <!-- ============ EJEMPLARES ============ -->
   <section class="view" data-view="ejemplares" hidden>
     <h1>Ejemplares</h1>
+    <nav class="subtabs" aria-label="Inventario">
+      <a href="#/ejemplares" class="active">Inventario</a>
+      <a href="#/macetas">Producción macetas</a>
+      <a href="#/maquina">Máquina</a>
+    </nav>
     <div class="filters">
       <input type="search" id="buscar" placeholder="Buscar por ID, nombre, especie…">
       <select id="filtro-estado">
@@ -82,6 +89,32 @@
     </div>
     <p class="count" id="ejemplares-count"></p>
     <div class="list" id="lista-ejemplares"></div>
+  </section>
+
+  <!-- ============ PRODUCCIÓN DE MACETAS ============ -->
+  <section class="view" data-view="macetas" hidden>
+    <h1>Producción de macetas</h1>
+    <nav class="subtabs" aria-label="Inventario">
+      <a href="#/ejemplares">Inventario</a>
+      <a href="#/macetas" class="active">Producción macetas</a>
+      <a href="#/maquina">Máquina</a>
+    </nav>
+    <p class="lead">Plantillas de corte en arcilla y plato-guía con perfiles para cemento, a escala 1:1. Para imprimir, ábrela en pantalla completa.</p>
+    <div class="row"><a href="macetas.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a></div>
+    <iframe class="embed" id="embed-macetas" data-src="macetas.html" title="Plantillas de macetas" loading="lazy"></iframe>
+  </section>
+
+  <!-- ============ MÁQUINA DE MACETAS ============ -->
+  <section class="view" data-view="maquina" hidden>
+    <h1>Máquina de barrido</h1>
+    <nav class="subtabs" aria-label="Inventario">
+      <a href="#/ejemplares">Inventario</a>
+      <a href="#/macetas">Producción macetas</a>
+      <a href="#/maquina" class="active">Máquina</a>
+    </nav>
+    <p class="lead">Cómo construir la máquina que hace las macetas de cemento: materiales, costos, pasos, calibración y uso.</p>
+    <div class="row"><a href="maquina.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a></div>
+    <iframe class="embed" id="embed-maquina" data-src="maquina.html" title="Instrucciones de la máquina" loading="lazy"></iframe>
   </section>
 
   <!-- ============ DETALLE ============ -->

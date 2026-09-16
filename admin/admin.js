@@ -93,8 +93,17 @@ async function cargarDatos({ forzar = false } = {}) {
 const vistas = {
   config: renderConfig, inicio: renderInicio, ejemplares: renderEjemplares, ejemplar: renderDetalle,
   nuevo: () => renderFormulario(null), editar: renderFormulario, venta: renderVenta, cuidado: renderCuidado,
-  materiales: renderMateriales
+  materiales: renderMateriales,
+  macetas: () => {}, maquina: () => {}
 };
+// Vistas que viven dentro de la pestaña Ejemplares (sub-pestañas de inventario)
+const tabDe = { formulario: 'formulario', macetas: 'ejemplares', maquina: 'ejemplares' };
+
+/* Páginas embebidas (producción de macetas, máquina): el iframe de la vista visible se carga la primera vez,
+   antes y con independencia de la carga de datos del sheet. */
+function cargarEmbeds() {
+  $$('.view:not([hidden]) iframe.embed[data-src]').forEach(f => { if (!f.src) f.src = f.dataset.src; });
+}
 
 async function router() {
   const hash = location.hash.replace(/^#\/?/, '') || 'inicio';
@@ -105,8 +114,9 @@ async function router() {
   const seccion = { nuevo: 'formulario', editar: 'formulario' }[vista] || vista;
 
   $$('.view').forEach(v => { v.hidden = v.dataset.view !== seccion; });
-  $$('.tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === seccion));
+  $$('.tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === (tabDe[seccion] || seccion)));
   window.scrollTo(0, 0);
+  cargarEmbeds();
 
   try {
     if (vista !== 'config') await cargarDatos();

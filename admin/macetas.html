@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1B241F">
+<title>Producción de macetas — Plantillas de Macetas Bonsái</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#EEF0EA; --panel:#FFFFFF; --ink:#1E2622; --muted:#5F6963; --line:#CBD0C8;
+    --accent:#8C3B23; --accent-ink:#FFFFFF; --glaze:#35606E; --glaze-soft:#DDE8EB;
+    --paper:#FFFFFF; --paper-shadow:rgba(20,30,25,.22); --warn:#9A5B00; --warn-bg:#FBF1DC;
+    --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+      --accent:#D8764F; --accent-ink:#1A0E08; --glaze:#8BB9C7; --glaze-soft:#22333A;
+      --paper-shadow:rgba(0,0,0,.55); --warn:#E0A94A; --warn-bg:#2E2513;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+    --accent:#D8764F; --accent-ink:#1A0E08; --glaze:#8BB9C7; --glaze-soft:#22333A;
+    --paper-shadow:rgba(0,0,0,.55); --warn:#E0A94A; --warn-bg:#2E2513;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px;padding-block:0 32px}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-block:18px 10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .topbar h1{font:700 26px/1.1 var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+  .topbar .sub{color:var(--muted);font-size:13px;margin-top:4px;max-width:70ch}
+  .btn{font:600 14px var(--sans);border:0;border-radius:6px;padding:10px 16px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+  .btn:focus-visible,input:focus-visible,select:focus-visible,.seg label:focus-within{outline:2px solid var(--glaze);outline-offset:2px}
+  .app{display:grid;grid-template-columns:320px minmax(0,1fr);gap:22px;align-items:start}
+  @media (max-width:820px){.app{grid-template-columns:1fr}.panel{position:static}}
+  .panel{position:sticky;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:14px}
+  .panel h2{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg label{display:block;text-align:center;font:600 13px var(--sans);padding:8px 6px;cursor:pointer;color:var(--muted)}
+  .seg input{position:absolute;opacity:0;width:0;height:0}
+  .seg input:checked+span{display:block;margin:-8px -6px;padding:8px 6px;background:var(--glaze);color:#fff}
+  .style-note{font-size:12.5px;line-height:1.45;color:var(--muted);background:var(--glaze-soft);border-radius:6px;padding:8px 10px;margin-top:8px}
+  .style-note b{color:var(--ink);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label.f{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+  label.f span b{color:var(--ink);font-weight:500}
+  input,select{font:14px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%}
+  input:disabled,select:disabled{opacity:.4}
+  .summary{font:12.5px/1.55 var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:grid;gap:3px}
+  .summary b{color:var(--ink);font-weight:500}
+  .warn{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.4}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .tab{font:500 13px var(--sans);border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:7px 11px;cursor:pointer;text-align:left;max-width:100%}
+  .tab small{display:block;font:11px/1.3 var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  .tab[aria-selected="true"]{background:var(--glaze);border-color:var(--glaze);color:#fff}
+  .tab[aria-selected="true"] small{color:rgba(255,255,255,.8)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .sheet.off{display:none}
+  .stage{position:relative;overflow:hidden}
+  .sheets{transform-origin:top left;display:grid;gap:22px;width:297mm}
+  .sheet{position:relative;width:297mm;height:210mm;background:var(--paper);color:#000;box-shadow:0 2px 14px var(--paper-shadow);overflow:hidden;font-family:var(--sans)}
+  .sheet .foot{position:absolute;left:10mm;right:10mm;bottom:5.5mm;font:2.6mm/1 var(--mono);color:#333;display:flex;justify-content:space-between;border-top:.2mm solid #999;padding-top:1.4mm}
+  .piece{position:absolute}
+  .piece .cap{height:6mm;font:2.9mm/5.4mm var(--mono);color:#000;white-space:nowrap;overflow:hidden}
+  .piece svg{display:block}
+  .cover{position:absolute;inset:10mm 10mm 18mm;display:grid;grid-template-columns:118mm minmax(0,1fr);gap:8mm}
+  .cover .eyebrow{font:500 2.8mm var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#444}
+  .cover h1{font:700 7.4mm/1.05 var(--display);margin:1.5mm 0 1mm;letter-spacing:-.01em}
+  .cover .style{font:2.9mm/1.4 var(--sans);color:#333;margin-bottom:2.5mm}
+  .cover table{border-collapse:collapse;width:100%;font:2.85mm/1.42 var(--mono);font-variant-numeric:tabular-nums}
+  .cover th{text-align:left;font-weight:500;color:#444;border-bottom:.3mm solid #000;padding:.6mm 0}
+  .cover td{padding:.45mm 0;border-bottom:.15mm solid #bbb}
+  .cover td:nth-child(2),.cover td:nth-child(3),.cover th:nth-child(2),.cover th:nth-child(3){text-align:right}
+  .cover .note{font:2.8mm/1.42 var(--sans);margin-top:2.5mm}
+  .cover ol{margin:1.2mm 0 0;padding-left:5mm;font:2.8mm/1.4 var(--sans)}
+  .cover .legend{display:grid;grid-template-columns:auto 1fr;gap:1.1mm 3mm;align-items:center;font:2.7mm/1.3 var(--sans);margin-top:2.5mm}
+  .cover .right{display:grid;grid-template-rows:auto 1fr;gap:4mm;min-width:0}
+  .cover .duo{display:grid;grid-template-columns:1fr 1fr;gap:6mm;align-items:start}
+  .cover .viewcap{font:2.6mm/1.4 var(--mono);color:#333;margin-top:1.5mm}
+  @page{size:A4 landscape;margin:0}
+  @media print{
+    body{background:#fff;padding:0}
+    .topbar,.panel,.tabs{display:none}
+    .sheet.off{display:block}
+    .app{display:block}
+    .stage{overflow:visible;height:auto!important}
+    .sheets{transform:none!important;gap:0}
+    .sheet{box-shadow:none;break-after:page;page-break-after:always}
+    .sheet:last-child{break-after:auto;page-break-after:auto}
+  }
+</style>
+</head>
+<body>
+<style id="pageRule">@page{size:A4 landscape;margin:0}</style>
+
+<div class="topbar">
+  <div>
+    <h1>Plantillas de Macetas Bonsái</h1>
+    <div class="sub">Patrones de corte en arcilla y moldes de cemento, a escala real, listos para imprimir. Todas las medidas en centímetros.</div>
+  </div>
+  <button class="btn" id="btnPrint" type="button">Imprimir al 100 %</button>
+</div>
+
+<div class="app">
+  <aside class="panel">
+    <div>
+      <h2>Material</h2>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="mat" id="matClay" value="clay" checked><span>Arcilla · placas</span></label>
+        <label><input type="radio" name="mat" id="matCement" value="cement"><span>Cemento · moldes</span></label>
+      </div>
+    </div>
+    <div>
+      <h2>Modelo según estilo de bonsái</h2>
+      <select id="preset" aria-label="Modelo de maceta"></select>
+      <div class="style-note" id="styleNote"></div>
+    </div>
+    <label class="f"><span>Forma</span>
+      <select id="type"><option value="rect">Rectangular / cuadrada</option><option value="oval">Ovalada</option><option value="round">Redonda</option></select>
+    </label>
+    <div class="grid2">
+      <label class="f"><span>Largo <b>cm</b> (terminada)</span><input id="L" type="number" step="0.5" min="4" max="60" value="20"></label>
+      <label class="f"><span>Ancho <b>cm</b></span><input id="W" type="number" step="0.5" min="4" max="60" value="15"></label>
+      <label class="f"><span>Alto total <b>cm</b></span><input id="H" type="number" step="0.5" min="2" max="30" value="5.5"></label>
+      <label class="f"><span id="tLabel">Grosor placa <b>cm</b></span><input id="t" type="number" step="0.1" min="0.4" max="4" value="0.7"></label>
+      <label class="f" id="shrinkF"><span>Contracción <b>%</b></span><input id="shrink" type="number" step="0.5" min="0" max="20" value="12"></label>
+      <label class="f" id="baseF" hidden><span>Fondo cemento <b>cm</b></span><input id="base" type="number" step="0.1" min="0.5" max="5" value="2"></label>
+      <label class="f"><span id="flareLabel">Inclinación <b>cm</b>/lado</span><input id="flare" type="number" step="0.1" min="0" max="2" value="0.4"></label>
+      <label class="f"><span>Altura patas <b>cm</b></span><input id="feet" type="number" step="0.1" min="0" max="4" value="1.2"></label>
+      <label class="f" id="boardF" hidden><span>Tablero MDF <b>cm</b></span><input id="board" type="number" step="0.1" min="0.3" max="2" value="0.9"></label>
+      <label class="f"><span>Papel</span><select id="paper"><option value="A4">A4 apaisado</option><option value="A3">A3 apaisado</option></select></label>
+    </div>
+    <div>
+      <h2>Perfil de la pared</h2>
+      <div class="grid2">
+        <label class="f"><span>Borde</span>
+          <select id="rim"><option value="sotoen">Sotoen · labio externo</option><option value="kittate">Kittate · sin labio</option><option value="uchien">Uchien · labio interno</option></select></label>
+        <label class="f"><span>Labio <b>cm</b></span><input id="lip" type="number" step="0.1" min="0.2" max="2" value="0.6"></label>
+        <label class="f"><span>Cuerpo</span>
+          <select id="body"><option value="liso">Liso</option><option value="cinturon">Con cinturón</option><option value="panza">Panza convexa</option></select></label>
+        <label class="f"><span>Esquinas</span>
+          <select id="corner"><option value="recta">Rectas</option><option value="sumikiri">Sumikiri · corte</option><option value="nadekaku">Nadekaku · redondeada</option><option value="sumiiri">Sumiiri · entrante</option></select></label>
+      </div>
+      <label class="f" style="margin-top:10px"><span>Acabado (ilustración)</span>
+        <select id="finish">
+          <optgroup label="Arcilla"><option value="shudei">Shudei · rojizo sin esmalte</option><option value="azul">Esmalte azul namako</option><option value="oribe">Esmalte verde oribe</option><option value="crema">Esmalte crema</option></optgroup>
+          <optgroup label="Cemento"><option value="gris">Gris natural</option><option value="oxido">Óxido de hierro</option><option value="negro">Óxido negro</option></optgroup>
+        </select>
+      </label>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div id="warns" style="display:grid;gap:6px"></div>
+  </aside>
+
+  <div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Hojas"></div>
+    <div class="stage" id="stage"><div class="sheets" id="sheets"></div></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const PAPER={A4:{w:297,h:210},A3:{w:420,h:297}};
+  const MARGIN=10, GAP=7, CAP=6, OV=10, FOOT=8;
+  const PRESETS=[
+    {id:'mame',    name:'Mame ovalada',            style:'Mame (miniatura)',            note:'Árboles de menos de 10 cm. Placa muy fina, sin inclinación, patas mínimas.',                          type:'oval', L:8,  W:6,  H:2.5, t:0.5, flare:0,   feet:0.6, paper:'A4', rim:'kittate', body:'liso',     corner:'recta'},
+    {id:'shohin',  name:'Shohin rectangular',      style:'Shohin (pequeño)',            note:'Chokkan y moyogi pequeños. Proporción clásica 4:3 con ligera inclinación de pared.',                  type:'rect', L:12, W:9,  H:4,   t:0.6, flare:0.3, feet:1,   paper:'A4', rim:'sotoen',  body:'liso',     corner:'recta'},
+    {id:'chokkan', name:'Rectangular clásica',     style:'Chokkan (vertical formal)',   note:'Líneas rectas y esquinas marcadas refuerzan la formalidad del tronco recto. Largo ≈ 2/3 del alto del árbol.', type:'rect', L:20, W:15, H:5.5, t:0.7, flare:0.4, feet:1.2, paper:'A4', rim:'sotoen',  body:'liso',     corner:'sumikiri'},
+    {id:'moyogi',  name:'Ovalada clásica',         style:'Moyogi (vertical informal)',  note:'Curvas suaves para troncos sinuosos. La maceta más versátil del catálogo.',                             type:'oval', L:22, W:16, H:5,   t:0.7, flare:0,   feet:1.2, paper:'A4', rim:'sotoen',  body:'liso',     corner:'recta'},
+    {id:'shakan',  name:'Rectangular alargada',    style:'Shakan (inclinado)',          note:'Muy larga y baja: el tronco se planta descentrado y la masa de la copa queda sobre la maceta.',         type:'rect', L:26, W:16, H:4.5, t:0.7, flare:0.5, feet:1.2, paper:'A3', rim:'kittate', body:'liso',     corner:'nadekaku'},
+    {id:'kengai',  name:'Cuadrada profunda',       style:'Kengai (cascada)',            note:'Alta y estrecha, da contrapeso visual a la rama que cae por debajo de la base. Paredes reforzadas.',    type:'rect', L:13, W:13, H:16,  t:0.8, flare:0.3, feet:1.5, paper:'A4', rim:'sotoen',  body:'cinturon', corner:'recta'},
+    {id:'hankengai',name:'Cuadrada media',         style:'Han-kengai (semicascada)',    note:'Profundidad intermedia: la rama no baja del borde de la maceta pero sí de su línea media.',            type:'rect', L:15, W:15, H:9,   t:0.8, flare:0.3, feet:1.2, paper:'A4', rim:'sotoen',  body:'liso',     corner:'sumikiri'},
+    {id:'bunjin',  name:'Redonda tambor',          style:'Bunjin (literati)',           note:'Pequeña y redonda para troncos altos y desnudos. Menos maceta, más árbol.',                            type:'round',L:12, W:12, H:6,   t:0.7, flare:0,   feet:1,   paper:'A4', rim:'kittate', body:'cinturon', corner:'recta'},
+    {id:'fukinagashi',name:'Ovalada estrecha',     style:'Fukinagashi (barrido por el viento)', note:'Larga y muy baja: el árbol se planta en el extremo opuesto a la dirección del viento.',        type:'oval', L:24, W:13, H:3.5, t:0.7, flare:0,   feet:1,   paper:'A3', rim:'kittate', body:'liso',     corner:'recta'},
+    {id:'yose',    name:'Bandeja ovalada',         style:'Yose-ue (bosque)',            note:'Muy ancha y plana para varios troncos. Placa gruesa y patas bajas para evitar alabeo.',                type:'oval', L:32, W:22, H:3.5, t:0.8, flare:0,   feet:1,   paper:'A3', rim:'kittate', body:'liso',     corner:'recta'},
+    {id:'ishitsuki',name:'Bandeja rectangular',    style:'Ishitsuki (sobre roca) · Saikei', note:'Bandeja de agua o paisaje. Casi sin profundidad, drenaje generoso.',                               type:'rect', L:36, W:24, H:3,   t:0.8, flare:0,   feet:0.8, paper:'A3', rim:'kittate', body:'liso',     corner:'recta'},
+    {id:'sokan',   name:'Rectangular profunda',    style:'Sokan (tronco doble) · nebari fuerte', note:'Más profundidad para raíces vigorosas y troncos gruesos.',                                       type:'rect', L:18, W:13, H:8,   t:0.8, flare:0.4, feet:1.3, paper:'A4', rim:'sotoen',  body:'liso',     corner:'sumiiri'},
+    {id:'neagari', name:'Redonda alta',            style:'Neagari (raíces expuestas)',  note:'Cilindro alto que deja las raíces a la vista por encima del borde.',                                  type:'round',L:10, W:10, H:12,  t:0.7, flare:0,   feet:1.2, paper:'A4', rim:'uchien',  body:'liso',     corner:'recta'},
+    {id:'kusamono',name:'Redonda de acento',       style:'Kusamono / Shitakusa (planta de acento)', note:'Para hierbas y musgos que acompañan la exposición. Pared gruesa, forma cerrada.',           type:'round',L:8,  W:8,  H:4,   t:0.6, flare:0,   feet:0.6, paper:'A4', rim:'kittate', body:'panza',    corner:'recta'}
+  ];
+  const FINISH={
+    shudei:{name:'Shudei rojizo sin esmalte',body:'#8E5A3C',dark:'#6B4029',light:'#A97555',rim:'#5A3521'},
+    azul:{name:'Esmalte azul namako',body:'#3E6E8E',dark:'#2C5069',light:'#6C97B3',rim:'#22405A'},
+    oribe:{name:'Esmalte verde oribe',body:'#5E7F4F',dark:'#455F3A',light:'#86A375',rim:'#354B2C'},
+    crema:{name:'Esmalte crema',body:'#D9CBA8',dark:'#B5A57F',light:'#EEE4CC',rim:'#9A8A64'},
+    gris:{name:'Cemento gris natural',body:'#8E9091',dark:'#6C6E70',light:'#B5B7B8',rim:'#55575A'},
+    oxido:{name:'Cemento con óxido de hierro',body:'#A0654A',dark:'#7B4B36',light:'#BE8A70',rim:'#5F3A28'},
+    negro:{name:'Cemento con óxido negro',body:'#4A4B4C',dark:'#2F3031',light:'#6E7071',rim:'#1F2021'}
+  };
+  const RIM_NAME={sotoen:'sotoen (labio externo)',kittate:'kittate (sin labio)',uchien:'uchien (labio interno)'};
+  const BODY_NAME={liso:'cuerpo liso',cinturon:'con cinturón',panza:'panza convexa'};
+  const CORNER_NAME={recta:'esquinas rectas',sumikiri:'sumikiri (esquina cortada)',nadekaku:'nadekaku (esquina redondeada)',sumiiri:'sumiiri (esquina entrante)'};
+  let uidN=0; const uid=()=>'c'+(++uidN);
+  const CUT='fill="none" stroke="#000" stroke-width="0.35"';
+  const REF='fill="none" stroke="#555" stroke-width="0.25" stroke-dasharray="2 1.5"';
+  const SEAM='fill="none" stroke="#000" stroke-width="0.3" stroke-dasharray="4 1.2 1 1.2"';
+  const HATCH='<pattern id="hz" width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="2.2" stroke="#000" stroke-width="0.28"/></pattern><pattern id="hl" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="3" stroke="#777" stroke-width="0.22"/></pattern><pattern id="gr" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0 L0 0 0 10" fill="none" stroke="#bbb" stroke-width="0.15"/></pattern>';
+  const cm=mm=>(Math.round(mm/10*100)/100).toLocaleString('es-EC',{maximumFractionDigits:2});
+  const pct=n=>(Math.round(n*10)/10).toLocaleString('es-EC',{maximumFractionDigits:1});
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const r1=n=>Math.round(n*100)/100;
+  function txt(x,y,str,o={}){
+    return `<text x="${r1(x)}" y="${r1(y)}" font-family="IBM Plex Mono, monospace" font-size="${o.s||2.8}" font-weight="${o.w||400}" fill="${o.c||'#000'}" text-anchor="${o.a||'start'}"${o.r?` transform="rotate(-90 ${r1(x)} ${r1(y)})"`:''}>${esc(str)}</text>`;
+  }
+  function label(name,dims,x,y){ return txt(x,y,name,{s:4,w:500})+txt(x,y+4.2,dims,{c:'#333'}); }
+  const pts2s=pts=>pts.map(p=>r1(p[0])+','+r1(p[1])).join(' ');
+  function holes(cx,cy,spread,small,plug){
+    const r=small?7:10;
+    let g=`<circle cx="${cx}" cy="${cy}" r="${r}" ${CUT}/><line x1="${cx-3}" y1="${cy}" x2="${cx+3}" y2="${cy}" stroke="#000" stroke-width=".2"/><line x1="${cx}" y1="${cy-3}" x2="${cx}" y2="${cy+3}" stroke="#000" stroke-width=".2"/>`;
+    g+=`<circle cx="${cx-spread}" cy="${cy}" r="3" ${CUT}/><circle cx="${cx+spread}" cy="${cy}" r="3" ${CUT}/>`;
+    g+=txt(cx,cy+r+5,plug?`tapón PVC Ø${cm(2*r)} cm · alambrado: clavos Ø0,6 cm`:`drenaje Ø${cm(2*r)} cm · alambrado Ø0,6 cm`,{a:'middle',s:2.3,c:'#333'});
+    return g;
+  }
+  const footSize=L=>Math.min(20,Math.max(10,L/8));
+  function ellipsePerim(a,c){ const hh=Math.pow(a-c,2)/Math.pow(a+c,2); return Math.PI*(a+c)*(1+3*hh/(10+Math.sqrt(4-3*hh))); }
+  // rectangular outline with the classic corner treatments
+  function cornerPath(x,y,L,W,style,c){
+    c=Math.min(c,L/3,W/3);
+    if(style==='sumikiri') return `M${r1(x+c)} ${r1(y)} H${r1(x+L-c)} L${r1(x+L)} ${r1(y+c)} V${r1(y+W-c)} L${r1(x+L-c)} ${r1(y+W)} H${r1(x+c)} L${r1(x)} ${r1(y+W-c)} V${r1(y+c)} Z`;
+    if(style==='nadekaku') return `M${r1(x+c)} ${r1(y)} H${r1(x+L-c)} A${c} ${c} 0 0 1 ${r1(x+L)} ${r1(y+c)} V${r1(y+W-c)} A${c} ${c} 0 0 1 ${r1(x+L-c)} ${r1(y+W)} H${r1(x+c)} A${c} ${c} 0 0 1 ${r1(x)} ${r1(y+W-c)} V${r1(y+c)} A${c} ${c} 0 0 1 ${r1(x+c)} ${r1(y)} Z`;
+    if(style==='sumiiri') return `M${r1(x+c)} ${r1(y)} H${r1(x+L-c)} V${r1(y+c)} H${r1(x+L)} V${r1(y+W-c)} H${r1(x+L-c)} V${r1(y+W)} H${r1(x+c)} V${r1(y+W-c)} H${r1(x)} V${r1(y+c)} H${r1(x+c)} Z`;
+    return `M${r1(x)} ${r1(y)} H${r1(x+L)} V${r1(y+W)} H${r1(x)} Z`;
+  }
+
+  // ---------- WALL PROFILES (the "perfil": half section, x outward from the axis, y down from the rim) ----------
+  function lipH(s){ return Math.max(4,Math.min(10,s.t*0.9)); }
+  function halfExt(s,R,H,ft,d){
+    const lh=lipH(s), yb=H-ft, xAt=y=>R-d*(y/yb), pts=[];
+    if(s.rim==='sotoen'){ pts.push([R+s.lip,0],[R+s.lip,lh],[xAt(lh+s.lip*0.6),lh+s.lip*0.6]); } else pts.push([R,0]);
+    const y0=pts[pts.length-1][1];
+    if(s.body==='cinturon'&&yb-y0>16){ const yc=y0+(yb-y0)*0.5, bh=Math.min(4,(yb-y0)/6), bw=Math.min(3,Math.max(1.5,s.t*0.3)); pts.push([xAt(yc-bh),yc-bh],[xAt(yc-bh)+bw,yc-bh],[xAt(yc+bh)+bw,yc+bh],[xAt(yc+bh),yc+bh]); }
+    else if(s.body==='panza'){ const bulge=Math.min(6,Math.max(2,s.t*0.5)); for(let k=1;k<=7;k++){ const y=y0+(yb-y0)*k/8; pts.push([xAt(y)+bulge*Math.sin(Math.PI*(y-y0)/(yb-y0)),y]); } }
+    pts.push([xAt(yb),yb]);
+    return pts;
+  }
+  function halfInt(s,Rc,Hc,d){
+    const lh=lipH(s), pts=[];
+    if(s.rim==='uchien'&&Hc>lh+6){ pts.push([Rc-s.lip,0],[Rc-s.lip,lh],[Rc,lh+s.lip*0.6]); } else pts.push([Rc,0]);
+    pts.push([Rc-d,Hc]); return pts;
+  }
+  function withFeet(half,ft,fw){ const [xb,yb]=half[half.length-1]; if(ft<=0) return half; return half.concat([[xb-4,yb],[xb-4,yb+ft],[xb-4-fw,yb+ft],[xb-4-fw,yb]]); }
+  const xmax=half=>Math.max(...half.map(p=>p[0]));
+  function mirror(half,cx,top){ return half.map(([x,y])=>[cx-x,top+y]).concat(half.slice().reverse().map(([x,y])=>[cx+x,top+y])); }
+
+  function readState(){
+    const mat=$('matCement').checked?'cement':'clay';
+    const s={mat,type:$('type').value,L:+$('L').value*10,W:+$('W').value*10,H:+$('H').value*10,t:+$('t').value*10,shrink:mat==='clay'?+$('shrink').value:0,flare:+$('flare').value*10,feet:+$('feet').value*10,base:+$('base').value*10,m:+$('board').value*10,paper:$('paper').value,finish:$('finish').value,rim:$('rim').value,body:$('body').value,corner:$('type').value==='rect'?$('corner').value:'recta',lip:+$('lip').value*10};
+    if(s.type==='round') s.W=s.L;
+    if(s.type==='oval') s.flare=0;
+    if(mat==='clay'&&s.type==='round') s.flare=0;
+    s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
+    s.lipX=s.rim==='sotoen'?s.lip:0;                      // outward growth at the rim
+    return s;
+  }
+  function build(s){
+    const k=1/(1-s.shrink/100);
+    const b={k,L:s.L*k,W:s.W*k,H:s.H*k,feet:s.feet*k,t:s.t};
+    b.wall=b.H-b.t-b.feet;
+    b.core=s.H-s.feet-s.base;
+    return b;
+  }
+
+  // ---------- CLAY PIECES ----------
+  function baseRect(s,b){
+    const {L,W,t}=b; let g=`<defs>${HATCH}</defs>`;
+    const id=uid(); const path=cornerPath(0,0,L,W,s.corner,s.c*b.k);
+    g+=`<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><g clip-path="url(#${id})">`;
+    g+=`<rect x="0" y="0" width="${L}" height="${t}" fill="url(#hz)"/><rect x="0" y="${W-t}" width="${L}" height="${t}" fill="url(#hz)"/><rect x="0" y="0" width="${t}" height="${W}" fill="url(#hz)"/><rect x="${L-t}" y="0" width="${t}" height="${W}" fill="url(#hz)"/>`;
+    if(s.corner!=='recta'){ const c=s.c*b.k; [[0,0],[L-c,0],[0,W-c],[L-c,W-c]].forEach(([x,y])=>{g+=`<rect x="${x}" y="${y}" width="${c}" height="${c}" fill="url(#hz)"/>`;}); }
+    g+=`</g><rect x="${t}" y="${t}" width="${L-2*t}" height="${W-2*t}" ${REF}/>`;
+    const f=footSize(L);
+    if(b.feet>0){ const i=Math.max(6,t+2+(s.corner==='recta'?0:s.c*b.k*0.4)); [[i,i],[L-i-f,i],[i,W-i-f],[L-i-f,W-i-f]].forEach(([x,y])=>{g+=`<rect x="${x}" y="${y}" width="${f}" height="${f}" ${REF}/>`;}); }
+    g+=holes(L/2,W/2,Math.max(15,L/5),L<110);
+    g+=`<path d="${path}" ${CUT}/>`;
+    g+=label('Fondo ×1',`${cm(L)} × ${cm(W)} cm · placa ${cm(t)} cm · ${CORNER_NAME[s.corner]}`,t+3+(s.corner==='recta'?0:s.c*b.k*0.5),t+6.5);
+    if(W>70) g+=txt(L/2,W-t-3,'rayado = asiento de paredes · punteado = patas',{a:'middle',s:2.3,c:'#333'});
+    return {name:'Fondo',qty:1,w:L,h:W,inner:g};
+  }
+  function wall(name,qty,wb,wt,h,t,ends,flare,o={}){
+    const id=uid(), off=(wt-wb)/2;
+    const path=`M0 0 L${wt} 0 L${wt-off} ${h} L${off} ${h} Z`;
+    let g=`<defs>${HATCH}<clipPath id="${id}"><path d="${path}"/></clipPath></defs>`;
+    if(!o.noHatch){
+      g+=`<g clip-path="url(#${id})"><rect x="0" y="${h-t}" width="${wt}" height="${t}" fill="url(#hz)"/>`;
+      if(ends) g+=`<rect x="0" y="0" width="${t}" height="${h}" fill="url(#hz)"/><rect x="${wt-t}" y="0" width="${t}" height="${h}" fill="url(#hz)"/>`;
+      g+=`</g>`;
+    }
+    g+=`<path d="${path}" ${CUT}/>`;
+    g+=label(`${name} ×${qty}`,o.dims||`borde ${cm(wt)} · base ${cm(wb)} · alto ${cm(h)} cm`,Math.max(t,off)+3,7.5);
+    if(o.note&&h>22) g+=txt(wt/2,h-(o.noHatch?3:t+2),o.note,{a:'middle',s:2.3,c:'#333'});
+    else if(flare>0&&h>22&&!o.note) g+=txt(wt/2,h-t-2,`inclinación ${cm(flare)} cm por lado · borde superior arriba`,{a:'middle',s:2.3,c:'#333'});
+    return {name,qty,w:wt,h,inner:g};
+  }
+  function feetPiece(b,f){
+    const gap=6,w=2*f+gap; let g=`<rect x="0" y="0" width="${f}" height="${f}" ${CUT}/><rect x="${f+gap}" y="0" width="${f}" height="${f}" ${CUT}/><rect x="0" y="${f+gap}" width="${f}" height="${f}" ${CUT}/><rect x="${f+gap}" y="${f+gap}" width="${f}" height="${f}" ${CUT}/>`;
+    g+=txt(w/2,w+5,`${cm(f)} × ${cm(f)} cm, de placa de ${cm(b.feet)} cm`,{a:'middle',s:2.4,c:'#333'});
+    return {name:'Patas',qty:4,w:Math.max(w,50),h:w+7,inner:g};
+  }
+  function baseOval(b,round){
+    const {L,W,t}=b, cx=L/2, cy=W/2, rx=L/2, ry=W/2; const id=uid();
+    let g=`<defs>${HATCH}<clipPath id="${id}"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/></clipPath></defs>`;
+    g+=`<g clip-path="url(#${id})"><rect x="0" y="0" width="${L}" height="${W}" fill="url(#hz)"/><ellipse cx="${cx}" cy="${cy}" rx="${rx-t}" ry="${ry-t}" fill="#fff"/></g>`;
+    g+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx-t}" ry="${ry-t}" ${REF}/>`;
+    g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${W}" ${REF}/><line x1="0" y1="${cy}" x2="${L}" y2="${cy}" ${REF}/>`;
+    const f=footSize(L);
+    if(b.feet>0){ [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sy])=>{ const x=cx+sx*(rx-t)*0.62-f/2, y=cy+sy*(ry-t)*0.62-f/2; g+=`<rect x="${x}" y="${y}" width="${f}" height="${f}" ${REF}/>`;}); }
+    g+=holes(cx,cy,Math.max(15,L/5),L<110);
+    g+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${CUT}/>`;
+    g+=label('Fondo ×1',round?`Ø ${cm(L)} cm · placa ${cm(t)} cm`:`${cm(L)} × ${cm(W)} cm · placa ${cm(t)} cm`,cx-rx*0.5,t+9);
+    return {name:'Fondo',qty:1,w:L,h:W,inner:g};
+  }
+  function strip(len,h,t,perim,o={}){
+    let g=`<defs>${HATCH}</defs>`;
+    if(!o.noHatch) g+=`<rect x="0" y="${h-t}" width="${len}" height="${t}" fill="url(#hz)"/><rect x="${len-15}" y="0" width="15" height="${h}" fill="url(#hz)"/>`;
+    else g+=`<rect x="${len-30}" y="0" width="30" height="${h}" fill="url(#hl)"/>`;
+    for(let x=0;x<=len;x+=10){ const big=x%50===0; g+=`<line x1="${x}" y1="0" x2="${x}" y2="${big?3:1.6}" stroke="#000" stroke-width=".25"/>`; if(big&&x>0) g+=txt(x,5.6,cm(x),{a:'middle',s:2.2,c:'#333'}); }
+    g+=`<rect x="0" y="0" width="${len}" height="${h}" ${CUT}/>`;
+    g+=label(o.name||'Pared ×1 (tira continua)',o.dims||`${cm(len)} × ${cm(h)} cm · perímetro ${cm(perim)} cm + 1,5 cm de empalme en bisel`,Math.max(t,4)+3,10.5);
+    if(h>22) g+=txt(len/2,h-3,o.note||'marcas superiores cada 1 cm · el extremo rayado se bisela y monta sobre el otro',{a:'middle',s:2.2,c:'#333'});
+    return {name:o.short||'Pared',qty:1,w:len,h,inner:g};
+  }
+  function coilPiece(s,b,len){
+    // rim coil for clay lips: a rolled strip added after assembly
+    const d=s.lip*b.k, w=Math.max(60,Math.min(len,120)), h=d+16;
+    let g=`<rect x="0" y="8" width="${w}" height="${d}" ${CUT}/>`+txt(w/2,6,`Rollo del labio ${RIM_NAME[s.rim]}: Ø ${cm(d)} cm × ${cm(len)} cm de largo`,{a:'middle',s:2.6})+txt(w/2,h-1.5,s.rim==='sotoen'?'pegar por fuera del borde superior, rayado y barbotina, alisar la unión inferior':'pegar por dentro del borde superior y alisar hacia abajo',{a:'middle',s:2.2,c:'#333'});
+    return {name:'Rollo del labio',qty:1,w,h,inner:g};
+  }
+  function clayPieces(s,b){
+    const p=[]; const c=s.c*b.k;
+    if(s.type==='rect'){
+      p.push(baseRect(s,b));
+      const cut=s.corner==='sumikiri'?2*c:0;
+      p.push(wall('Pared larga',2,b.L-cut,b.L-cut+2*s.flare,b.wall,b.t,s.corner!=='sumikiri',s.flare));
+      p.push(wall('Pared corta',2,b.W-2*b.t-cut,b.W-2*b.t-cut+2*s.flare,b.wall,b.t,false,s.flare));
+      if(s.corner==='sumikiri'){ const cw=c*Math.SQRT2; p.push(wall('Chaflán de esquina',4,cw,cw+2*s.flare*0.7,b.wall,b.t,true,0,{dims:`${cm(cw)} × ${cm(b.wall)} cm · placa ${cm(b.t)}`,note:'une los extremos de las paredes larga y corta a 45°'})); }
+      if(s.rim!=='kittate') p.push(coilPiece(s,b,2*(b.L+b.W)+20));
+    } else {
+      p.push(baseOval(b,s.type==='round'));
+      const a=(b.L-b.t)/2, cc=(b.W-b.t)/2;
+      const per=s.type==='round'?Math.PI*(b.L-b.t):ellipsePerim(a,cc);
+      p.push(strip(per+15,b.wall,b.t,per));
+      if(s.rim!=='kittate') p.push(coilPiece(s,b,per+20));
+    }
+    if(b.feet>0) p.push(feetPiece(b,footSize(b.L)));
+    return p;
+  }
+
+  // ---------- CEMENT: sweep machine with a plan guide (one system for every shape) ----------
+  // The pot is swept upside down on a plate cut to its rim outline. A follower rides the plate edge and carries the
+  // profile blade, so the blade traces the plan while its cut edge gives the wall section. No box, no core.
+  function planShape(s,x,y,Lg,Wg){
+    if(s.type==='round') return a=>`<circle cx="${r1(x+Lg/2)}" cy="${r1(y+Wg/2)}" r="${r1(Lg/2)}" ${a}/>`;
+    if(s.type==='oval') return a=>`<ellipse cx="${r1(x+Lg/2)}" cy="${r1(y+Wg/2)}" rx="${r1(Lg/2)}" ry="${r1(Wg/2)}" ${a}/>`;
+    const st=(s.corner==='recta'||s.corner==='sumiiri')?'nadekaku':s.corner, cc=(s.corner==='recta'||s.corner==='sumiiri')?6:s.c;
+    return a=>`<path d="${cornerPath(x,y,Lg,Wg,st,cc)}" ${a}/>`;
+  }
+  function planGuide(s){
+    const Lg=s.L+2*s.lipX, Wg=s.W+2*s.lipX, small=Lg<150;
+    let g=`<defs>${HATCH}</defs>`;
+    g+=planShape(s,0,0,Lg,Wg)(CUT);
+    const fl=s.flare; g+=planShape(s,s.lipX+fl,s.lipX+fl,s.L-2*fl,s.W-2*fl)(REF);
+    g+=`<line x1="${Lg/2}" y1="0" x2="${Lg/2}" y2="${Wg}" ${REF}/><line x1="0" y1="${Wg/2}" x2="${Lg}" y2="${Wg/2}" ${REF}/>`;
+    g+=`<circle cx="${Lg/2}" cy="${Wg/2}" r="5" ${CUT}/>`;
+    const dims=s.type==='round'?`Ø ${cm(Lg)} cm`:`${cm(Lg)} × ${cm(Wg)} cm`;
+    g+=txt(Lg*0.18,Wg*0.3,'Plato-guía ×1',{s:small?3.2:4,w:500})+txt(Lg*0.18,Wg*0.3+4,`${dims} · MDF ${cm(s.m)} cm · eje central Ø1 cm`,{s:small?2.2:2.8,c:'#333'});
+    if(!small){
+      g+=txt(Lg/2,Wg*0.64,'el seguidor rueda por el borde exterior · la maceta se barre boca abajo sobre esta pieza',{a:'middle',s:2.3,c:'#333'});
+      g+=txt(Lg/2,Wg*0.64+4.5,'punteado = huella del pie, para centrar la pieza al voltearla',{a:'middle',s:2.2,c:'#333'});
+      if(s.type==='rect'&&(s.corner==='recta'||s.corner==='sumiiri')) g+=txt(Lg/2,Wg*0.64+9,'esquinas con radio mínimo 0,6 cm para el seguidor; el detalle recto o entrante se talla a mano',{a:'middle',s:2.2,c:'#333'});
+    }
+    return {name:'Plato-guía',qty:1,w:Lg,h:Wg,inner:g};
+  }
+  function sectionFull(s,b,Wd){
+    // 1:1 section through the short axis (or diameter) of the finished pot
+    const H=s.H, t=s.t, ft=s.feet, d=s.flare, Hc=b.core, fw=footSize(Wd);
+    const ext=withFeet(halfExt(s,Wd/2,H,ft,d),ft,fw), int=halfInt(s,Wd/2-t,Hc,d);
+    const xm=xmax(ext), w=2*xm+4, cx=w/2, h=H+14;
+    let g=`<defs>${HATCH}</defs>`;
+    g+=`<polygon points="${pts2s(mirror(ext,cx,0))}" fill="url(#hz)" stroke="#000" stroke-width=".35"/>`;
+    g+=`<polygon points="${pts2s(mirror(int,cx,0))}" fill="#fff" stroke="#000" stroke-width=".35"/>`;
+    g+=`<line x1="${cx}" y1="-1" x2="${cx}" y2="${H+1}" ${SEAM}/>`;
+    g+=txt(cx,Hc/2+1.5,'cavidad',{a:'middle',s:2.6,c:'#333'});
+    g+=txt(cx,H+5,`sección · ${RIM_NAME[s.rim]} · ${BODY_NAME[s.body]} · pared ${cm(t)} · fondo ${cm(s.base)} · inclinación ${cm(d)} cm/lado · escala 1:1`,{a:'middle',s:2.3,c:'#333'});
+    g+=txt(cx,H+9.5,'rayado = mortero · eje de giro por la línea central',{a:'middle',s:2.2,c:'#333'});
+    return {name:'Sección (referencia, no cortar)',qty:1,w,h,inner:g};
+  }
+  function profilePlate(name,half,depth,dims,note,inverted){
+    // blade template. Axis on the left edge; cut edge = half profile; hatched = pot silhouette to remove.
+    // inverted = pot upside down on the plan guide (exterior sweep): rim at the bottom, foot at the top.
+    const mg=30, xm=xmax(half), w=Math.max(xm+mg,95), h=depth+38, top=8;
+    const pts=half.map(([x,y])=>[x,inverted?top+depth-y:top+y]);
+    const poly=[[0,pts[0][1]]].concat(pts).concat([[0,pts[pts.length-1][1]]]);
+    let g=`<defs>${HATCH}</defs><rect x="0" y="0" width="${w}" height="${h}" fill="url(#gr)"/>`;
+    g+=`<polygon points="${pts2s(poly)}" fill="url(#hl)" stroke="none"/>`;
+    g+=`<polyline points="${pts2s(pts)}" fill="none" stroke="#000" stroke-width=".6"/>`;
+    g+=`<line x1="0" y1="${inverted?top+depth:top}" x2="${w}" y2="${inverted?top+depth:top}" ${REF}/>`;
+    g+=`<line x1="0" y1="0" x2="0" y2="${h}" ${SEAM}/>`;
+    g+=`<circle cx="6" cy="${h-6}" r="2.2" ${CUT}/><circle cx="6" cy="${top+6}" r="2.2" ${CUT}/>`;
+    g+=`<rect x="0" y="0" width="${w}" height="${h}" ${CUT}/>`;
+    g+=label(`${name} ×1`,dims,4,h-16);
+    g+=txt(w-3,top-2.5,'línea gruesa = borde de barrido · rayado = retirar · cuadrícula 1 cm',{a:'end',s:2.2,c:'#333'});
+    g+=txt(2.5,(top+depth)/2+4,'eje de giro · lado del poste',{r:1,a:'middle',s:2.2,c:'#333'});
+    g+=txt(w-3,inverted?top+depth+3.5:top+3.5,inverted?'punteado = superficie del plato-guía (boca de la maceta)':'punteado = borde de la boca (maceta boca arriba)',{a:'end',s:2.1,c:'#333'});
+    if(note) g+=txt(w/2,h-3,note,{a:'middle',s:2.2,c:'#333'});
+    return {name,qty:1,w,h,inner:g};
+  }
+  function machineSketch(s){
+    const w=124,h=82; let g=`<defs>${HATCH}</defs>`;
+    g+=`<rect x="6" y="66" width="112" height="6" fill="#ddd" stroke="#000" stroke-width=".3"/>`;                       // bench
+    g+=`<rect x="34" y="60" width="36" height="6" fill="#bbb" stroke="#000" stroke-width=".3"/>`+txt(52,58,'rodamiento',{a:'middle',s:2.1,c:'#333'});
+    g+=s.type==='round'?`<ellipse cx="52" cy="52" rx="30" ry="7" fill="#eee" stroke="#000" stroke-width=".35"/>`:`<path d="M26 52 q0 -7 8 -7 h36 q8 0 8 7 q0 7 -8 7 h-36 q-8 0 -8 -7 z" fill="#eee" stroke="#000" stroke-width=".35"/>`; // plan guide
+    g+=txt(52,64.5,'plato-guía',{a:'middle',s:2.1,c:'#333'});
+    g+=`<path d="M30 50 L34 30 L40 26 L64 26 L70 30 L74 50 Z" fill="url(#hz)" stroke="#000" stroke-width=".35"/>`;       // inverted mound
+    g+=txt(52,24,'maceta boca abajo · pie arriba',{a:'middle',s:2.1,c:'#333'});
+    g+=`<line x1="52" y1="10" x2="52" y2="66" ${SEAM}/>`;
+    g+=`<rect x="104" y="6" width="5" height="60" fill="#ccc" stroke="#000" stroke-width=".3"/>`+txt(112,36,'poste',{r:1,a:'middle',s:2.1,c:'#333'});
+    g+=`<rect x="76" y="12" width="28" height="3.5" fill="#ccc" stroke="#000" stroke-width=".3"/><rect x="76" y="20" width="28" height="3.5" fill="#ccc" stroke="#000" stroke-width=".3"/>`+txt(90,10,'brazo en paralelogramo',{a:'middle',s:2.1,c:'#333'});
+    g+=`<circle cx="80" cy="52" r="3" fill="#fff" stroke="#000" stroke-width=".4"/>`+txt(86,54,'seguidor',{s:2.1,c:'#333'});   // follower at the plate edge
+    g+=`<path d="M74 12 L74 26 L70 30 L74 50 L78 50 L78 12 Z" fill="#fff" stroke="#000" stroke-width=".5"/>`+txt(86,42,'perfil',{s:2.1,c:'#333'});
+    g+=`<path d="M18 22 A30 30 0 0 1 26 12" fill="none" stroke="#000" stroke-width=".3"/>`+txt(10,20,'giro',{s:2.1,c:'#333'});
+    g+=txt(w/2,78,'El plato gira; el seguidor sigue su borde y el perfil rasa el mortero con la forma en planta (sin escala)',{a:'middle',s:2.2});
+    return {name:'Esquema de la máquina',qty:1,w,h,inner:g};
+  }
+  function cementPieces(s,b){
+    const p=[], H=s.H, t=s.t, d=s.flare, Hc=b.core;
+    const Wd=s.type==='round'?s.L:s.W; // section through the short axis, or the diameter
+    p.push(planGuide(s));
+    p.push(profilePlate('Perfil exterior',withFeet(halfExt(s,Wd/2,H,s.feet,d),s.feet,footSize(Wd)),H,`radio ${cm(Wd/2+s.lipX)} · alto ${cm(H)} · ${RIM_NAME[s.rim]} · ${BODY_NAME[s.body]}`,'el borde de barrido va en la misma vertical que el seguidor · lámina galvanizada 1 mm o acrílico 3 mm',true));
+    p.push(profilePlate('Perfil interior',halfInt(s,Wd/2-t,Hc,d),Hc,`radio ${cm(Wd/2-t)} · profundidad ${cm(Hc)} · ${s.rim==='uchien'?'labio interno '+cm(s.lip)+' cm':'sin labio'}`,`montar el borde de barrido ${cm(t+s.lipX)} cm hacia dentro del seguidor · maceta boca arriba sobre el plato-guía`,false));
+    p.push(sectionFull(s,b,Wd));
+    p.push(machineSketch(s));
+    return p;
+  }
+  function mortarLitres(s,b){
+    const Hb=s.H-s.feet, Hc=b.core; let v;
+    if(s.type==='rect') v=s.L*s.W*Hb-(s.L-2*s.t)*(s.W-2*s.t)*Hc;
+    else if(s.type==='round') v=Math.PI*Math.pow(s.L/2,2)*Hb-Math.PI*Math.pow(s.L/2-s.t,2)*Hc;
+    else v=Math.PI*(s.L/2)*(s.W/2)*Hb-Math.PI*(s.L/2-s.t)*(s.W/2-s.t)*Hc;
+    return v/1e6;
+  }
+
+  // ---------- LAYOUT ----------
+  function rotate(p){ return {...p,w:p.h,h:p.w,inner:`<g transform="translate(${p.h} 0) rotate(90)">${p.inner}</g>`}; }
+  function segments(p,areaW){
+    const n=Math.ceil((p.w-OV)/(areaW-OV)), segW=(p.w+OV*(n-1))/n, out=[];
+    for(let i=0;i<n;i++){
+      const x0=i*(segW-OV); let m='';
+      if(i>0) m+=`<line x1="${x0+OV}" y1="-2" x2="${x0+OV}" y2="${p.h+2}" ${SEAM}/>`+txt(x0+OV-1,p.h/2,'empalme ← pegar bajo el tramo anterior',{r:1,a:'middle',s:2.2});
+      if(i<n-1) m+=`<line x1="${x0+segW-OV}" y1="-2" x2="${x0+segW-OV}" y2="${p.h+2}" ${SEAM}/>`+txt(x0+segW-OV+3,p.h/2,'empalme → continúa en el siguiente tramo',{r:1,a:'middle',s:2.2});
+      out.push({...p,name:`${p.name} · tramo ${i+1}/${n}`,w:segW,vx:x0,inner:p.inner+m});
+    }
+    return out;
+  }
+  function segmentsV(p,areaH){
+    const n=Math.ceil((p.h-OV)/(areaH-OV)), segH=(p.h+OV*(n-1))/n, out=[];
+    for(let i=0;i<n;i++){
+      const y0=i*(segH-OV); let m='';
+      if(i>0) m+=`<line x1="-2" y1="${y0+OV}" x2="${p.w+2}" y2="${y0+OV}" ${SEAM}/>`+txt(p.w/2,y0+OV-1,'empalme ↑ pegar bajo la franja anterior',{a:'middle',s:2.2});
+      if(i<n-1) m+=`<line x1="-2" y1="${y0+segH-OV}" x2="${p.w+2}" y2="${y0+segH-OV}" ${SEAM}/>`+txt(p.w/2,y0+segH-OV+3,'empalme ↓ continúa en la siguiente franja',{a:'middle',s:2.2});
+      out.push({...p,name:`${p.name} · franja ${i+1}/${n}`,h:segH,vy:y0,inner:p.inner+m});
+    }
+    return out;
+  }
+  function pack(items,areaW,areaH){
+    const pages=[]; let page={items:[]}, y=0, row=null;
+    items.slice().sort((a,b)=>(b.h+CAP)-(a.h+CAP)).forEach(it=>{
+      const ih=it.h+CAP;
+      if(!row||row.x+it.w>areaW){
+        if(row) y+=row.h+GAP;
+        if(y+ih>areaH&&page.items.length){ pages.push(page); page={items:[]}; y=0; }
+        row={x:0,h:ih,y};
+      }
+      page.items.push({it,x:row.x,y:row.y}); row.x+=it.w+GAP;
+    });
+    if(page.items.length) pages.push(page);
+    return pages;
+  }
+  function pieceSvg(p){ return `<svg width="${p.w}mm" height="${p.h}mm" viewBox="${p.vx||0} ${p.vy||0} ${p.w} ${p.h}" xmlns="http://www.w3.org/2000/svg">${p.inner}</svg>`; }
+
+  // ---------- COVER GRAPHICS ----------
+  function ruler(){
+    let g=''; for(let x=0;x<=100;x+=1){ const l=x%10===0?5:x%5===0?3.2:1.8; g+=`<line x1="${x}" y1="0" x2="${x}" y2="${l}" stroke="#000" stroke-width="${x%10===0?.3:.2}"/>`; if(x%10===0) g+=txt(x,8.4,String(x/10),{a:'middle',s:2.4}); }
+    g+=`<line x1="0" y1="0" x2="100" y2="0" stroke="#000" stroke-width=".35"/>`;
+    let v=''; for(let y=0;y<=50;y+=1){ const l=y%10===0?5:y%5===0?3.2:1.8; v+=`<line x1="0" y1="${y}" x2="${l}" y2="${y}" stroke="#000" stroke-width="${y%10===0?.3:.2}"/>`; }
+    v+=`<line x1="0" y1="0" x2="0" y2="50" stroke="#000" stroke-width=".35"/>`+txt(7,51,'5 cm',{s:2.4});
+    return `<svg width="130mm" height="54mm" viewBox="0 0 130 54" xmlns="http://www.w3.org/2000/svg"><g transform="translate(8 2)">${g}</g>${txt(8,14.5,'10 cm — comprueba con una regla antes de cortar',{s:2.6,c:'#333'})}<g transform="translate(118 2)">${v}</g></svg>`;
+  }
+  function views(s,b){
+    // plan (with corner treatment) and front elevation drawn from the real wall profile
+    const fl=s.mat==='clay'?s.flare/b.k:s.flare, L=s.L, W=s.W, H=s.H, ft=s.feet;
+    const ext=withFeet(halfExt(s,L/2,H,ft,fl),ft,footSize(L));
+    const xm=xmax(ext), topW=2*xm, planH=W+2*(xm-L/2), gap=12;
+    const totalW=topW, totalH=planH+gap+H;
+    const sc=Math.min(1,68/totalW,100/totalH);
+    let g='';
+    const ox=xm-L/2;
+    if(s.type==='rect'){ g+=`<path d="${cornerPath(0,0,topW,planH,s.corner,s.c)}" ${CUT}/>`; if(ox>0) g+=`<path d="${cornerPath(ox,ox,L,W,s.corner,s.c)}" ${REF}/>`; g+=`<path d="${cornerPath(ox+s.t,ox+s.t,L-2*s.t,W-2*s.t,s.corner,Math.max(2,s.c-s.t))}" ${REF}/>`; }
+    else { g+=`<ellipse cx="${topW/2}" cy="${planH/2}" rx="${topW/2}" ry="${planH/2}" ${CUT}/><ellipse cx="${topW/2}" cy="${planH/2}" rx="${L/2-s.t}" ry="${W/2-s.t}" ${REF}/>`; }
+    const y=planH+gap;
+    g+=`<polygon points="${pts2s(mirror(ext,topW/2,y))}" ${CUT}/>`;
+    g+=`<line x1="0" y1="${y+H}" x2="${topW}" y2="${y+H}" stroke="#777" stroke-width=".25"/>`;
+    const svg=`<svg width="${totalW*sc}mm" height="${totalH*sc}mm" viewBox="0 0 ${r1(totalW)} ${r1(totalH)}" xmlns="http://www.w3.org/2000/svg"><g>${g}</g></svg>`;
+    const scale=sc>=0.999?'1:1':`1:${pct(1/sc)}`;
+    return {svg,cap:`Planta y frente · escala ${scale}`};
+  }
+  function illustration(s){
+    // oblique projection of the finished pot: the front face is the real wall profile; soil and a small tree on top
+    const F=FINISH[s.finish]||FINISH.shudei, L=s.L, W=s.W, H=s.H, ft=s.feet, fl=s.flare;
+    const ang=Math.PI/6, k=0.5, dx=W*k*Math.cos(ang), dy=W*k*Math.sin(ang);
+    const treeH=Math.max(H*1.6,L*0.9), padT=treeH+4;
+    const ext=withFeet(halfExt(s,L/2,H,ft,fl),ft,footSize(L)), xm=xmax(ext), topW=2*xm;
+    const totalW=topW+dx+4, totalH=padT+H+2;
+    const sc=Math.min(68/totalW,100/totalH);
+    const id=uid();
+    let g=`<defs><linearGradient id="${id}a" x1="0" x2="1"><stop offset="0" stop-color="${F.light}"/><stop offset=".55" stop-color="${F.body}"/><stop offset="1" stop-color="${F.dark}"/></linearGradient><linearGradient id="${id}b" x1="0" x2="1"><stop offset="0" stop-color="${F.dark}"/><stop offset="1" stop-color="${F.rim}"/></linearGradient></defs>`;
+    g+=`<g transform="translate(2 ${padT})">`;
+    const bodyH=H-ft;
+    if(s.type==='rect'){
+      // right side face follows the same profile (drawn as a sheared copy), front face uses the mirrored profile
+      const side=ext.filter(p=>p[1]<=bodyH).map(([x,y])=>[topW/2+x,y]);
+      const sideBack=side.map(([x,y])=>[x+dx,y-dy]);
+      g+=`<polygon points="${pts2s(side.concat(sideBack.slice().reverse()))}" fill="url(#${id}b)"/>`;
+      g+=`<polygon points="${pts2s(mirror(ext,topW/2,0))}" fill="url(#${id}a)"/>`;
+      g+=`<polygon points="0,0 ${topW},0 ${topW+dx},${-dy} ${dx},${-dy}" fill="${F.rim}"/>`;
+      const it=s.t+(xm-L/2);
+      g+=`<polygon points="${it},${-s.t*0.3} ${topW-it},${-s.t*0.3} ${topW-it+dx*0.9},${-dy*0.95} ${it+dx*0.9},${-dy*0.95}" fill="#6B5541"/>`;
+    } else {
+      const rx=xm, ry=W/2*k*(xm/(L/2)), cx=xm;
+      g+=`<path d="M${cx-rx} 0 L${cx-rx+fl} ${bodyH} A${rx-fl} ${ry} 0 0 0 ${cx+rx-fl} ${bodyH} L${cx+rx} 0 Z" fill="url(#${id}a)"/>`;
+      if(s.rim==='sotoen'){ const lh=lipH(s); g+=`<path d="M${cx-rx} 0 L${cx-rx} ${lh} A${rx} ${ry*0.9} 0 0 0 ${cx+rx} ${lh} L${cx+rx} 0 Z" fill="${F.dark}"/>`; }
+      if(s.body==='cinturon'){ const yc=bodyH*0.5; g+=`<path d="M${cx-rx+fl*0.5} ${yc-2} A${rx-fl*0.5} ${ry*0.9} 0 0 0 ${cx+rx-fl*0.5} ${yc-2} L${cx+rx-fl*0.5} ${yc+2} A${rx-fl*0.5} ${ry*0.9} 0 0 1 ${cx-rx+fl*0.5} ${yc+2} Z" fill="${F.dark}" opacity=".7"/>`; }
+      g+=`<ellipse cx="${cx}" cy="0" rx="${rx}" ry="${ry}" fill="${F.rim}"/>`;
+      g+=`<ellipse cx="${cx}" cy="${-ry*0.08}" rx="${rx-s.t-(xm-L/2)}" ry="${ry*0.85}" fill="#6B5541"/>`;
+      const fw=footSize(L);
+      if(ft>0){ g+=`<rect x="${cx-rx*0.62}" y="${bodyH+ry*0.35}" width="${fw}" height="${ft}" fill="${F.dark}"/><rect x="${cx+rx*0.62-fw}" y="${bodyH+ry*0.35}" width="${fw}" height="${ft}" fill="${F.dark}"/>`; }
+    }
+    const tx=topW*0.42, th=treeH;
+    g+=`<path d="M${tx} ${-dy*0.5} C${tx-th*0.05} ${-th*0.35}, ${tx+th*0.12} ${-th*0.5}, ${tx+th*0.05} ${-th*0.82}" fill="none" stroke="#4A3524" stroke-width="${Math.max(1.5,L*0.045)}" stroke-linecap="round"/>`;
+    g+=`<path d="M${tx-th*0.02} ${-th*0.45} C${tx-th*0.15} ${-th*0.5}, ${tx-th*0.25} ${-th*0.55}, ${tx-th*0.3} ${-th*0.62}" fill="none" stroke="#4A3524" stroke-width="${Math.max(1,L*0.03)}" stroke-linecap="round"/>`;
+    [[tx-th*0.32,-th*0.66,0.16],[tx+th*0.02,-th*0.9,0.2],[tx+th*0.28,-th*0.7,0.15],[tx-th*0.08,-th*0.72,0.14]].forEach(([x,y,r])=>{ g+=`<ellipse cx="${x}" cy="${y}" rx="${th*r}" ry="${th*r*0.55}" fill="#3F6B3A"/><ellipse cx="${x-th*r*0.25}" cy="${y-th*r*0.15}" rx="${th*r*0.6}" ry="${th*r*0.3}" fill="#5B8A4E"/>`; });
+    g+=`<path d="M${tx+th*0.02} ${-th*0.5} L${tx+th*0.25} ${-th*0.68}" fill="none" stroke="#4A3524" stroke-width="${Math.max(1,L*0.03)}" stroke-linecap="round"/>`;
+    g+=`</g>`;
+    const svg=`<svg width="${totalW*sc}mm" height="${totalH*sc}mm" viewBox="0 0 ${r1(totalW)} ${r1(totalH)}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
+    return {svg,cap:`Maceta terminada · ${F.name} · ${RIM_NAME[s.rim]}`};
+  }
+  function shapeName(s){ if(s.type==='round') return 'Redonda'; if(s.type==='oval') return 'Ovalada'; return s.L===s.W?'Cuadrada':'Rectangular'; }
+  const MOLD_NAME={rect:'Máquina de barrido con plato-guía rectangular',round:'Máquina de barrido con plato-guía redondo',oval:'Máquina de barrido con plato-guía ovalado'};
+  const MOLD_SHORT={rect:'plato-guía y perfiles',round:'plato-guía y perfiles',oval:'plato-guía y perfiles'};
+
+  let current=null;
+  let view=0;
+  function applyView(){
+    document.querySelectorAll('#sheets .sheet').forEach((el,i)=>{ el.classList.toggle('off',view!=='all'&&i!==view); });
+    document.querySelectorAll('#tabs .tab').forEach(b=>{ const v=b.dataset.i==='all'?'all':+b.dataset.i; b.setAttribute('aria-selected',String(v===view)); });
+    fit(true);
+  }
+  $('tabs').addEventListener('click',e=>{ const b=e.target.closest('.tab'); if(!b) return; view=b.dataset.i==='all'?'all':+b.dataset.i; applyView(); });
+
+  function render(){
+    const s=readState(), b=build(s), paper=PAPER[s.paper], clay=s.mat==='clay';
+    $('W').disabled=s.type==='round'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lip').disabled=s.rim==='kittate';
+    $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay;
+    $('tLabel').innerHTML=clay?'Grosor placa <b>cm</b>':'Pared cemento <b>cm</b>';
+    $('flareLabel').innerHTML='Inclinación <b>cm</b>/lado';
+    $('pageRule').textContent=`@page{size:${s.paper} landscape;margin:0}`;
+    const areaW=paper.w-2*MARGIN, areaH=paper.h-2*MARGIN-FOOT;
+    const warns=[];
+    if(clay&&b.wall<12) warns.push('La pared útil queda por debajo de 1,2 cm. Sube el alto total o baja las patas.');
+    if(!clay&&b.core<10) warns.push('La cavidad queda con menos de 1 cm de profundidad. Sube el alto total o reduce fondo y patas.');
+    if(!clay&&s.t<12) warns.push('En cemento, paredes de menos de 1,2 cm se rompen al voltear la pieza salvo que añadas fibra.');
+    if(!clay&&s.type==='rect'&&s.corner==='sumiiri') warns.push('El seguidor no puede entrar en una esquina entrante: el plato-guía se corta redondeado y el detalle sumiiri se talla a mano.');
+    if(s.rim!=='kittate'&&s.lip>s.t*1.5) warns.push('El labio es mayor que 1,5 veces la pared: en arcilla se agrieta y en cemento se desconcha. Reduce el labio.');
+    const placed=[];
+    (clay?clayPieces(s,b):cementPieces(s,b)).forEach(p=>{
+      if(p.h+CAP>areaH&&p.w+CAP<=areaH&&p.h<=areaW) p=rotate(p);
+      const rows=p.h+CAP>areaH?segmentsV(p,areaH-CAP):[p];
+      rows.forEach(r=>{ if(r.w>areaW) segments(r,areaW).forEach(q=>placed.push(q)); else placed.push(r); });
+    });
+    const pages=pack(placed,areaW,areaH);
+    const nPieces=placed.length, nSheets=pages.length+1;
+    const dims=s.type==='round'?`Ø ${cm(s.L)} × ${cm(s.H)} cm`:`${cm(s.L)} × ${cm(s.W)} × ${cm(s.H)} cm`;
+    const title=`${current?current.name:shapeName(s)} ${dims}`;
+    const v=views(s,b), il=illustration(s);
+    const litres=clay?0:mortarLitres(s,b);
+    const today=new Date().toLocaleDateString('es-EC',{day:'numeric',month:'short',year:'numeric'});
+    const profileLine=`${RIM_NAME[s.rim]}${s.rim!=='kittate'?' de '+cm(s.lip)+' cm':''} · ${BODY_NAME[s.body]}${s.type==='rect'?' · '+CORNER_NAME[s.corner]:''}`;
+    const matLine=clay?`placa ${cm(s.t)} cm · contracción ${pct(s.shrink)} %`:`cemento · pared ${cm(s.t)} cm · ${MOLD_NAME[s.type].toLowerCase()}`;
+    const foot=(i)=>`<div class="foot"><span>Plantillas de Macetas Bonsái · ${esc(title)} · ${esc(matLine)}</span><span>Hoja ${i}/${nSheets} · ${s.paper} apaisado · escala 1:1</span></div>`;
+    const sheetStyle=`style="width:${paper.w}mm;height:${paper.h}mm"`;
+    const rows=clay?`
+        <tr><th>Medida</th><th>Cocida</th><th>Placa cruda</th></tr>
+        <tr><td>${s.type==='round'?'Diámetro':'Largo'}</td><td>${cm(s.L)} cm</td><td>${cm(b.L)} cm</td></tr>
+        ${s.type!=='round'?`<tr><td>Ancho</td><td>${cm(s.W)} cm</td><td>${cm(b.W)} cm</td></tr>`:''}
+        <tr><td>Alto total</td><td>${cm(s.H)} cm</td><td>${cm(b.H)} cm</td></tr>
+        <tr><td>Alto de pared (sin fondo ni patas)</td><td>${cm(b.wall/b.k)} cm</td><td>${cm(b.wall)} cm</td></tr>
+        <tr><td>Patas</td><td>${cm(s.feet)} cm</td><td>${cm(b.feet)} cm</td></tr>
+        <tr><td>Grosor de placa</td><td>—</td><td>${cm(s.t)} cm</td></tr>
+        <tr><td>Perfil</td><td colspan="2">${esc(profileLine)}</td></tr>
+        <tr><td>Contracción aplicada</td><td colspan="2">${pct(s.shrink)} % (factor ×${b.k.toFixed(3).replace('.',',')})</td></tr>
+        <tr><td>Piezas / hojas</td><td colspan="2">${nPieces} plantillas en ${nSheets-1} hoja${nSheets-1>1?'s':''} más esta portada</td></tr>`
+      :`
+        <tr><th>Medida</th><th>Maceta</th><th>Máquina</th></tr>
+        <tr><td>${s.type==='round'?'Diámetro':'Largo'} exterior</td><td>${cm(s.L)} cm</td><td>plato-guía ${s.type==='round'?'Ø ':''}${cm(s.L+2*s.lipX)} cm</td></tr>
+        ${s.type!=='round'?`<tr><td>Ancho exterior</td><td>${cm(s.W)} cm</td><td>plato-guía ${cm(s.W+2*s.lipX)} cm</td></tr>`:''}
+        <tr><td>Alto total</td><td>${cm(s.H)} cm</td><td>perfil exterior de ${cm(s.H)} cm, boca abajo</td></tr>
+        <tr><td>Pared de cemento</td><td>${cm(s.t)} cm</td><td>perfil interior ${cm(s.t+s.lipX)} cm hacia dentro del seguidor</td></tr>
+        <tr><td>Fondo de cemento</td><td>${cm(s.base)} cm</td><td>cavidad a ${cm(b.core)} cm de profundidad</td></tr>
+        <tr><td>Patas</td><td>${cm(s.feet)} cm</td><td>las barre el perfil exterior (anillo o banda)</td></tr>
+        <tr><td>Perfil</td><td colspan="2">${esc(profileLine)}</td></tr>
+        <tr><td>Inclinación</td><td colspan="2">${cm(s.flare)} cm por lado</td></tr>
+        <tr><td>Mortero necesario</td><td colspan="2">≈ ${pct(litres*1.15)} L (${pct(litres*1.15*2.1)} kg) con 15 % de margen</td></tr>
+        <tr><td>Piezas / hojas</td><td colspan="2">${nPieces} plantillas en ${nSheets-1} hoja${nSheets-1>1?'s':''} más esta portada</td></tr>`;
+    const steps=clay?`
+        <li>Pega los tramos por la línea de empalme, haciendo coincidir la marca.</li>
+        <li>Lamina la placa a ${cm(s.t)} cm, deja llegar a estado cuero y coloca la plantilla encima.</li>
+        <li>Corta por la línea continua con cuchilla vertical. Las zonas rayadas se rayan y reciben barbotina.</li>
+        <li>${s.rim!=='kittate'?'Tras ensamblar, pega el rollo del labio y modélalo con el perfil de la sección. ':''}${s.corner==='nadekaku'?'Redondea las esquinas con esponja y esteca al alisar. ':s.corner==='sumiiri'?'Las esquinas entrantes se cortan en las paredes ya ensambladas, en estado cuero, y se rellenan con placa. ':''}Las líneas punteadas son referencia: no las cortes.</li>`
+      :`
+        <li>Corta el plato-guía en MDF de ${cm(s.m)} cm y móntalo centrado sobre un rodamiento con eje. Corta los dos perfiles en lámina galvanizada de 1 mm o acrílico de 3 mm por la línea gruesa; el borde debe quedar limpio.</li>
+        <li>Brazo en paralelogramo fijado al poste: el seguidor (rodamiento pequeño) rueda por el borde del plato-guía y el perfil queda en su misma vertical, siempre perpendicular al borde.${s.type==='rect'?' En las esquinas gira despacio.':''}</li>
+        <li>Exterior, boca abajo: amontona mortero sobre el plato-guía, gira y barre hasta que el perfil rase labio, cuerpo y pie. Perfora el drenaje con tubo Ø2 cm. Fragua 6 a 8 h.</li>
+        <li>Interior, boca arriba: voltea la pieza sobre el plato-guía y céntrala con la huella punteada. Monta el perfil interior ${cm(s.t+s.lipX)} cm hacia dentro del seguidor y barre la cavidad a ${cm(b.core)} cm. Curado húmedo 7 días.</li>`;
+    const legend=clay?`
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" stroke="#000" stroke-width=".4"/></svg><span>Línea de corte</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><defs>${HATCH}</defs><rect width="12" height="4" fill="url(#hz)"/><rect width="12" height="4" ${CUT}/></svg><span>Zona de unión: rayar y aplicar barbotina</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" ${REF}/></svg><span>Referencia, no cortar</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" ${SEAM}/></svg><span>Empalme entre tramos impresos</span>`
+      :`
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" stroke="#000" stroke-width=".4"/></svg><span>Línea de corte del plato-guía o de la lámina</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" stroke="#000" stroke-width=".7"/></svg><span>Borde de barrido del perfil</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><defs>${HATCH}</defs><rect width="12" height="4" fill="url(#hz)"/><rect width="12" height="4" ${CUT}/></svg><span>Mortero en sección</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><defs>${HATCH}</defs><rect width="12" height="4" fill="url(#hl)"/><rect width="12" height="4" ${CUT}/></svg><span>Silueta de la maceta: retirar de la lámina</span>
+        <svg width="12mm" height="4mm" viewBox="0 0 12 4"><line x1="0" y1="2" x2="12" y2="2" ${REF}/></svg><span>Referencia: huella del pie o superficie del plato, no cortar</span>`;
+    const mix=clay?'':`<div class="note"><b>Mezcla:</b> 1 cemento : 2 arena fina tamizada, un puñado de fibra por litro, agua 0,45 por parte de cemento, textura de pasta espesa que se sostenga en montón. Aceite sobre el plato-guía. Tras el curado, 3 días en agua para lavar la alcalinidad.</div>`;
+    let html=`<section class="sheet" ${sheetStyle}><div class="cover"><div>
+      <div class="eyebrow">${clay?'Plantillas de corte · técnica de placas':'Molde de cemento · '+MOLD_SHORT[s.type]} · escala 1:1</div>
+      <h1>${esc(title)}</h1>
+      <div class="style">${current?`Para estilo <b>${esc(current.style)}</b>. ${esc(current.note)}`:`Forma ${shapeName(s).toLowerCase()} de medidas personalizadas.`}</div>
+      <table>${rows}</table>
+      <div class="note"><b>Antes de imprimir:</b> escala 100 %, sin «ajustar a página», papel ${s.paper} horizontal. Verifica la regla de 10 cm con una regla metálica.</div>
+      <ol>${steps}</ol>${mix}
+      <div class="legend">${legend}</div>
+    </div><div class="right"><div>${ruler()}</div><div class="duo"><div>${il.svg}<div class="viewcap">${esc(il.cap)}</div></div><div>${v.svg}<div class="viewcap">${esc(v.cap)}</div></div></div></div></div>${foot(1)}</section>`;
+    pages.forEach((pg,i)=>{
+      html+=`<section class="sheet" ${sheetStyle}>`;
+      pg.items.forEach(({it,x,y})=>{ html+=`<div class="piece" style="left:${MARGIN+x}mm;top:${MARGIN+y}mm;width:${it.w}mm"><div class="cap">${esc(it.name)}${it.qty>1?' ×'+it.qty:''}</div>${pieceSvg(it)}</div>`; });
+      html+=foot(i+2)+'</section>';
+    });
+    $('sheets').innerHTML=html; $('sheets').style.width=paper.w+'mm';
+    const tabDefs=[{label:'Portada',sub:'ficha, regla de calibración, ilustración'}].concat(pages.map((pg,i)=>({label:`Hoja ${i+2}`,sub:[...new Set(pg.items.map(({it})=>it.name.replace(/ · (tramo|franja).*$/,'')))].join(' · ')})));
+    tabDefs.push({label:'Todas',sub:`${nSheets} hojas seguidas`});
+    if(view!=='all'&&view>=tabDefs.length-1) view=tabDefs.length-2;
+    $('tabs').innerHTML=tabDefs.map((t,i)=>`<button type="button" class="tab" role="tab" data-i="${i===tabDefs.length-1?'all':i}">${esc(t.label)}<small>${esc(t.sub)}</small></button>`).join('');
+    $('summary').innerHTML=clay
+      ?`<div>Placa cruda: <b>${cm(b.L)} × ${cm(b.W)} cm</b>, pared <b>${cm(b.wall)} cm</b></div><div>Perfil: <b>${esc(profileLine)}</b></div><div>Factor de contracción: <b>×${b.k.toFixed(3).replace('.',',')}</b></div><div>Plantillas: <b>${nPieces}</b> · Hojas: <b>${nSheets}</b> ${s.paper}</div><div>Generado ${today}</div>`
+      :`<div>Sistema: <b>${MOLD_NAME[s.type]}</b></div><div>Perfil: <b>${esc(profileLine)}</b></div><div>Plato-guía: <b>${s.type==='round'?'Ø '+cm(s.L+2*s.lipX):cm(s.L+2*s.lipX)+' × '+cm(s.W+2*s.lipX)} cm</b> · cavidad <b>${cm(b.core)} cm</b></div><div>Mortero: <b>≈ ${pct(litres*1.15)} L</b> (${pct(litres*1.15*2.1)} kg)</div><div>Plantillas: <b>${nPieces}</b> · Hojas: <b>${nSheets}</b> ${s.paper}</div><div>Generado ${today}</div>`;
+    $('warns').innerHTML=warns.map(w=>`<div class="warn">${esc(w)}</div>`).join('');
+    $('styleNote').innerHTML=current?`<b>${esc(current.style)}.</b> ${esc(current.note)}`:'Medidas personalizadas. Elige un modelo de la lista para volver a un estilo.';
+    applyView();
+  }
+  let lastScale=-1, lastW=-1;
+  function fit(force){
+    const stage=$('stage'), sheets=$('sheets');
+    const sheetPx=parseFloat(sheets.style.width||'297')*96/25.4;
+    const w=stage.clientWidth;
+    if(!force&&Math.abs(w-lastW)<2) return;
+    lastW=w;
+    const sc=Math.min(1,w/sheetPx);
+    if(force||Math.abs(sc-lastScale)>0.002){ lastScale=sc; sheets.style.transform=`scale(${sc})`; }
+    stage.style.height=Math.ceil(sheets.getBoundingClientRect().height)+'px';
+  }
+  function cementWall(p){ return p.L<=12?1.5:p.L>=30?2:1.8; }
+  function cementBase(H,feet){ return Math.round(Math.min(2.5,Math.max(0.8,(H-feet)*0.45))*10)/10; }
+  function applyPreset(id){
+    const p=PRESETS.find(x=>x.id===id); if(!p){ current=null; render(); return; }
+    current=p; const clay=$('matClay').checked;
+    $('type').value=p.type; $('L').value=p.L; $('W').value=p.W; $('H').value=p.H; $('feet').value=p.feet; $('paper').value=p.paper;
+    $('rim').value=p.rim; $('body').value=p.body; $('corner').value=p.corner; $('lip').value=p.L<=12?0.4:0.6;
+    if(clay){ $('t').value=p.t; $('flare').value=p.flare; }
+    else {
+      $('t').value=cementWall(p); $('flare').value=p.type==='oval'?0:0.5; $('base').value=cementBase(p.H,p.feet);
+      const lip=p.rim==='sotoen'?(p.L<=12?0.8:1.2):0;
+      const tallest=Math.max(p.W+lip+0.6, p.H+3);
+      if(tallest>17.6) $('paper').value='A3';
+    }
+    render();
+  }
+  function switchMaterial(){
+    const clay=$('matClay').checked;
+    const f=$('finish'); if(clay&&['gris','oxido','negro'].includes(f.value)) f.value='shudei'; if(!clay&&!['gris','oxido','negro'].includes(f.value)) f.value='gris';
+    if(current) applyPreset(current.id);
+    else { if(!clay){ if(+$('t').value<1.2) $('t').value=1.8; $('base').value=cementBase(+$('H').value,+$('feet').value); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); }
+  }
+  const sel=$('preset');
+  sel.innerHTML=PRESETS.map(p=>`<option value="${p.id}">${esc(p.style)} — ${esc(p.name)} ${p.type==='round'?'Ø'+p.L:p.L+'×'+p.W}×${p.H}</option>`).join('')+'<option value="custom">Personalizada</option>';
+  sel.addEventListener('change',()=>applyPreset(sel.value));
+  ['type','L','W','H','t','flare','feet','base','board','rim','body','corner','lip'].forEach(id=>$(id).addEventListener('input',()=>{ current=null; sel.value='custom'; render(); }));
+  ['shrink','paper','finish'].forEach(id=>$(id).addEventListener('input',render));
+  $('matClay').addEventListener('change',switchMaterial); $('matCement').addEventListener('change',switchMaterial);
+  $('btnPrint').addEventListener('click',()=>window.print());
+  new ResizeObserver(()=>fit(false)).observe($('stage'));
+  window.addEventListener('beforeprint',()=>{$('sheets').style.transform='none';});
+  window.addEventListener('afterprint',()=>fit(true));
+  sel.value='chokkan'; applyPreset('chokkan');
+})();
+</script>
+</body>
+</html>

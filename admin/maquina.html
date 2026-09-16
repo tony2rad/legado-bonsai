@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1B241F">
+<title>Máquina de barrido para macetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#EEF0EA; --panel:#FFFFFF; --ink:#1E2622; --muted:#5F6963; --line:#CBD0C8;
+    --accent:#8C3B23; --accent-ink:#FFFFFF; --glaze:#35606E; --glaze-soft:#DDE8EB; --warn:#9A5B00; --warn-bg:#FBF1DC;
+    --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+    --dwg-ink:#1E2622; --dwg-soft:#8A948D; --dwg-fill:#FFFFFF; --dwg-wood:#E7DCC8; --dwg-metal:#C9CFD3; --dwg-mortar:#D9D2C4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+      --accent:#D8764F; --accent-ink:#1A0E08; --glaze:#8BB9C7; --glaze-soft:#22333A; --warn:#E0A94A; --warn-bg:#2E2513;
+      --dwg-ink:#E5E8E2; --dwg-soft:#7E8A82; --dwg-fill:#1E2421; --dwg-wood:#4A4033; --dwg-metal:#4B555B; --dwg-mortar:#4F4A40;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);padding-inline:16px;padding-block:0 48px}
+  .wrap{max-width:980px;margin:0 auto}
+  header{padding-block:22px 14px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .eyebrow{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  h1{font:700 30px/1.1 var(--display);margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
+  h2{font:700 21px/1.2 var(--display);margin:34px 0 10px;letter-spacing:-.01em}
+  h3{font:600 15px/1.3 var(--sans);margin:18px 0 6px}
+  p{max-width:70ch;margin:.4em 0}
+  a{color:var(--glaze)}
+  .lead{color:var(--muted);max-width:75ch}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .btn{font:600 14px var(--sans);border:1px solid var(--line);border-radius:6px;padding:9px 14px;cursor:pointer;background:var(--panel);color:var(--ink);text-decoration:none;display:inline-block}
+  .btn.solid{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .card h3{margin-top:0}
+  .card .k{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);background:var(--glaze-soft)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tablewrap{overflow-x:auto}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:12px}
+  ol.steps>li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  ol.steps>li::before{content:counter(s);font:700 20px/44px var(--display);color:var(--accent);text-align:center;width:44px;height:44px;border-radius:50%;background:var(--glaze-soft)}
+  ol.steps b{display:block;margin-bottom:2px}
+  ol.steps ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+  .note{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:10px 12px;font-size:14px;max-width:none}
+  figure{margin:14px 0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+  figure svg{display:block;width:100%;height:auto;max-width:100%}
+  figcaption{font:12.5px/1.4 var(--mono);color:var(--muted);margin-top:8px}
+  .dims{font:12.5px var(--mono);color:var(--muted)}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  @media print{
+    body{background:#fff;color:#000;padding:0}
+    .btnrow{display:none}
+    .card,figure,table{break-inside:avoid;border-color:#bbb}
+    h2{break-after:avoid}
+    :root{--dwg-ink:#000;--dwg-fill:#fff;--dwg-wood:#eee;--dwg-metal:#ddd;--dwg-mortar:#e5e5e5;--dwg-soft:#777}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Legado Bonsai · producción de macetas</div>
+  <h1>Máquina de barrido para macetas de cemento</h1>
+  <p class="lead">Un plato que gira, un plato-guía con la forma de la maceta en planta, un seguidor que recorre su borde y un perfil que rasa el mortero. Con esto se hacen macetas redondas, ovaladas y rectangulares con el mismo aparato: solo cambian el plato-guía y los perfiles, que salen de la herramienta <a href="macetas.html">Producción de macetas</a>.</p>
+  <div class="btnrow">
+    <button class="btn solid" type="button" onclick="window.print()">Imprimir estas instrucciones</button>
+    <a class="btn" href="macetas.html">Abrir plantillas y perfiles</a>
+  </div>
+</header>
+
+<h2>Cómo funciona</h2>
+<div class="two">
+  <figure>
+    <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--dwg-ink)">
+      <defs><pattern id="mortar" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--dwg-soft)" stroke-width="1"/></pattern></defs>
+      <!-- bancada -->
+      <rect x="20" y="222" width="380" height="14" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <text x="24" y="250" font-size="8" fill="var(--dwg-soft)">bancada 60 × 60 cm, tablero 18 mm</text>
+      <!-- rodamiento -->
+      <rect x="120" y="208" width="140" height="14" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+      <text x="126" y="218" font-size="8">rodamiento giratorio Ø 30 cm</text>
+      <!-- plato -->
+      <ellipse cx="190" cy="204" rx="120" ry="14" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <text x="22" y="200" font-size="8">plato Ø 45 cm</text>
+      <!-- plato-guía -->
+      <path d="M100 190 q0 -8 8 -8 h164 q8 0 8 8 q0 8 -8 8 h-164 q-8 0 -8 -8 z" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/>
+      <text x="106" y="193" font-size="8">plato-guía (forma en planta)</text>
+      <!-- eje -->
+      <rect x="187" y="60" width="6" height="150" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+      <text x="196" y="72" font-size="8">eje M10</text>
+      <!-- mortero invertido -->
+      <path d="M118 184 L128 110 L140 100 L240 100 L252 110 L262 184 Z" fill="url(#mortar)" stroke="var(--dwg-ink)"/>
+      <text x="112" y="92" font-size="8">maceta boca abajo · pie arriba</text>
+      <!-- poste -->
+      <rect x="352" y="30" width="14" height="192" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+      <text x="370" y="120" font-size="8" transform="rotate(90 370 120)">poste 40 × 40 mm</text>
+      <!-- brazo paralelogramo -->
+      <line x1="352" y1="60" x2="290" y2="60" stroke="var(--dwg-ink)" stroke-width="5"/>
+      <line x1="352" y1="90" x2="290" y2="90" stroke="var(--dwg-ink)" stroke-width="5"/>
+      <circle cx="352" cy="60" r="3" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/><circle cx="352" cy="90" r="3" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/>
+      <circle cx="290" cy="60" r="3" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/><circle cx="290" cy="90" r="3" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/>
+      <text x="300" y="52" font-size="8">brazos</text>
+      <!-- portaperfil vertical -->
+      <rect x="284" y="52" width="10" height="146" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+      <!-- seguidor -->
+      <circle cx="279" cy="190" r="7" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width="1.5"/>
+      <text x="298" y="176" font-size="8">seguidor (rodamiento 608)</text>
+      <text x="298" y="186" font-size="8">rueda por el canto del plato-guía</text>
+      <!-- perfil -->
+      <path d="M284 100 L262 100 L262 110 L252 110 L262 184 L284 184 Z" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width="1.6"/>
+      <text x="298" y="150" font-size="8">perfil (lámina)</text>
+      <!-- giro -->
+      <path d="M60 150 A40 40 0 0 1 90 130" fill="none" stroke="var(--dwg-ink)" stroke-width="1.2"/>
+      <path d="M86 126 L92 131 L85 134 Z" fill="var(--dwg-ink)"/>
+      <text x="40" y="168" font-size="8">giro</text>
+    </svg>
+    <figcaption>Vista lateral. La maceta se barre boca abajo: la boca apoya sobre el plato-guía y el perfil forma labio, cuerpo y pie en una sola pasada. Los dos brazos articulados forman un paralelogramo que mantiene vertical el portaperfil.</figcaption>
+  </figure>
+  <figure>
+    <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--dwg-ink)">
+      <circle cx="170" cy="130" r="110" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <text x="80" y="236" font-size="8">plato Ø 45 cm</text>
+      <path d="M92 90 q0 -14 14 -14 h128 q14 0 14 14 v80 q0 14 -14 14 h-128 q-14 0 -14 -14 z" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width="1.4"/>
+      <text x="118" y="128" font-size="8">plato-guía rectangular</text>
+      <text x="118" y="140" font-size="8" fill="var(--dwg-soft)">esquinas con radio ≥ 6 mm</text>
+      <circle cx="170" cy="130" r="4" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/>
+      <!-- follower at the right edge -->
+      <circle cx="256" cy="130" r="8" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width="1.5"/>
+      <text x="268" y="120" font-size="8">seguidor</text>
+      <!-- arm to post -->
+      <line x1="256" y1="130" x2="380" y2="60" stroke="var(--dwg-ink)" stroke-width="4"/>
+      <line x1="256" y1="150" x2="380" y2="80" stroke="var(--dwg-ink)" stroke-width="4"/>
+      <rect x="372" y="46" width="20" height="40" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+      <text x="340" y="40" font-size="8">poste a 35 cm del eje</text>
+      <!-- blade line -->
+      <line x1="256" y1="120" x2="256" y2="104" stroke="var(--dwg-ink)" stroke-width="3"/>
+      <text x="262" y="104" font-size="8">perfil, en la vertical del seguidor</text>
+      <path d="M40 60 A100 100 0 0 1 80 30" fill="none" stroke="var(--dwg-ink)" stroke-width="1.2"/>
+      <path d="M76 27 L84 30 L79 37 Z" fill="var(--dwg-ink)"/>
+    </svg>
+    <figcaption>Vista en planta. El paralelogramo mantiene el perfil perpendicular al borde mientras el seguidor entra y sale siguiendo la forma. Con un plato-guía redondo el seguidor no se mueve y la máquina trabaja como un torno de barrido clásico.</figcaption>
+  </figure>
+</div>
+
+<h2>Materiales</h2>
+<p class="lead">Precios de referencia en Ecuador, ferretería y carpintería local. Total aproximado: 55 a 75 USD sin motor.</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Pieza</th><th>Material y medida</th><th class="n">Cant.</th><th class="n">USD aprox.</th><th>Notas</th></tr>
+  <tr><td>Bancada</td><td>MDF o triplex 18 mm, 60 × 60 cm</td><td class="n">1</td><td class="n">8</td><td>Se atornilla a una mesa firme o lleva 4 patas de listón 50 × 50 mm.</td></tr>
+  <tr><td>Rodamiento giratorio</td><td>Base tipo lazy susan Ø 30 cm, carga ≥ 60 kg</td><td class="n">1</td><td class="n">14</td><td>De acero con bolas; los de plástico se deforman con el peso del mortero.</td></tr>
+  <tr><td>Plato</td><td>MDF 18 mm, disco Ø 45 cm</td><td class="n">1</td><td class="n">6</td><td>Sellado con barniz o pintura epóxica. Para macetas de más de 35 cm, Ø 55 cm.</td></tr>
+  <tr><td>Eje</td><td>Perno M10 × 120 mm con tuerca de seguridad y 2 arandelas</td><td class="n">1</td><td class="n">1</td><td>Centra el plato-guía. Sobresale 4 cm sobre el plato.</td></tr>
+  <tr><td>Plato-guía</td><td>MDF 9 o 12 mm, uno por modelo de maceta</td><td class="n">1+</td><td class="n">3</td><td>Se corta con la plantilla 1:1 de la herramienta. Agujero central Ø 10,5 mm. Tuerca mariposa M10 para fijarlo.</td></tr>
+  <tr><td>Poste</td><td>Tubo cuadrado de acero 40 × 40 × 2 mm, 60 cm, o listón de madera dura 50 × 50 mm</td><td class="n">1</td><td class="n">7</td><td>Con placa base de 12 × 12 cm y 4 tornillos, o encajado en un taco de madera.</td></tr>
+  <tr><td>Brazos</td><td>Pletina de acero 30 × 4 mm × 45 cm, o listón de madera 30 × 15 mm</td><td class="n">2</td><td class="n">6</td><td>Forman el paralelogramo. Misma longitud exacta entre agujeros.</td></tr>
+  <tr><td>Portaperfil</td><td>Pletina 30 × 4 mm × 30 cm o listón 30 × 20 mm</td><td class="n">1</td><td class="n">3</td><td>Pieza vertical al extremo de los brazos. Lleva el seguidor abajo y el perfil arriba.</td></tr>
+  <tr><td>Articulaciones</td><td>Pernos M6 × 40 mm con tuerca autoblocante y arandelas de nylon</td><td class="n">4</td><td class="n">3</td><td>Apretados solo hasta que giren sin holgura.</td></tr>
+  <tr><td>Seguidor</td><td>Rodamiento 608 (el de patines, 22 × 8 × 7 mm) en perno M8 × 30 mm</td><td class="n">1</td><td class="n">2</td><td>Rueda por el canto del plato-guía. Un segundo 608 de repuesto.</td></tr>
+  <tr><td>Resorte de retorno</td><td>Resorte de tracción 5 × 60 mm o liga elástica gruesa</td><td class="n">1</td><td class="n">1</td><td>Empuja el seguidor contra el plato-guía. Opcional si se trabaja a mano.</td></tr>
+  <tr><td>Perfiles</td><td>Lámina galvanizada 1 mm o acrílico 3 mm, 30 × 30 cm</td><td class="n">2</td><td class="n">5</td><td>Uno exterior y uno interior por modelo. Se cortan con las plantillas 1:1.</td></tr>
+  <tr><td>Fijación del perfil</td><td>2 tornillos M5 con mariposa, o abrazadera de carpintero pequeña</td><td class="n">2</td><td class="n">2</td><td>Permite subir, bajar y cambiar el perfil en segundos.</td></tr>
+  <tr><td>Tornillería y sellado</td><td>Tornillos para madera 4 × 40 mm, barniz marino o epóxico</td><td class="n">—</td><td class="n">6</td><td>El plato y el plato-guía viven mojados: sellar todas las caras y cantos.</td></tr>
+  <tr><td>Motor (opcional)</td><td>Motorreductor 12 V, 30 a 60 rpm, con fuente, o manivela</td><td class="n">1</td><td class="n">18</td><td>Un motor de limpiaparabrisas usado funciona bien. A mano también sirve: se gira el plato con la otra mano.</td></tr>
+</table>
+</div>
+
+<h3>Herramientas</h3>
+<p>Taladro con brocas de 6, 8 y 10,5 mm, caladora o sierra de calar para el plato y los platos-guía, tijera de hojalatero o cúter fuerte para la lámina, lima plana y lija 120 para el borde de barrido, escuadra, nivel, llaves 10 y 13 mm, destornillador, brocha para barniz.</p>
+
+<h2>Construcción paso a paso</h2>
+<ol class="steps">
+  <li><div><b>Bancada y rodamiento</b>Fija la bancada a una mesa estable. Marca el centro y atornilla el aro inferior del rodamiento centrado. Comprueba con el nivel: cualquier inclinación se convierte en una maceta de pared desigual.</div></li>
+  <li><div><b>Plato</b>Corta el disco Ø 45 cm, perfora el centro a 10,5 mm y sella con barniz por las dos caras y el canto. Atornilla el aro superior del rodamiento al plato. Pasa el eje M10 desde abajo con arandela y tuerca de seguridad: debe sobresalir unos 4 cm por arriba.<ul><li>Gira el plato con la mano: tiene que dar vueltas sin bamboleo. Si oscila, calza el rodamiento con arandelas finas.</li></ul></div></li>
+  <li><div><b>Plato-guía</b>Imprime la plantilla «Plato-guía» del modelo en la herramienta de producción, pégala sobre MDF de 9 o 12 mm y corta por la línea con la caladora. Lija el canto hasta dejarlo liso y perpendicular: el seguidor copia cada muesca. Perfora el centro a 10,5 mm, sella con barniz y fíjalo al eje con la tuerca mariposa.<ul><li>Guarda un plato-guía por cada modelo de maceta. Es la única pieza que cambia entre formas.</li></ul></div></li>
+  <li><div><b>Poste</b>Fíjalo vertical sobre la bancada a 35 cm del eje, hacia el lado de la mano dominante. Con nivel en dos caras. Para macetas grandes puede necesitar un tirante diagonal a la bancada.</div></li>
+  <li><div><b>Brazo en paralelogramo</b>Perfora los dos brazos con agujeros de 6 mm a exactamente 40 cm entre centros. Perfora el poste con dos agujeros a 30 cm y 33 cm de altura, y el portaperfil con dos agujeros separados los mismos 3 cm. Arma los cuatro pernos M6 con arandelas de nylon: el portaperfil debe mantenerse vertical en todo el recorrido del brazo.<ul><li>Prueba: mueve el brazo de un extremo al otro y mira el portaperfil con la escuadra. Si se inclina, los agujeros no están a la misma distancia.</li></ul></div></li>
+  <li><div><b>Seguidor</b>Monta el rodamiento 608 en el perno M8 en la parte baja del portaperfil, de modo que su cara exterior quede a la altura del canto del plato-guía. Deja el perno en una ranura vertical de 3 cm para poder subirlo o bajarlo según el grosor del plato-guía.<ul><li>El rodamiento debe tocar el canto del plato-guía, nunca el plato grande.</li></ul></div></li>
+  <li><div><b>Portaperfil y fijación del perfil</b>Sobre el seguidor, en la misma vertical, va el perfil. Haz dos ranuras verticales en el portaperfil y fíjalo con los tornillos M5 y mariposa: así se ajusta la altura y se cambia el perfil sin herramientas. El borde de barrido del perfil debe quedar en la vertical exacta del eje del seguidor.</div></li>
+  <li><div><b>Resorte y tope</b>Engancha el resorte entre el brazo inferior y el poste para que el seguidor empuje suavemente contra el plato-guía. Un tornillo como tope en el poste evita que el brazo caiga sobre el plato cuando no hay plato-guía montado.</div></li>
+  <li><div><b>Motor o manivela</b>Si usas motorreductor, fíjalo debajo de la bancada y transmite al plato con una rueda de goma apoyada en el canto (la de una silla de oficina sirve). Velocidad cómoda: 30 a 45 rpm. A mano: pega una manija en el borde inferior del plato y gira con la mano libre.</div></li>
+  <li><div><b>Calibración</b>Monta un plato-guía redondo y el perfil exterior de una maceta pequeña. Sin mortero, gira el plato y observa la punta del perfil: debe pasar a la misma altura en toda la vuelta, sin tocar el plato-guía. Ajusta la altura del seguidor y del perfil hasta lograrlo. Repite con un plato-guía rectangular: el seguidor debe recorrer las esquinas sin saltos.</div></li>
+</ol>
+
+<h2>Uso</h2>
+<div class="grid">
+  <div class="card"><div class="k">Exterior · boca abajo</div><h3>Primera pasada</h3><p>Engrasa el plato-guía. Amontona mortero en forma de pirámide truncada, algo más grande que la maceta. Gira despacio y baja el perfil exterior poco a poco hasta que rase la forma completa: labio, cuerpo y pie. Perfora el drenaje con un tubo de 2 cm. Deja fraguar 6 a 8 h cubierto con plástico.</p></div>
+  <div class="card"><div class="k">Interior · boca arriba</div><h3>Segunda pasada</h3><p>Voltea la pieza sobre el plato-guía y céntrala con la huella punteada del pie. Cambia al perfil interior y desplázalo hacia dentro el grosor de pared más el labio, como indica la plantilla. Barre la cavidad hasta la profundidad marcada. Retira el sobrante con espátula.</p></div>
+  <div class="card"><div class="k">Curado</div><h3>Después</h3><p>Deja la pieza sobre el plato-guía 24 h antes de moverla. Curado húmedo 7 días envuelta en trapo mojado. Luego 3 días en agua para lavar la alcalinidad. Lija los bordes con lija de agua 220.</p></div>
+  <div class="card"><div class="k">Mezcla</div><h3>Mortero para barrido</h3><p>1 cemento : 2 arena fina tamizada, un puñado de fibra por litro, agua 0,45 por parte de cemento. Debe sostenerse en montón sin escurrir. Si el perfil arrastra en vez de cortar, falta agua; si la pared se desmorona, sobra.</p></div>
+</div>
+
+<h2>Ajustes y problemas frecuentes</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>Síntoma</th><th>Causa</th><th>Solución</th></tr>
+  <tr><td>Pared más gruesa de un lado</td><td>Plato-guía descentrado o plato con bamboleo</td><td>Centrar el plato-guía en el eje; calzar el rodamiento.</td></tr>
+  <tr><td>El perfil salta en las esquinas</td><td>Radio de esquina menor que el del rodamiento seguidor</td><td>Redondear el plato-guía a radio ≥ 6 mm o usar un seguidor más pequeño (rodamiento 624, Ø 13 mm).</td></tr>
+  <tr><td>Marcas horizontales en el cuerpo</td><td>Perfil que vibra o resorte flojo</td><td>Fijar mejor el perfil; tensar el resorte; girar más despacio.</td></tr>
+  <tr><td>El labio se rompe al voltear</td><td>Fraguado insuficiente</td><td>Esperar 8 h o más en climas fríos; voltear sobre una tabla, nunca a mano.</td></tr>
+  <tr><td>Cavidad descentrada</td><td>Pieza mal centrada al voltear</td><td>Usar la huella punteada del pie que trae el plato-guía; medir con regla a los bordes.</td></tr>
+</table>
+</div>
+
+<h2>Seguridad</h2>
+<p>Guantes de nitrilo y mascarilla al mezclar cemento. Gafas al cortar lámina y MDF. Las esquinas del perfil de lámina se redondean con lima. Si hay motor, interruptor al alcance de la mano y nunca meter los dedos entre el plato y el poste con la máquina girando.</p>
+
+<p class="note">Los platos-guía y los dos perfiles de cada modelo se generan en <a href="macetas.html">Producción de macetas</a>, en el modo «Cemento · moldes». Imprímelos al 100 % y comprueba la regla de 10 cm de la portada antes de cortar.</p>
+</div>
+</body>
+</html>
