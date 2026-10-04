@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catálogo — Legado Bonsai · 家族の木</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Catálogo — Legado Bonsai · 家族の木">
+<meta property="og:image" content="https://tony2rad.github.io/legado-bonsai/assets/img/logo-negro.png">
+<link rel="icon" href="assets/img/logo-negro.png" type="image/png">
 <meta name="description" content="Catálogo completo de junípero bonsái de Legado Bonsai: filtra por estilo, ambiente y precio, gira cada árbol en 360° y reserva por WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -16,6 +20,8 @@
 </script>
 </head>
 <body>
+
+<a class="skip-link" href="#catalogo-contenido">Saltar al catálogo</a>
 
 <header class="site-header">
   <nav class="nav wrap">
@@ -30,6 +36,7 @@
       <li><a href="index.html#servicios">Acompañamiento</a></li>
       <li><a href="index.html#talleres">Talleres</a></li>
       <li><a href="index.html#calendario">Cuidado lunar</a></li>
+      <li><a href="regalos.html">Regalos corporativos</a></li>
       <li><a href="index.html#contacto">Contacto</a></li>
     </ul>
     <div class="nav-actions">
@@ -76,6 +83,14 @@
             </select>
           </div>
           <div class="filter-group">
+            <label for="filter-disponibilidad">Mostrar</label>
+            <select id="filter-disponibilidad">
+              <option value="all">Todos</option>
+              <option value="disponible">Disponibles ahora</option>
+              <option value="preventa">En formación (preventa)</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label for="sort-by">Ordenar por</label>
             <select id="sort-by">
               <option value="default">Recomendados</option>
@@ -92,7 +107,7 @@
     </div>
   </div>
 
-  <section class="catalog-body">
+  <section class="catalog-body" id="catalogo-contenido">
     <div class="wrap">
       <div id="catalog-status" class="catalog-status">Cargando el catálogo…</div>
       <div class="product-grid dense" id="product-grid"></div>
@@ -117,19 +132,21 @@
         <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
         <ul class="footer-links">
           <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Facebook</a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Instagram <small>próximamente</small></a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Facebook <small>próximamente</small></a></li>
         </ul>
       </div>
       <div>
         <h4>Explorar</h4>
         <ul class="footer-links">
           <li><a href="index.html">Inicio</a></li>
+          <li><a href="catalogo.html?ver=preventa">Preventa: árboles en formación</a></li>
+          <li><a href="regalos.html">Regalos corporativos</a></li>
           <li><a href="index.html#servicios">Acompañamiento</a></li>
           <li><a href="index.html#talleres">Talleres</a></li>
           <li><a href="index.html#calendario">Cuidado lunar</a></li>
-          <li><a href="#">Política de privacidad</a></li>
-          <li><a href="#">Términos y condiciones</a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Política de privacidad <small>próximamente</small></a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Términos y condiciones <small>próximamente</small></a></li>
         </ul>
       </div>
       <div>
@@ -169,6 +186,8 @@
         <p class="story" id="modal-story"></p>
         <div class="spec-grid" id="modal-specs"></div>
 
+        <div class="preventa-box" id="modal-preventa" hidden></div>
+
         <div class="care-accordion">
           <details open>
             <summary>Ficha de cuidado</summary>
@@ -176,14 +195,13 @@
           </details>
         </div>
 
+        <a class="pasaporte-link" id="modal-pasaporte" href="#" target="_blank" rel="noopener" hidden>
+          <span class="jp">旅券</span> Ver el pasaporte de este árbol: historial de cuidados y certificado →
+        </a>
+
         <div>
           <label style="font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; display:block; margin-bottom:.5rem;">Acompañamiento (opcional)</label>
-          <div class="tier-picker" id="modal-tier-picker">
-            <label class="tier-opt"><input type="radio" name="tier" value=""><span><strong>Sin acompañamiento</strong><span> Solo el árbol.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Primeros Brotes"><span><strong>Primeros Brotes</strong><span> Guía + 1 videollamada.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Cultivo Guiado"><span><strong>Cultivo Guiado</strong><span> Trasplante, poda y alambrado el primer año.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Legado Completo"><span><strong>Legado Completo</strong><span> Acompañamiento de por vida + certificado.</span></span></label>
-          </div>
+          <div class="tier-picker" id="modal-tier-picker"></div>
         </div>
 
         <div class="qty-row">
@@ -209,7 +227,17 @@
     <button class="modal-close" id="cart-close-btn" style="position:static; background:none; color:var(--ink-soft);" aria-label="Cerrar carrito">&times;</button>
   </div>
   <div class="cart-items" id="cart-items"></div>
+  <div class="cart-extras" id="cart-extras" hidden></div>
   <div class="cart-foot">
+    <div class="cart-code" id="cart-code">
+      <div class="cart-code-row">
+        <input type="text" placeholder="Código de referido o descuento" autocomplete="off" maxlength="16">
+        <button type="button" class="mini-btn" data-code-apply>Aplicar</button>
+        <button type="button" class="mini-btn" data-code-remove hidden>Quitar</button>
+      </div>
+      <div class="code-msg"></div>
+    </div>
+    <div class="cart-totals-detail" id="cart-totals-detail" hidden></div>
     <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
     <button class="btn btn-primary btn-block" id="cart-checkout-btn">Finalizar por WhatsApp</button>
     <p style="font-size:.74rem; color:var(--ink-soft); text-align:center; margin:0;">Confirmamos disponibilidad, pago y envío directamente por WhatsApp.</p>

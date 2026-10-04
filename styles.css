@@ -268,6 +268,20 @@ table.styles-compare tbody td:not(.row-label){ font-size:.86rem; color:var(--ink
 table.styles-compare tbody tr:hover td{ color:var(--ink); }
 table.styles-compare tbody tr:hover .row-label{ color:var(--ink-faint); }
 
+/* ---------------- ACCESIBILIDAD Y ESTADOS ---------------- */
+.skip-link{
+  position:absolute; left:1rem; top:-100px; z-index:100; background:var(--ink); color:var(--paper);
+  padding:.6rem 1rem; border-radius:var(--radius); font-size:.85rem; font-weight:600; text-decoration:none;
+  transition:top .2s var(--ease);
+}
+.skip-link:focus{ top:1rem; }
+:focus-visible{ outline:2px solid var(--jade); outline-offset:3px; border-radius:2px; }
+.nav-links a.is-active{ color:var(--ink); box-shadow:inset 0 -1px 0 var(--ink); padding-bottom:.2rem; }
+.is-soon{ opacity:.45; cursor:default; pointer-events:none; }
+.is-soon small{ font-size:.66rem; letter-spacing:.04em; text-transform:uppercase; margin-left:.35em; }
+.form-msg{ margin:.2rem 0 0; font-size:.82rem; color:var(--jade); min-height:1.2em; }
+.form-msg.is-error{ color:var(--kohaku); }
+
 /* ---------------- CARRUSEL DESTACADOS ---------------- */
 .carousel-wrap{ margin-bottom:3.5rem; scroll-margin-top:5rem; }
 .carousel-head{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; }
@@ -658,3 +672,140 @@ table.cal tr.current.season-winter td.month::before{ background:var(--season-win
     opacity:1; transform:none; transition:none; stroke-dashoffset:0;
   }
 }
+
+/* ==========================================================================
+   v1.1 — Estrategia comercial: planes vendibles, preventa, kits, códigos,
+   pasaporte del árbol y regalos corporativos.
+   ========================================================================== */
+
+/* ---------------- PLANES ---------------- */
+.tier-price{ font-family:'Zen Kaku Gothic New',sans-serif; font-weight:700; font-size:1.35rem; color:var(--ink); margin:-.3rem 0 .2rem; font-variant-numeric:tabular-nums; }
+.tier-price span{ font-weight:400; color:var(--ink-soft); font-size:.76rem; margin-left:.3em; }
+.tier-card ul{ flex:1; }
+.tier-card .btn{ margin-top:.6rem; }
+.tiers-note{ font-size:.82rem; color:var(--ink-soft); max-width:62ch; margin:1.6rem 0 0; }
+.tier-opt em{ margin-left:auto; font-style:normal; font-size:.8rem; font-weight:600; color:var(--ink); white-space:nowrap; align-self:center; font-variant-numeric:tabular-nums; }
+.tier-opt > span{ flex:1; }
+.modal-price small{ display:block; font-size:.7rem; font-weight:400; color:var(--ink-soft); text-align:right; }
+
+/* ---------------- PREVENTA ---------------- */
+.card-media .stock-badge.preventa{ color:var(--gold); }
+.card-tag.preventa-note{ color:var(--gold); font-weight:500; }
+.preventa-box{ font-size:.84rem; color:var(--ink-soft); border-left:2px solid var(--gold); padding:.5rem 0 .5rem .9rem; margin:-.4rem 0 0; }
+.preventa-box b{ color:var(--ink); font-weight:600; }
+.tier-note.preventa{ color:var(--gold); }
+
+/* ---------------- PASAPORTE (enlace en la ficha) ---------------- */
+.pasaporte-link{ display:flex; align-items:center; gap:.6rem; font-size:.82rem; color:var(--ink); text-decoration:none; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:.75rem 0; }
+.pasaporte-link .jp{ font-family:'Shippori Mincho',serif; color:var(--ink-faint); font-size:1rem; }
+.pasaporte-link:hover{ color:var(--jade); }
+
+/* ---------------- CARRITO: kits, código, totales ---------------- */
+.cart-thumb-ph{ width:56px; height:56px; border-radius:3px; background:var(--washi); flex:none; display:grid; place-items:center; font-family:'Shippori Mincho',serif; color:var(--ink-faint); font-size:1.2rem; }
+.cart-item-body h4 .tier-note{ font-weight:400; margin-left:.3em; }
+.cart-extras{ border-top:1px solid var(--line); padding:1rem clamp(1.25rem,4vw,2.5rem) .4rem; }
+.cart-extras h4{ margin:0 0 .6rem; font-family:'Zen Kaku Gothic New',sans-serif; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; }
+.cart-extra{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.5rem 0; border-bottom:1px dashed var(--line); }
+.cart-extra:last-child{ border-bottom:none; }
+.cart-extra b{ display:block; font-size:.84rem; font-weight:600; color:var(--ink); }
+.cart-extra small{ display:block; font-size:.72rem; color:var(--ink-soft); }
+.cart-extra .mini-btn{ white-space:nowrap; }
+.cart-code-row{ display:flex; gap:.8rem; align-items:flex-end; }
+.cart-code-row input{ flex:1; min-width:0; padding:.45em 0; border:none; border-bottom:1px solid var(--line-strong); border-radius:0; background:none; font-family:inherit; font-size:.86rem; color:var(--ink); text-transform:uppercase; letter-spacing:.04em; }
+.cart-code-row input:focus{ outline:none; border-color:var(--ink); }
+.cart-code-row input:disabled{ color:var(--jade); border-color:transparent; }
+.code-msg{ font-size:.74rem; min-height:1em; margin-top:.35rem; color:var(--ink-soft); }
+.code-msg.ok{ color:var(--jade); } .code-msg.bad{ color:var(--kohaku); }
+.cart-totals-detail{ display:flex; flex-direction:column; gap:.3rem; font-size:.82rem; color:var(--ink-soft); }
+.cart-totals-detail div{ display:flex; justify-content:space-between; gap:1rem; }
+.cart-totals-detail .desc{ color:var(--jade); }
+.cart-totals-detail .hoy{ color:var(--ink); font-weight:600; }
+
+/* ---------------- CALENDARIO: fase real de hoy ---------------- */
+.moon-today{ flex-basis:100%; font-size:.8rem; color:var(--ink-faint); }
+
+/* ---------------- PÁGINA PASAPORTE (arbol.html) ---------------- */
+.pass-head{ padding:clamp(2.5rem,6vw,4rem) 0 2rem; }
+.pass-head .back{ display:inline-block; font-size:.8rem; color:var(--ink-faint); text-decoration:none; margin-bottom:1.4rem; }
+.pass-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(2rem,5vw,4rem); align-items:start; }
+@media (max-width:820px){ .pass-grid{ grid-template-columns:1fr; } }
+.pass-viewer{ position:relative; aspect-ratio:1/1; background:var(--washi); overflow:hidden; user-select:none; cursor:grab; border-radius:var(--radius); }
+.pass-viewer img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.pass-viewer .hint{ position:absolute; bottom:.6rem; left:0; right:0; text-align:center; font-size:.7rem; color:var(--ink-soft); letter-spacing:.03em; }
+.pass-viewer .ph{ position:absolute; inset:0; display:grid; place-items:center; color:var(--ink-faint); font-size:.8rem; }
+.pass-id{ font-family:'Shippori Mincho',serif; font-size:.85rem; letter-spacing:.12em; color:var(--ink-faint); }
+.pass-title{ font-size:clamp(1.9rem,4vw,2.6rem); font-weight:500; margin:.2rem 0 .3rem; letter-spacing:-.02em; }
+.pass-species{ font-style:italic; color:var(--ink-soft); font-size:.9rem; }
+.pass-specs{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:.9rem 1rem; margin:1.6rem 0; border-top:1px solid var(--line); padding-top:1.2rem; font-size:.84rem; }
+.pass-specs b{ display:block; color:var(--ink-faint); font-size:.64rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.2rem; font-weight:600; }
+.pass-story{ color:var(--ink-soft); font-size:.95rem; }
+.timeline{ list-style:none; margin:0; padding:0; border-left:1px solid var(--line-strong); }
+.timeline li{ position:relative; padding:0 0 1.4rem 1.4rem; }
+.timeline li::before{ content:""; position:absolute; left:-5px; top:.45em; width:9px; height:9px; border-radius:50%; background:var(--jade); }
+.timeline .when{ font-size:.72rem; color:var(--ink-faint); letter-spacing:.05em; text-transform:uppercase; font-weight:600; }
+.timeline .what{ font-weight:600; color:var(--ink); font-size:.95rem; }
+.timeline .detail{ font-size:.86rem; color:var(--ink-soft); margin-top:.15rem; }
+.timeline .moon{ font-size:.74rem; color:var(--gold); margin-left:.4em; }
+.cert{ border:1px solid var(--line-strong); padding:clamp(1.6rem,4vw,2.6rem); position:relative; background:var(--surface); margin-top:2.5rem; }
+.cert::before{ content:""; position:absolute; inset:8px; border:1px solid var(--line); pointer-events:none; }
+.cert-grid{ display:grid; grid-template-columns:1fr auto; gap:1.5rem; align-items:center; }
+@media (max-width:560px){ .cert-grid{ grid-template-columns:1fr; } }
+.cert .eyebrow{ margin-bottom:.4rem; }
+.cert h2{ font-size:1.4rem; font-weight:500; margin:0 0 .4rem; }
+.cert p{ margin:.2rem 0; font-size:.9rem; color:var(--ink-soft); }
+.cert .custodio{ font-family:'Shippori Mincho',serif; font-size:1.25rem; color:var(--ink); margin:.6rem 0; }
+.cert .sello{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; background:var(--kohaku); color:#F4EEDF; font-family:'Shippori Mincho',serif; font-size:1.3rem; border-radius:2px; transform:rotate(-4deg); margin-top:.8rem; }
+.cert-qr{ display:flex; flex-direction:column; align-items:center; gap:.4rem; }
+.cert-qr canvas, .cert-qr img{ width:120px; height:120px; background:#fff; padding:6px; border:1px solid var(--line); }
+.cert-qr small{ font-size:.66rem; color:var(--ink-faint); letter-spacing:.04em; text-align:center; max-width:150px; word-break:break-all; }
+.pass-actions{ display:flex; gap:1.2rem; flex-wrap:wrap; margin-top:1.6rem; }
+.pass-lunar{ border-top:1px solid var(--ink); padding:1.2rem 0; margin-top:2rem; }
+.pass-lunar .phase{ font-family:'Shippori Mincho',serif; font-size:1rem; }
+.pass-lunar p{ margin:.3rem 0 0; font-size:.86rem; color:var(--ink-soft); }
+.pass-status{ text-align:center; color:var(--ink-soft); padding:4rem 0; }
+@media print{
+  .site-header, .site-footer, .wa-float, #chat-widget, .pass-actions, .pass-lunar, .kintsugi, .pass-head .back{ display:none !important; }
+  body{ background:#fff; color:#000; }
+  .cert{ break-inside:avoid; }
+}
+
+/* ---------------- PÁGINA REGALOS CORPORATIVOS (regalos.html) ---------------- */
+.corp-hero{ padding:clamp(3.5rem,8vw,6rem) 0 clamp(2.5rem,5vw,4rem); }
+.corp-hero h1{ font-size:clamp(2.2rem,4.4vw,3.2rem); font-weight:500; max-width:18ch; letter-spacing:-.02em; }
+.corp-hero .lede{ color:var(--ink-soft); font-weight:300; max-width:46ch; font-size:1.02rem; margin:1.2rem 0 1.8rem; }
+.corp-uses{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2rem; }
+.corp-use{ border-top:1px solid var(--line); padding-top:1rem; }
+.corp-use .jp{ font-family:'Shippori Mincho',serif; color:var(--ink-faint); font-size:1.1rem; margin-bottom:.4rem; }
+.corp-use h4{ font-size:.98rem; margin:0 0 .3rem; font-weight:600; }
+.corp-use p{ font-size:.85rem; color:var(--ink-soft); margin:0; }
+.pack-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:0; border-top:1px solid var(--line); }
+.pack{ padding:2rem 1.6rem; border-bottom:1px solid var(--line); border-right:1px solid var(--line); display:flex; flex-direction:column; gap:.8rem; }
+.pack:last-child{ border-right:none; }
+@media (max-width:720px){ .pack{ border-right:none; } }
+.pack h3{ font-size:1.2rem; font-weight:500; margin:0; }
+.pack .pack-price{ font-weight:700; font-size:1.35rem; color:var(--ink); font-variant-numeric:tabular-nums; }
+.pack .pack-price span{ font-weight:400; color:var(--ink-soft); font-size:.76rem; margin-left:.3em; }
+.pack ul{ margin:0; padding-left:1.05rem; font-size:.86rem; color:var(--ink-soft); display:flex; flex-direction:column; gap:.45rem; flex:1; }
+.pack.highlight .for{ color:var(--jade); }
+.pack .for{ font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; }
+.corp-quote{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:clamp(2rem,6vw,4.5rem); align-items:start; }
+@media (max-width:860px){ .corp-quote{ grid-template-columns:1fr; } }
+.quote-form{ display:grid; gap:1.1rem; }
+.quote-form .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; }
+@media (max-width:520px){ .quote-form .grid2{ grid-template-columns:1fr; } }
+.quote-form label{ display:grid; gap:.3rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; }
+.quote-form input, .quote-form select, .quote-form textarea{ padding:.55em 0; border:none; border-bottom:1px solid var(--line-strong); border-radius:0; background:none; font-family:inherit; font-size:.95rem; color:var(--ink); text-transform:none; letter-spacing:0; font-weight:400; }
+.quote-form input:focus, .quote-form select:focus, .quote-form textarea:focus{ outline:none; border-color:var(--ink); }
+.quote-form textarea{ min-height:70px; resize:vertical; }
+.quote-form .check{ display:flex; align-items:center; gap:.6rem; text-transform:none; letter-spacing:0; font-size:.88rem; color:var(--ink); font-weight:400; }
+.quote-form .check input{ width:18px; height:18px; accent-color:var(--ink); }
+.quote-summary{ position:sticky; top:90px; border-top:1px solid var(--ink); padding-top:1.2rem; }
+.quote-summary h3{ font-size:1.05rem; font-weight:500; }
+.quote-summary .rows{ display:flex; flex-direction:column; gap:.5rem; font-size:.88rem; color:var(--ink-soft); margin:1rem 0; }
+.quote-summary .rows div{ display:flex; justify-content:space-between; gap:1rem; }
+.quote-summary .rows .total{ color:var(--ink); font-weight:600; font-size:1.05rem; border-top:1px solid var(--line); padding-top:.6rem; margin-top:.3rem; }
+.quote-summary .rows .desc{ color:var(--jade); }
+.quote-summary .fine{ font-size:.74rem; color:var(--ink-faint); }
+.quote-msg{ font-size:.84rem; min-height:1.2em; margin-top:.6rem; }
+.quote-msg.ok{ color:var(--jade); } .quote-msg.bad{ color:var(--kohaku); }
+.corp-steps{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:2rem; }

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Legado Bonsai — 家族の木</title>
 <meta name="description" content="Legado Bonsai: junípero cultivado para heredarse. Tienda, acompañamiento de trasplante, poda y alambrado, y calendario de cuidado por fase lunar.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Legado Bonsai — 家族の木">
+<meta property="og:description" content="Junípero cultivado para heredarse: tienda, acompañamiento, talleres y cuidado por fase lunar.">
+<meta property="og:image" content="https://tony2rad.github.io/legado-bonsai/assets/img/logo-negro.png">
+<link rel="icon" href="assets/img/logo-negro.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -16,6 +21,8 @@
 </script>
 </head>
 <body>
+
+<a class="skip-link" href="#inicio">Saltar al contenido</a>
 
 <header class="site-header">
   <nav class="nav wrap">
@@ -30,6 +37,7 @@
       <li><a href="#servicios">Acompañamiento</a></li>
       <li><a href="#talleres">Talleres</a></li>
       <li><a href="#calendario">Cuidado lunar</a></li>
+      <li><a href="regalos.html">Regalos corporativos</a></li>
       <li><a href="#contacto">Contacto</a></li>
     </ul>
     <div class="nav-actions">
@@ -235,37 +243,46 @@
       <div class="section-head">
         <div class="eyebrow">Acompañamiento</div>
         <h2>El cuidado no termina en la entrega</h2>
-        <p>Elige un nivel al comprar tu árbol, o contrátalo después para uno que ya tengas.</p>
+        <p>Elige un nivel al comprar tu árbol, o contrátalo después para uno que ya tengas: agrégalo solo al carrito y agendamos la primera visita.</p>
       </div>
       <div class="tiers-grid">
-        <div class="tier-card">
+        <div class="tier-card" data-plan="Primeros Brotes">
           <div class="for">Para tu primer árbol</div>
           <h3>Primeros Brotes</h3>
+          <div class="tier-price">$15 <span>pago único</span></div>
           <ul>
             <li>Guía digital de cuidado por especie.</li>
             <li>1 videollamada de diagnóstico inicial.</li>
             <li>Recordatorios por WhatsApp según fase lunar.</li>
+            <li>Pasaporte digital del árbol con certificado.</li>
           </ul>
+          <button type="button" class="btn btn-outline btn-block" data-add-plan="Primeros Brotes">Agregar para mi árbol</button>
         </div>
-        <div class="tier-card highlight">
+        <div class="tier-card highlight" data-plan="Cultivo Guiado">
           <div class="for">Para el primer año del árbol</div>
           <h3>Cultivo Guiado</h3>
+          <div class="tier-price">$60 <span>primer año</span></div>
           <ul>
             <li>Todo lo de Primeros Brotes.</li>
             <li>1 trasplante y 2 sesiones de poda, en taller o a domicilio.</li>
             <li>1 sesión de alambrado guiada, agendada en cuarto creciente.</li>
+            <li>Cada cuidado queda registrado en el pasaporte del árbol.</li>
           </ul>
+          <button type="button" class="btn btn-primary btn-block" data-add-plan="Cultivo Guiado">Agregar para mi árbol</button>
         </div>
-        <div class="tier-card">
+        <div class="tier-card" data-plan="Legado Completo">
           <div class="for">Para un regalo que trasciende</div>
           <h3>Legado Completo</h3>
+          <div class="tier-price">$120 <span>por año</span></div>
           <ul>
             <li>Todo lo de Cultivo Guiado, cada año.</li>
-            <li>Certificado y placa conmemorativa del árbol.</li>
+            <li>Certificado impreso y placa conmemorativa grabada.</li>
             <li>Prioridad de agenda de por vida.</li>
           </ul>
+          <button type="button" class="btn btn-outline btn-block" data-add-plan="Legado Completo">Agregar para mi árbol</button>
         </div>
       </div>
+      <p class="tiers-note">Los precios de los planes se suman al árbol cuando los eliges en la ficha. Si ya tienes un bonsái, agrega el plan solo: la primera visita incluye diagnóstico y creación de su pasaporte.</p>
     </div>
   </section>
 
@@ -333,6 +350,7 @@
       <div class="moon-highlight" id="moon-highlight">
         <div class="phase">Cargando fase actual…</div>
         <p></p>
+        <div class="moon-today" id="moon-today"></div>
       </div>
       <details>
         <summary style="cursor:pointer; margin-bottom:1rem; color:var(--jade); font-weight:700; font-size:.9rem;">Ver calendario completo de los 12 meses</summary>
@@ -357,7 +375,7 @@
         <div class="step"><span class="step-number">1</span><h3>Elige tu junípero</h3><p>Explora el catálogo y gira cada árbol en 360° antes de decidir.</p></div>
         <div class="step"><span class="step-number">2</span><h3>Suma acompañamiento</h3><p>Agrega un plan de trasplante, poda y alambrado si lo deseas.</p></div>
         <div class="step"><span class="step-number">3</span><h3>Cierra por WhatsApp</h3><p>Confirmamos disponibilidad, forma de pago y envío contigo directamente.</p></div>
-        <div class="step"><span class="step-number">4</span><h3>Recibe y cultiva</h3><p>Tu árbol llega con ficha de cuidado y tu primer recordatorio lunar.</p></div>
+        <div class="step"><span class="step-number">4</span><h3>Recibe y cultiva</h3><p>Tu árbol llega con ficha de cuidado, su pasaporte digital con QR y tu primer recordatorio lunar.</p></div>
       </div>
     </div>
   </section>
@@ -406,19 +424,21 @@
         <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
         <ul class="footer-links">
           <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
-          <li><a href="#" target="_blank" rel="noopener">Facebook</a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Instagram <small>próximamente</small></a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Facebook <small>próximamente</small></a></li>
         </ul>
       </div>
       <div>
         <h4>Explorar</h4>
         <ul class="footer-links">
           <li><a href="catalogo.html">Catálogo</a></li>
+          <li><a href="catalogo.html?ver=preventa">Preventa: árboles en formación</a></li>
           <li><a href="#servicios">Acompañamiento</a></li>
           <li><a href="#talleres">Talleres</a></li>
           <li><a href="#calendario">Cuidado lunar</a></li>
-          <li><a href="#">Política de privacidad</a></li>
-          <li><a href="#">Términos y condiciones</a></li>
+          <li><a href="regalos.html">Regalos corporativos</a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Política de privacidad <small>próximamente</small></a></li>
+          <li><a class="is-soon" aria-disabled="true" tabindex="-1">Términos y condiciones <small>próximamente</small></a></li>
         </ul>
       </div>
       <div>
@@ -458,6 +478,8 @@
         <p class="story" id="modal-story"></p>
         <div class="spec-grid" id="modal-specs"></div>
 
+        <div class="preventa-box" id="modal-preventa" hidden></div>
+
         <div class="care-accordion">
           <details open>
             <summary>Ficha de cuidado</summary>
@@ -465,14 +487,13 @@
           </details>
         </div>
 
+        <a class="pasaporte-link" id="modal-pasaporte" href="#" target="_blank" rel="noopener" hidden>
+          <span class="jp">旅券</span> Ver el pasaporte de este árbol: historial de cuidados y certificado →
+        </a>
+
         <div>
           <label style="font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; display:block; margin-bottom:.5rem;">Acompañamiento (opcional)</label>
-          <div class="tier-picker" id="modal-tier-picker">
-            <label class="tier-opt"><input type="radio" name="tier" value=""><span><strong>Sin acompañamiento</strong><span> Solo el árbol.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Primeros Brotes"><span><strong>Primeros Brotes</strong><span> Guía + 1 videollamada.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Cultivo Guiado"><span><strong>Cultivo Guiado</strong><span> Trasplante, poda y alambrado el primer año.</span></span></label>
-            <label class="tier-opt"><input type="radio" name="tier" value="Legado Completo"><span><strong>Legado Completo</strong><span> Acompañamiento de por vida + certificado.</span></span></label>
-          </div>
+          <div class="tier-picker" id="modal-tier-picker"></div>
         </div>
 
         <div class="qty-row">
@@ -498,7 +519,17 @@
     <button class="modal-close" id="cart-close-btn" style="position:static; background:none; color:var(--ink-soft);" aria-label="Cerrar carrito">&times;</button>
   </div>
   <div class="cart-items" id="cart-items"></div>
+  <div class="cart-extras" id="cart-extras" hidden></div>
   <div class="cart-foot">
+    <div class="cart-code" id="cart-code">
+      <div class="cart-code-row">
+        <input type="text" placeholder="Código de referido o descuento" autocomplete="off" maxlength="16">
+        <button type="button" class="mini-btn" data-code-apply>Aplicar</button>
+        <button type="button" class="mini-btn" data-code-remove hidden>Quitar</button>
+      </div>
+      <div class="code-msg"></div>
+    </div>
+    <div class="cart-totals-detail" id="cart-totals-detail" hidden></div>
     <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
     <button class="btn btn-primary btn-block" id="cart-checkout-btn">Finalizar por WhatsApp</button>
     <p style="font-size:.74rem; color:var(--ink-soft); text-align:center; margin:0;">Confirmamos disponibilidad, pago y envío directamente por WhatsApp.</p>
@@ -512,8 +543,9 @@
     <h2>10% en tu primer legado</h2>
     <p>Suscríbete y recibe un código de descuento para tu primer junípero.</p>
     <form id="subscribe-form">
-      <input type="email" placeholder="Tu correo electrónico" required>
+      <input type="email" placeholder="Tu correo electrónico" required aria-label="Correo electrónico">
       <button type="submit" class="btn btn-primary">Suscribirme</button>
+      <p class="form-msg" id="subscribe-msg" role="status" aria-live="polite"></p>
     </form>
   </div>
 </div>
