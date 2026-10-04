@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1B241F">
+<title>Plano de la máquina de macetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#EEF0EA; --panel:#FFFFFF; --ink:#1E2622; --muted:#5F6963; --line:#CBD0C8;
+    --accent:#8C3B23; --accent-ink:#FFFFFF; --glaze:#35606E; --glaze-soft:#DDE8EB; --warn:#9A5B00; --warn-bg:#FBF1DC;
+    --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+    --dwg-ink:#1E2622; --dwg-soft:#8A948D; --dwg-fill:#FFFFFF; --dwg-wood:#E7DCC8; --dwg-wood2:#D9C9A8; --dwg-metal:#C9CFD3; --dwg-metal2:#A9B2B8; --dwg-dim:#8C3B23; --dwg-mdf:#EFE6D2; --dwg-mdf2:#DDD0B4; --dwg-rubber:#7A4A3A;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+      --accent:#D8764F; --accent-ink:#1A0E08; --glaze:#8BB9C7; --glaze-soft:#22333A; --warn:#E0A94A; --warn-bg:#2E2513;
+      --dwg-ink:#E5E8E2; --dwg-soft:#7E8A82; --dwg-fill:#1E2421; --dwg-wood:#4A4033; --dwg-wood2:#5C4F3C; --dwg-metal:#4B555B; --dwg-metal2:#66727A; --dwg-dim:#D8764F; --dwg-mdf:#3E3A2E; --dwg-mdf2:#524B3A; --dwg-rubber:#B0705A;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);padding-inline:16px;padding-block:0 48px}
+  .wrap{max-width:980px;margin:0 auto}
+  header{padding-block:22px 14px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .eyebrow{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  h1{font:700 30px/1.1 var(--display);margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
+  h2{font:700 21px/1.2 var(--display);margin:34px 0 10px;letter-spacing:-.01em}
+  h3{font:600 15px/1.3 var(--sans);margin:18px 0 6px}
+  p{max-width:70ch;margin:.4em 0}
+  a{color:var(--glaze)}
+  .lead{color:var(--muted);max-width:75ch}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .btn{font:600 14px var(--sans);border:1px solid var(--line);border-radius:6px;padding:9px 14px;cursor:pointer;background:var(--panel);color:var(--ink);text-decoration:none;display:inline-block}
+  .btn.solid{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .card h3{margin-top:0}
+  .card .k{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);background:var(--glaze-soft)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.m{font-family:var(--mono);font-size:13px}
+  .tablewrap{overflow-x:auto}
+  .num{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--accent);color:var(--accent-ink);font:600 12px var(--mono);padding-inline:5px}
+  .num.alt{background:var(--glaze)}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:12px}
+  ol.steps>li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  ol.steps>li::before{content:counter(s);font:700 20px/44px var(--display);color:var(--accent);text-align:center;width:44px;height:44px;border-radius:50%;background:var(--glaze-soft)}
+  ol.steps b{display:block;margin-bottom:2px}
+  ol.steps ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+  .note{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:10px 12px;font-size:14px;max-width:none}
+  figure{margin:14px 0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+  figure svg{display:block;width:100%;height:auto;max-width:100%}
+  figcaption{font:12.5px/1.4 var(--mono);color:var(--muted);margin-top:8px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font:12.5px var(--mono);color:var(--muted);margin:6px 0 0}
+  .legend span::before{content:"";display:inline-block;width:12px;height:12px;border:1px solid var(--dwg-ink);vertical-align:-2px;margin-right:5px}
+  .legend .w::before{background:var(--dwg-wood)} .legend .m::before{background:var(--dwg-metal)} .legend .d::before{background:var(--dwg-mdf)} .legend .s::before{background:var(--dwg-metal2)} .legend .g::before{background:var(--dwg-mdf2)}
+  svg text{fill:var(--dwg-ink)}
+  svg .dim{stroke:var(--dwg-dim);stroke-width:.8;fill:none}
+  svg .dimt{fill:var(--dwg-dim);font-size:8px}
+  svg .lbl{font-size:8px}
+  svg .soft{fill:var(--dwg-soft)}
+  svg .axis{stroke:var(--dwg-soft);stroke-width:.7;stroke-dasharray:6 2 1 2;fill:none}
+  svg .ghost{stroke:var(--dwg-soft);stroke-width:.8;stroke-dasharray:3 2;fill:none}
+  svg .tag{fill:var(--accent)} svg .tagt{fill:var(--accent-ink);font-size:8px;font-weight:600}
+  svg .tag2{fill:var(--glaze)}
+  @media print{
+    @page{size:A4;margin:12mm}
+    body{background:#fff;color:#000;padding:0;font-size:12.5px}
+    .btnrow,.note.screen{display:none}
+    .card,figure,table,ol.steps>li{break-inside:avoid;border-color:#bbb}
+    h2{break-after:avoid;margin-top:22px}
+    .pb{break-before:page}
+    :root{--dwg-ink:#000;--dwg-fill:#fff;--dwg-wood:#eee;--dwg-wood2:#ddd;--dwg-metal:#d5d5d5;--dwg-metal2:#bbb;--dwg-mdf:#f3f3f3;--dwg-mdf2:#e2e2e2;--dwg-soft:#777;--dwg-dim:#a33;--dwg-rubber:#555}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Legado Bonsai · producción de macetas · plano de construcción</div>
+  <h1>Máquina de macetas: plano, materiales y cortes</h1>
+  <p class="lead">Réplica de la máquina de referencia: una manzana (maza) de bicicleta como rodamiento, un plato de acero, un poste de madera y dos rieles telescópicos de cajón que llevan el perfil hasta el eje. El perfil se cambia en segundos con dos pernos de mariposa, y bajo el portaperfil va un <b>rodamiento seguidor</b> que copia el canto del plato-guía: la misma máquina hace macetas redondas, ovaladas y rectangulares. Cotas en centímetros salvo indicación; espesores de metal en milímetros; pernos y platinas en pulgadas, como se piden en la ferretería.</p>
+  <div class="btnrow">
+    <button class="btn solid" type="button" onclick="window.print()">Imprimir plano (A4)</button>
+    <a class="btn" href="maquina.html">Instrucciones de uso y mortero</a>
+    <a class="btn" href="macetas.html">Plantillas y perfiles 1:1</a>
+  </div>
+</header>
+
+<p class="note screen">La numeración <span class="num">1</span> a <span class="num">10</span> sigue la foto acotada de referencia. Las piezas <span class="num alt">11</span> en adelante son las que la foto no acota (manzana, rieles, seguidor, tornillería). Donde la referencia era ambigua se eligió la solución más fácil de construir y se indica al final.</p>
+
+<h2>Vista lateral (alzado)</h2>
+<figure>
+  <svg viewBox="0 0 500 335" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9">
+    <!-- escala 5 px = 1 cm · X = 75 + 5x · Y = 252.5 - 5z (z desde la cara superior de la bancada). Brazo dibujado en trabajo: maceta Ø 22 -->
+    <line x1="55" y1="290" x2="490" y2="290" stroke="var(--dwg-ink)" stroke-width="1.2"/>
+    <text x="55" y="300" class="lbl soft">mesa / piso nivelado</text>
+    <line x1="160" y1="40" x2="160" y2="262" class="axis"/>
+    <text x="163" y="47" class="lbl soft">eje de giro</text>
+    <!-- 1 patas · 2 bancada · 3 bloque · 6 poste -->
+    <rect x="95" y="277.5" width="30" height="12.5" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="255" y="277.5" width="30" height="12.5" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="75" y="252.5" width="240" height="25" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="75" y="232.5" width="170" height="20" fill="var(--dwg-wood2)" stroke="var(--dwg-ink)"/>
+    <rect x="290" y="52.5" width="25" height="200" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <!-- 7 tirafondos desde abajo -->
+    <line x1="297" y1="284" x2="297" y2="228" class="ghost"/><line x1="308" y1="284" x2="308" y2="228" class="ghost"/>
+    <rect x="294" y="281" width="6" height="4" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="305" y="281" width="6" height="4" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <!-- 4 pletinas · 12 rieles fijos -->
+    <rect x="300" y="116.25" width="130" height="12.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="300" y="81.25" width="130" height="12.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="255" y="111.25" width="175" height="22.5" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="255" y="76.25" width="175" height="22.5" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <!-- miembros móviles, abiertos 5,5 cm -->
+    <rect x="227.5" y="114" width="175" height="17" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="227.5" y="79" width="175" height="17" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <g fill="var(--dwg-ink)"><circle cx="300" cy="122.5" r="1.6"/><circle cx="310" cy="122.5" r="1.6"/><circle cx="300" cy="87.5" r="1.6"/><circle cx="310" cy="87.5" r="1.6"/>
+    <circle cx="340" cy="122.5" r="1.6"/><circle cx="375" cy="122.5" r="1.6"/><circle cx="410" cy="122.5" r="1.6"/><circle cx="340" cy="87.5" r="1.6"/><circle cx="375" cy="87.5" r="1.6"/><circle cx="410" cy="87.5" r="1.6"/></g>
+    <!-- carrera -->
+    <rect x="105" y="114" width="150" height="17" class="ghost"/>
+    <rect x="105" y="79" width="150" height="17" class="ghost"/>
+    <line x1="105" y1="74" x2="255" y2="74" class="dim"/><line x1="105" y1="70" x2="105" y2="78" class="dim"/><line x1="255" y1="70" x2="255" y2="78" class="dim"/>
+    <text x="108" y="71.5" class="dimt">carrera ≈ 30 (abierto: puntos)</text>
+    <!-- 13 pletina · 11 manzana -->
+    <rect x="135" y="230" width="50" height="2.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="152.5" y="180" width="15" height="50" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="145" y="185" width="30" height="3" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="145" y="222" width="30" height="3" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="157.5" y="170" width="5" height="70" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <!-- 10 plato · 14 tabla · 15 espárragos · 21 plato-guía -->
+    <rect x="80" y="181" width="160" height="4" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+    <rect x="85" y="175" width="150" height="6" fill="var(--dwg-mdf)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="108" y="165" width="4" height="24" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="208" y="165" width="4" height="24" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="130" y="166" width="85" height="9" fill="var(--dwg-mdf2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <!-- 19 barra seguidora · 20 rodamiento -->
+    <rect x="216.5" y="137.5" width="12.5" height="30.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="216.5" y="168" width="12.5" height="2.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="215" y="170.5" width="11" height="3.5" fill="var(--dwg-metal)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <!-- 5 portaperfil -->
+    <rect x="217.5" y="67.5" width="20" height="95" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+    <!-- 16 lámina -->
+    <path d="M162.5 85 H240 V166 H215 V161 L212 158 L202.5 106 H162.5 Z" fill="var(--dwg-metal)" fill-opacity=".85" stroke="var(--dwg-ink)" stroke-width="1.2"/>
+    <path d="M162.5 166 V106 H202.5 L212 158 L215 161 V166 Z" fill="none" stroke="var(--dwg-soft)" stroke-width=".8" stroke-dasharray="2 2"/>
+    <text x="167" y="125" class="lbl soft">maceta</text><text x="167" y="135" class="lbl soft">boca abajo</text>
+    <!-- 9 contraplaca + mariposas -->
+    <rect x="222.5" y="79" width="10" height="87" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+    <circle cx="227.5" cy="135" r="3.5" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/><circle cx="227.5" cy="100" r="3.5" fill="var(--dwg-fill)" stroke="var(--dwg-ink)"/>
+    <!-- 8 orejas · 22 liga -->
+    <rect x="315" y="61" width="8" height="3" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="402.5" y="72" width="3" height="8" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <line x1="323" y1="62.5" x2="404" y2="72" stroke="var(--dwg-rubber)" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- cotas -->
+    <line x1="75" y1="318" x2="315" y2="318" class="dim"/><line x1="75" y1="314" x2="75" y2="322" class="dim"/><line x1="315" y1="314" x2="315" y2="322" class="dim"/>
+    <text x="188" y="329" class="dimt">48</text>
+    <line x1="75" y1="308" x2="160" y2="308" class="dim"/><line x1="75" y1="304" x2="75" y2="312" class="dim"/><line x1="160" y1="304" x2="160" y2="312" class="dim"/>
+    <text x="112" y="306" class="dimt">17</text>
+    <line x1="160" y1="58" x2="255" y2="58" class="dim"/><line x1="160" y1="54" x2="160" y2="62" class="dim"/><line x1="255" y1="54" x2="255" y2="62" class="dim"/>
+    <text x="172" y="56" class="dimt">19 (frente del riel cerrado)</text>
+    <line x1="315" y1="145" x2="430" y2="145" class="dim"/><line x1="315" y1="141" x2="315" y2="149" class="dim"/><line x1="430" y1="141" x2="430" y2="149" class="dim"/>
+    <text x="352" y="155" class="dimt">23 detrás</text>
+    <line x1="332" y1="52.5" x2="332" y2="252.5" class="dim"/><line x1="328" y1="52.5" x2="336" y2="52.5" class="dim"/><line x1="328" y1="252.5" x2="336" y2="252.5" class="dim"/>
+    <text x="336" y="215" class="dimt">40</text>
+    <line x1="450" y1="122.5" x2="450" y2="252.5" class="dim"/><line x1="446" y1="122.5" x2="454" y2="122.5" class="dim"/><line x1="446" y1="252.5" x2="454" y2="252.5" class="dim"/>
+    <line x1="430" y1="122.5" x2="452" y2="122.5" class="ghost"/><line x1="315" y1="252.5" x2="474" y2="252.5" class="ghost"/>
+    <text x="453" y="190" class="dimt">26</text>
+    <line x1="470" y1="87.5" x2="470" y2="252.5" class="dim"/><line x1="466" y1="87.5" x2="474" y2="87.5" class="dim"/><line x1="466" y1="252.5" x2="474" y2="252.5" class="dim"/>
+    <line x1="430" y1="87.5" x2="472" y2="87.5" class="ghost"/>
+    <text x="473" y="170" class="dimt">33</text>
+    <line x1="62" y1="166" x2="62" y2="252.5" class="dim"/><line x1="58" y1="166" x2="66" y2="166" class="dim"/><line x1="58" y1="252.5" x2="66" y2="252.5" class="dim"/>
+    <line x1="62" y1="166" x2="130" y2="166" class="ghost"/><line x1="62" y1="252.5" x2="75" y2="252.5" class="ghost"/>
+    <text x="40" y="212" class="dimt">17,3</text>
+    <line x1="40" y1="232.5" x2="40" y2="252.5" class="dim"/><line x1="36" y1="232.5" x2="44" y2="232.5" class="dim"/><line x1="36" y1="252.5" x2="44" y2="252.5" class="dim"/>
+    <line x1="40" y1="232.5" x2="75" y2="232.5" class="ghost"/>
+    <text x="28" y="245" class="dimt">4</text>
+    <line x1="40" y1="252.5" x2="40" y2="277.5" class="dim"/><line x1="36" y1="277.5" x2="44" y2="277.5" class="dim"/>
+    <line x1="40" y1="277.5" x2="75" y2="277.5" class="ghost"/>
+    <text x="28" y="268" class="dimt">5</text>
+    <line x1="40" y1="277.5" x2="40" y2="290" class="dim"/>
+    <text x="24" y="287" class="dimt">2,5</text>
+
+    <g>
+      <circle cx="110" cy="284" r="6" class="tag"/><text x="110" y="287" text-anchor="middle" class="tagt">1</text>
+      <circle cx="200" cy="265" r="6" class="tag"/><text x="200" y="268" text-anchor="middle" class="tagt">2</text>
+      <circle cx="220" cy="242.5" r="6" class="tag"/><text x="220" y="245.5" text-anchor="middle" class="tagt">3</text>
+      <circle cx="415" cy="105" r="6" class="tag"/><text x="415" y="108" text-anchor="middle" class="tagt">4</text>
+      <circle cx="246" cy="150" r="6" class="tag"/><text x="246" y="153" text-anchor="middle" class="tagt">5</text>
+      <circle cx="302" cy="200" r="6" class="tag"/><text x="302" y="203" text-anchor="middle" class="tagt">6</text>
+      <circle cx="320" cy="290" r="6" class="tag"/><text x="320" y="293" text-anchor="middle" class="tagt">7</text>
+      <circle cx="330" cy="52" r="6" class="tag"/><text x="330" y="55" text-anchor="middle" class="tagt">8</text>
+      <circle cx="212" cy="88" r="6" class="tag"/><text x="212" y="91" text-anchor="middle" class="tagt">9</text>
+      <circle cx="90" cy="195" r="6" class="tag"/><text x="90" y="198" text-anchor="middle" class="tagt">10</text>
+      <circle cx="140" cy="205" r="6" class="tag2"/><text x="140" y="208" text-anchor="middle" class="tagt">11</text>
+      <circle cx="395" cy="66" r="6" class="tag2"/><text x="395" y="69" text-anchor="middle" class="tagt">12</text>
+      <circle cx="125" cy="224" r="6" class="tag2"/><text x="125" y="227" text-anchor="middle" class="tagt">13</text>
+      <circle cx="244" cy="178" r="6" class="tag2"/><text x="244" y="181" text-anchor="middle" class="tagt">14</text>
+      <circle cx="118" cy="160" r="6" class="tag2"/><text x="118" y="163" text-anchor="middle" class="tagt">15</text>
+      <circle cx="185" cy="93" r="6" class="tag2"/><text x="185" y="96" text-anchor="middle" class="tagt">16</text>
+      <circle cx="205" cy="150" r="6" class="tag2"/><text x="205" y="153" text-anchor="middle" class="tagt">19</text>
+      <circle cx="232" cy="180" r="6" class="tag2"/><text x="232" y="183" text-anchor="middle" class="tagt">20</text>
+      <circle cx="140" cy="160" r="6" class="tag2"/><text x="140" y="163" text-anchor="middle" class="tagt">21</text>
+      <circle cx="365" cy="58" r="6" class="tag2"/><text x="365" y="61" text-anchor="middle" class="tagt">22</text>
+    </g>
+  </svg>
+  <figcaption>Alzado desde el lado de los rieles, con el brazo en posición de trabajo sobre una maceta Ø 22 (cotas en cm; z desde la cara superior de la bancada). La liga <b>22</b> tira del miembro móvil hacia el eje; el rodamiento <b>20</b> se apoya en el canto del plato-guía <b>21</b> y define el radio. Con el riel cerrado el portaperfil queda a 19 cm del eje (posición de reposo). Los rieles sobresalen 23 cm por detrás del poste apoyados en las pletinas <b>4</b>.</figcaption>
+  <div class="legend"><span class="w">madera</span><span class="m">acero / rieles</span><span class="s">platinas y plato</span><span class="d">MDF tabla</span><span class="g">MDF plato-guía</span></div>
+</figure>
+
+<h2>Vista en planta</h2>
+<figure>
+  <svg viewBox="0 0 500 222" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9">
+    <!-- X = 100 + 5x · Y = 125 - 5y (y = 0 borde delantero de la bancada, el de los rieles) -->
+    <rect x="120" y="45" width="30" height="130" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="280" y="45" width="30" height="130" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="100" y="75" width="240" height="50" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <rect x="100" y="95" width="170" height="30" fill="var(--dwg-wood2)" stroke="var(--dwg-ink)"/>
+    <rect x="315" y="75" width="25" height="25" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+    <circle cx="322" cy="87.5" r="2.5" fill="none" stroke="var(--dwg-ink)" stroke-width=".7"/><circle cx="333" cy="87.5" r="2.5" fill="none" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="105" y="51.5" width="160" height="120" fill="var(--dwg-metal2)" fill-opacity=".9" stroke="var(--dwg-ink)"/>
+    <rect x="110" y="56.5" width="150" height="110" fill="var(--dwg-mdf)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <circle cx="185" cy="111.5" r="55" fill="var(--dwg-mdf2)" stroke="var(--dwg-ink)" stroke-width=".9"/>
+    <circle cx="185" cy="111.5" r="15" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <circle cx="185" cy="111.5" r="7.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <circle cx="185" cy="111.5" r="2.5" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <g fill="var(--dwg-ink)"><circle cx="185" cy="100" r="1.3"/><circle cx="185" cy="123" r="1.3"/><circle cx="173.5" cy="111.5" r="1.3"/><circle cx="196.5" cy="111.5" r="1.3"/></g>
+    <g fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".8"><circle cx="135" cy="146.5" r="3"/><circle cx="235" cy="146.5" r="3"/><circle cx="135" cy="76.5" r="3"/><circle cx="235" cy="76.5" r="3"/></g>
+    <line x1="185" y1="40" x2="185" y2="185" class="axis"/><line x1="95" y1="111.5" x2="300" y2="111.5" class="axis"/>
+    <rect x="325" y="100" width="130" height="2.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="280" y="102.5" width="175" height="6.5" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="252.5" y="104" width="175" height="3.5" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="242.5" y="109" width="20" height="2.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <line x1="187.5" y1="111.5" x2="265" y2="111.5" stroke="var(--dwg-ink)" stroke-width="2.2"/>
+    <rect x="247.5" y="112" width="10" height="2.5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <circle cx="245.5" cy="111.5" r="5.5" fill="var(--dwg-metal)" stroke="var(--dwg-ink)" stroke-width=".9"/>
+    <text x="150" y="163" class="lbl soft">plato-guía Ø 22</text>
+
+    <line x1="100" y1="200" x2="340" y2="200" class="dim"/><line x1="100" y1="196" x2="100" y2="204" class="dim"/><line x1="340" y1="196" x2="340" y2="204" class="dim"/>
+    <text x="215" y="211" class="dimt">48</text>
+    <line x1="100" y1="190" x2="185" y2="190" class="dim"/><line x1="185" y1="186" x2="185" y2="194" class="dim"/><line x1="100" y1="186" x2="100" y2="194" class="dim"/>
+    <text x="138" y="188" class="dimt">17</text>
+    <line x1="340" y1="190" x2="455" y2="190" class="dim"/><line x1="455" y1="186" x2="455" y2="194" class="dim"/><line x1="340" y1="186" x2="340" y2="194" class="dim"/>
+    <text x="385" y="188" class="dimt">23</text>
+    <line x1="185" y1="40" x2="280" y2="40" class="dim"/><line x1="280" y1="36" x2="280" y2="44" class="dim"/>
+    <line x1="280" y1="40" x2="280" y2="102" class="ghost"/>
+    <text x="205" y="37" class="dimt">19 (riel cerrado)</text>
+    <line x1="60" y1="75" x2="60" y2="125" class="dim"/><line x1="56" y1="75" x2="64" y2="75" class="dim"/><line x1="56" y1="125" x2="64" y2="125" class="dim"/>
+    <line x1="60" y1="75" x2="100" y2="75" class="ghost"/><line x1="60" y1="125" x2="100" y2="125" class="ghost"/>
+    <text x="42" y="103" class="dimt">10</text>
+    <line x1="75" y1="111.5" x2="75" y2="125" class="dim"/><line x1="71" y1="111.5" x2="79" y2="111.5" class="dim"/>
+    <line x1="75" y1="111.5" x2="95" y2="111.5" class="ghost"/>
+    <text x="52" y="121" class="dimt">2,7</text>
+    <line x1="30" y1="45" x2="30" y2="175" class="dim"/><line x1="26" y1="45" x2="34" y2="45" class="dim"/><line x1="26" y1="175" x2="34" y2="175" class="dim"/>
+    <line x1="30" y1="45" x2="120" y2="45" class="ghost"/><line x1="30" y1="175" x2="120" y2="175" class="ghost"/>
+    <text x="12" y="113" class="dimt">26</text>
+    <line x1="475" y1="51.5" x2="475" y2="171.5" class="dim"/><line x1="471" y1="51.5" x2="479" y2="51.5" class="dim"/><line x1="471" y1="171.5" x2="479" y2="171.5" class="dim"/>
+    <line x1="265" y1="51.5" x2="475" y2="51.5" class="ghost"/><line x1="265" y1="171.5" x2="475" y2="171.5" class="ghost"/>
+    <text x="478" y="115" class="dimt">24</text>
+    <line x1="105" y1="30" x2="265" y2="30" class="dim"/><line x1="105" y1="26" x2="105" y2="34" class="dim"/><line x1="265" y1="26" x2="265" y2="34" class="dim"/>
+    <line x1="105" y1="30" x2="105" y2="51.5" class="ghost"/><line x1="265" y1="30" x2="265" y2="51.5" class="ghost"/>
+    <text x="180" y="27" class="dimt">32</text>
+    <line x1="120" y1="20" x2="150" y2="20" class="dim"/><line x1="120" y1="16" x2="120" y2="24" class="dim"/><line x1="150" y1="16" x2="150" y2="24" class="dim"/>
+    <text x="127" y="14" class="dimt">6 · a 4 del extremo</text>
+
+    <g>
+      <circle cx="135" cy="60" r="6" class="tag"/><text x="135" y="63" text-anchor="middle" class="tagt">1</text>
+      <circle cx="300" cy="82" r="6" class="tag"/><text x="300" y="85" text-anchor="middle" class="tagt">2</text>
+      <circle cx="255" cy="120" r="6" class="tag"/><text x="255" y="123" text-anchor="middle" class="tagt">3</text>
+      <circle cx="420" cy="92" r="6" class="tag"/><text x="420" y="95" text-anchor="middle" class="tagt">4</text>
+      <circle cx="270" cy="123" r="6" class="tag"/><text x="270" y="126" text-anchor="middle" class="tagt">5</text>
+      <circle cx="327" cy="66" r="6" class="tag"/><text x="327" y="69" text-anchor="middle" class="tagt">6</text>
+      <circle cx="115" cy="160" r="6" class="tag"/><text x="115" y="163" text-anchor="middle" class="tagt">10</text>
+      <circle cx="205" cy="98" r="6" class="tag2"/><text x="205" y="101" text-anchor="middle" class="tagt">11</text>
+      <circle cx="420" cy="118" r="6" class="tag2"/><text x="420" y="121" text-anchor="middle" class="tagt">12</text>
+      <circle cx="250" cy="160" r="6" class="tag2"/><text x="250" y="163" text-anchor="middle" class="tagt">14</text>
+      <circle cx="240" cy="97" r="6" class="tag2"/><text x="240" y="100" text-anchor="middle" class="tagt">20</text>
+      <circle cx="160" cy="140" r="6" class="tag2"/><text x="160" y="143" text-anchor="middle" class="tagt">21</text>
+    </g>
+  </svg>
+  <figcaption>Planta. El eje de la manzana queda a 2,7 cm del borde delantero de la bancada: exactamente en el plano de la lámina del perfil (cara del poste 5 + pletina 0,5 + riel 1,3 + portaperfil 0,5). El rodamiento seguidor <b>20</b> rueda por el canto del plato-guía en ese mismo plano. Plato y patas sobresalen de la bancada; las patas dan la huella de 26 × 48.</figcaption>
+</figure>
+
+<div class="two">
+<figure>
+  <svg viewBox="0 0 420 250" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9">
+    <!-- detalle manzana · 10 px = 1 cm · eje en X=150 · cara superior bloque Y=200 -->
+    <rect x="20" y="200" width="380" height="40" fill="var(--dwg-wood2)" stroke="var(--dwg-ink)"/>
+    <rect x="140" y="200" width="20" height="16" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <text x="165" y="214" class="lbl soft">Ø 12 × 15 mm (punta del eje)</text>
+    <rect x="100" y="195" width="100" height="5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <g fill="var(--dwg-ink)"><rect x="112" y="192" width="6" height="18"/><rect x="182" y="192" width="6" height="18"/></g>
+    <rect x="135" y="95" width="30" height="100" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="120" y="105" width="60" height="6" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="120" y="180" width="60" height="6" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="132" y="88" width="36" height="7" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="132" y="185" width="36" height="7" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="145" y="75" width="10" height="140" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="20" y="97" width="380" height="8" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+    <rect x="30" y="85" width="360" height="12" fill="var(--dwg-mdf)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="60" y="67" width="180" height="18" fill="var(--dwg-mdf2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="144" y="67" width="12" height="38" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".6"/>
+    <rect x="145" y="75" width="10" height="30" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <g fill="var(--dwg-ink)"><rect x="128" y="90" width="4" height="27"/><rect x="168" y="90" width="4" height="27"/><rect x="125" y="111" width="10" height="4"/><rect x="165" y="111" width="10" height="4"/></g>
+    <g fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".7"><rect x="47" y="73" width="6" height="40"/><rect x="247" y="73" width="6" height="40"/><rect x="43" y="105" width="14" height="6"/><rect x="243" y="105" width="14" height="6"/></g>
+    <line x1="50" y1="52" x2="250" y2="52" class="dim"/><line x1="50" y1="48" x2="50" y2="56" class="dim"/><line x1="250" y1="48" x2="250" y2="56" class="dim"/>
+    <text x="80" y="49" class="dimt">20 entre espárragos (14 en el otro sentido)</text>
+    <line x1="300" y1="95" x2="300" y2="200" class="dim"/><line x1="296" y1="95" x2="304" y2="95" class="dim"/><line x1="296" y1="200" x2="304" y2="200" class="dim"/>
+    <text x="304" y="150" class="dimt">10 (sobre contratuercas)</text>
+    <line x1="340" y1="85" x2="340" y2="105" class="dim"/><line x1="336" y1="85" x2="344" y2="85" class="dim"/><line x1="336" y1="105" x2="344" y2="105" class="dim"/>
+    <text x="344" y="97" class="dimt">0,8 + 1,2</text>
+    <line x1="255" y1="67" x2="255" y2="85" class="dim"/><line x1="251" y1="67" x2="259" y2="67" class="dim"/>
+    <text x="259" y="79" class="dimt">1,8</text>
+    <line x1="120" y1="125" x2="180" y2="125" class="dim"/><line x1="120" y1="121" x2="120" y2="129" class="dim"/><line x1="180" y1="121" x2="180" y2="129" class="dim"/>
+    <text x="118" y="136" class="dimt">Ø ala ≈ 6 · medir</text>
+    <text x="160" y="64" class="lbl">punta del eje: centra el plato-guía (Ø 1 cm)</text>
+    <text x="205" y="197" class="lbl">13 · platina 1½" × 3/16", agujero 7/16"</text>
+    <text x="22" y="230" class="lbl">3 · bloque</text>
+    <text x="330" y="82" class="lbl">14 · tabla</text><text x="330" y="115" class="lbl">10 · plato</text>
+    <text x="64" y="78" class="lbl">21 · plato-guía</text>
+    <text x="60" y="70" class="lbl">15</text>
+    <text x="178" y="150" class="lbl">11 · manzana</text>
+  </svg>
+  <figcaption>Detalle del eje. La manzana se sujeta por el extremo inferior del eje a la pletina <b>13</b> con su propia tuerca; el plato atornilla al ala superior con 4 pernos de 1/8" pasados por los agujeros de los radios. La punta superior del eje entra en el agujero central del plato-guía y lo centra. Ajustar los conos sin juego antes de montar.</figcaption>
+</figure>
+
+<figure>
+  <svg viewBox="0 0 430 270" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9">
+    <!-- brazo · 10 px = 1 cm · X = 250 + 10(x-30.5) · Y = 240 - 10(z-15) · maceta Ø 22, alto 12 -->
+    <line x1="115" y1="15" x2="115" y2="250" class="axis"/><text x="60" y="22" class="lbl soft">eje</text>
+    <rect x="90" y="235" width="210" height="12" fill="var(--dwg-mdf)" stroke="var(--dwg-ink)" stroke-width=".8"/><text x="262" y="258" class="lbl soft">14 · tabla</text>
+    <rect x="100" y="217" width="125" height="18" fill="var(--dwg-mdf2)" stroke="var(--dwg-ink)" stroke-width=".9"/><text x="120" y="230" class="lbl">21 · plato-guía MDF 18 mm</text>
+    <!-- rieles -->
+    <rect x="305" y="107.5" width="115" height="45" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="305" y="37.5" width="115" height="45" fill="var(--dwg-metal)" stroke="var(--dwg-ink)"/>
+    <rect x="250" y="112" width="170" height="36" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <rect x="250" y="42" width="170" height="36" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".7"/>
+    <text x="330" y="133" class="lbl">12 · riel inferior</text><text x="330" y="63" class="lbl">12 · riel superior</text>
+    <text x="300" y="98" class="lbl">pernos 5/32" al riel (×2 por riel)</text>
+    <!-- barra seguidora y rodamiento -->
+    <rect x="228" y="160" width="25" height="61" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="228" y="221" width="25" height="5" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="225" y="226" width="22" height="7" fill="var(--dwg-metal)" stroke="var(--dwg-ink)" stroke-width=".9"/>
+    <rect x="233" y="215" width="6" height="22" fill="var(--dwg-ink)"/>
+    <!-- portaperfil -->
+    <rect x="230" y="20" width="40" height="190" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+    <g fill="var(--dwg-ink)"><circle cx="262" cy="130" r="3"/><circle cx="262" cy="60" r="3"/></g>
+    <g fill="none" stroke="var(--dwg-ink)" stroke-dasharray="2 1.5"><circle cx="242" cy="195" r="3"/><circle cx="242" cy="170" r="3"/></g>
+    <!-- lámina -->
+    <path d="M120 55 H275 V217 H225 V212 L222 209 L200 97 H120 Z" fill="var(--dwg-metal)" fill-opacity=".85" stroke="var(--dwg-ink)" stroke-width="1.3"/>
+    <rect x="246" y="140" width="8" height="30" rx="4" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="246" y="70" width="8" height="30" rx="4" fill="var(--dwg-fill)" stroke="var(--dwg-ink)" stroke-width=".8"/>
+    <rect x="240" y="42.5" width="20" height="155" fill="var(--dwg-metal2)" fill-opacity=".9" stroke="var(--dwg-ink)"/>
+    <g fill="var(--dwg-fill)" stroke="var(--dwg-ink)"><path d="M250 155 l-8 -9 l8 3 l8 -3 z"/><circle cx="250" cy="155" r="3.2"/><path d="M250 85 l-8 -9 l8 3 l8 -3 z"/><circle cx="250" cy="85" r="3.2"/></g>
+    <path d="M120 217 V97 H200 L222 209 L225 212 V217 Z" fill="none" stroke="var(--dwg-soft)" stroke-width=".8" stroke-dasharray="2 2"/>
+    <text x="125" y="180" class="lbl soft">maceta Ø 22 · alto 12</text>
+    <!-- cotas -->
+    <line x1="225" y1="30" x2="250" y2="30" class="dim"/><line x1="225" y1="26" x2="225" y2="34" class="dim"/><line x1="250" y1="26" x2="250" y2="34" class="dim"/>
+    <line x1="225" y1="30" x2="225" y2="55" class="ghost"/><line x1="250" y1="30" x2="250" y2="42" class="ghost"/>
+    <text x="205" y="27" class="dimt">2,5 = D</text>
+    <line x1="100" y1="155" x2="100" y2="217" class="dim"/><line x1="96" y1="155" x2="104" y2="155" class="dim"/><line x1="96" y1="217" x2="104" y2="217" class="dim"/>
+    <line x1="100" y1="155" x2="246" y2="155" class="ghost"/>
+    <text x="80" y="190" class="dimt">6,2</text>
+    <line x1="88" y1="85" x2="88" y2="217" class="dim"/><line x1="84" y1="85" x2="92" y2="85" class="dim"/><line x1="84" y1="217" x2="92" y2="217" class="dim"/>
+    <line x1="88" y1="85" x2="246" y2="85" class="ghost"/>
+    <text x="66" y="120" class="dimt">13,2</text>
+    <line x1="225" y1="240" x2="225" y2="217" class="ghost"/><text x="196" y="248" class="dimt">contacto = boca</text>
+    <text x="256" y="238" class="lbl">20 · rodamiento 608 Ø 22</text>
+    <text x="256" y="205" class="lbl">19 · barra en L</text>
+    <text x="242" y="185" class="lbl" transform="rotate(-90 242 185)">9</text><text x="268" y="185" class="lbl">5</text><text x="150" y="40" class="lbl">16 · lámina</text>
+    <line x1="228" y1="12" x2="253" y2="12" class="dim"/><text x="200" y="10" class="dimt">0,8 · agujero del pie a 0,8 del canto delantero</text>
+  </svg>
+  <figcaption>Detalle del brazo en trabajo. La lámina <b>16</b> se aprieta entre el portaperfil <b>5</b> y la contraplaca <b>9</b> con dos pernos de 1/4" con mariposa por sus ranuras. La barra en L <b>19</b> va atornillada al dorso del portaperfil y lleva colgado el rodamiento <b>20</b>, cuyo punto de contacto con el plato-guía queda en la vertical de la boca de la maceta: por eso todas las láminas llevan las ranuras 2,5 cm a la derecha del borde del plato-guía y a 6,2 y 13,2 cm sobre su cara.</figcaption>
+</figure>
+</div>
+
+<h2 class="pb">Lista de materiales</h2>
+<p class="lead">Todo se consigue en Ferrisariato, Megakywi o cualquier ferretería y aserradero de barrio; la manzana en una bicicletería y el plato en una cerrajería. Total aproximado: 45 a 60 USD sin motor. La columna «Cómo pedirlo» usa los nombres y medidas con que se venden aquí.</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Nº</th><th>Pieza</th><th>Medida final</th><th>Cómo pedirlo</th><th class="n">Cant.</th><th class="n">USD</th><th>Notas</th></tr>
+  <tr><td><span class="num">1</span></td><td>Patas</td><td class="m">26 × 6 × 2,5</td><td>Tabla de laurel o eucalipto de 1" (2,5 cm), cepillada, que corten 2 tramos de 26 cm y 6 cm de ancho. En aserradero o Megakywi «tabla cepillada».</td><td class="n">2</td><td class="n">2</td><td>Atravesadas bajo la bancada, a 4 cm de cada extremo. Dan la huella ancha y dejan libre la cara inferior bajo el poste.</td></tr>
+  <tr><td><span class="num">2</span></td><td>Bancada</td><td class="m">48 × 10 × 5</td><td>Tablón o alfajía de 2" × 4" cepillada (real ≈ 4,5 × 9,5 cm, sirve tal cual), 50 cm.</td><td class="n">1</td><td class="n">4</td><td>Madera seca y recta. Es la referencia de nivel de toda la máquina.</td></tr>
+  <tr><td><span class="num">3</span></td><td>Bloque porta-manzana</td><td class="m">34 × 6 × 4</td><td>Alfajía de 4 × 6 cm (o tira de 1½" × 2½"), 35 cm.</td><td class="n">1</td><td class="n">2</td><td>Sobre la bancada, al ras del borde delantero. Lleva el agujero ciego para la punta inferior del eje.</td></tr>
+  <tr><td><span class="num">4</span></td><td>Pletinas portarrieles</td><td class="m">26 × 2,5 × 0,5</td><td>Platina de hierro 1" × 3/16" (se vende en barra de 6 m; pedir un tramo de 70 cm cortado en 26 + 26 + 13, la pieza 19).</td><td class="n">2</td><td class="n">3</td><td>Prolongan el apoyo de cada riel 23 cm por detrás del poste. Van entre el riel y el poste; los mismos tornillos del riel las sujetan.</td></tr>
+  <tr><td><span class="num">5</span></td><td>Portaperfil</td><td class="m">19 × 4 × 0,5</td><td>Platina 1½" × 3/16", tramo de 30 cm (19 + 10, la pieza 13).</td><td class="n">1</td><td class="n">1,5</td><td>Vertical, atornillada a los extremos móviles de los dos rieles. Recibe la lámina por delante y la barra del seguidor por detrás. La referencia acota 14,5: se alarga para llegar hasta cerca del plato-guía.</td></tr>
+  <tr><td><span class="num">6</span></td><td>Poste</td><td class="m">40 × 5 × 5</td><td>Tira o listón de 2" × 2" de madera dura (eucalipto, chanul), 45 cm.</td><td class="n">1</td><td class="n">2</td><td>La referencia acota 0,5 cm de espesor, que sería una platina; aquí es un listón de 5 × 5 porque recibe los rieles.</td></tr>
+  <tr><td><span class="num">7</span></td><td>Anclaje del poste</td><td class="m">Ø 8 × 100</td><td>Tirafondo hexagonal 5/16" × 4" con arandela plana ancha (la referencia usa pernos 3/8" × 3").</td><td class="n">2</td><td class="n">1</td><td>Entran desde abajo de la bancada al pie del poste con agujero guía. Alternativa: 2 escuadras metálicas de 3".</td></tr>
+  <tr><td><span class="num">8</span></td><td>Orejas de la liga</td><td class="m">6,5 × 2 × 0,5, en L</td><td>Platina ¾" × 3/16", del mismo tramo de 30 cm que la pieza 9.</td><td class="n">2</td><td class="n">0,5</td><td>Dobladas en L (3 + 3,5). Una en la cara trasera del poste, otra en el extremo trasero del miembro móvil del riel superior.</td></tr>
+  <tr><td><span class="num">9</span></td><td>Contraplaca del perfil</td><td class="m">15,5 × 2 × 0,5</td><td>Platina ¾" × 3/16", 30 cm (15,5 + 6,5 + 6,5).</td><td class="n">1</td><td class="n">0,5</td><td>Aprieta la lámina contra el portaperfil con los dos pernos de mariposa.</td></tr>
+  <tr><td><span class="num">10</span></td><td>Plato</td><td class="m">32 × 24 × 0,8</td><td>Plancha de hierro negro de 5/16" (8 mm) cortada a 32 × 24, en cerrajería o distribuidora de acero (Dipac, Ferro Torre). Si no hay, 1/4" (6 mm).</td><td class="n">1</td><td class="n">10</td><td>Pesa ≈ 4,8 kg: hace de volante y da giro estable. Aluminio de 8 mm (1,7 kg) también sirve, gira más liviano.</td></tr>
+  <tr><td><span class="num alt">11</span></td><td>Manzana de bicicleta</td><td class="m">eje 3/8" × 140 mm</td><td>«Manzana delantera de acero con tuercas», 36 huecos, en bicicletería. Nueva viene sin radios y cuesta menos que armar una usada.</td><td class="n">1</td><td class="n">4</td><td>Si es usada, cortar y sacar todos los radios. Ajustar conos: sin juego, gira libre. Engrasar.</td></tr>
+  <tr><td><span class="num alt">12</span></td><td>Rieles telescópicos</td><td class="m">35 cm (14")</td><td>«Riel telescópico para cajón de 14 pulgadas, de bolillas, extensión total» (par). Ferrisariato, Megakywi, Kywi.</td><td class="n">1 par</td><td class="n">6</td><td>Uno sobre otro, 2,5 cm entre caras. Miembro fijo al poste y a las pletinas 4; miembro móvil al portaperfil.</td></tr>
+  <tr><td><span class="num alt">13</span></td><td>Pletina de anclaje de la manzana</td><td class="m">10 × 4 × 0,5</td><td>Del tramo de platina 1½" × 3/16" de la pieza 5.</td><td class="n">1</td><td class="n">—</td><td>Hace de puntera de horquilla: el eje pasa por su agujero de 7/16" y la tuerca del eje la aprieta. Atornillada al bloque.</td></tr>
+  <tr><td><span class="num alt">14</span></td><td>Tabla de trabajo</td><td class="m">30 × 22 × 1,2</td><td>MDF de 12 mm; Megakywi y Ferrisariato cortan a medida.</td><td class="n">1</td><td class="n">2</td><td>Intercambiable; se calza en los 4 espárragos. Sobre ella va el plato-guía de cada modelo.</td></tr>
+  <tr><td><span class="num alt">15</span></td><td>Espárragos</td><td class="m">M6 × 40</td><td>Perno 1/4" × 1½" hexagonal con 2 tuercas y arandela.</td><td class="n">4</td><td class="n">1</td><td>Fijos al plato desde abajo, en rectángulo de 20 × 14. Sobresalen 3 cm: posicionan la tabla.</td></tr>
+  <tr><td><span class="num alt">16</span></td><td>Lámina del perfil</td><td class="m">≈ 20 × 20 por perfil</td><td>Tol galvanizado calibre 20 (0,9 mm) en retazo de cerrajería, o acrílico de 3 mm en vidriería. Dos por modelo (exterior e interior).</td><td class="n">2+</td><td class="n">3</td><td>Se corta con las plantillas 1:1 de Producción de macetas, que ya traen las dos ranuras de 6,5 × 30 mm.</td></tr>
+  <tr><td><span class="num alt">17</span></td><td>Tornillería</td><td class="m">—</td><td>Ver tabla de tornillería (todo en pulgadas, mostrador de pernos).</td><td class="n">—</td><td class="n">5</td><td>Pernos de máquina con tuerca, tornillos para madera, mariposas.</td></tr>
+  <tr><td><span class="num alt">18</span></td><td>Sellado</td><td class="m">—</td><td>Barniz marino o laca catalizada (Cóndor, Unidas) para la madera y el MDF; anticorrosivo gris para el plato; grasa amarilla para la manzana.</td><td class="n">—</td><td class="n">4</td><td>Toda la madera vive mojada: sellar caras y cantos.</td></tr>
+  <tr><td><span class="num alt">19</span></td><td>Barra del seguidor</td><td class="m">13 × 2,5 × 0,5, en L (10 + 3)</td><td>Del tramo de platina 1" × 3/16" de la pieza 4. Se dobla en la prensa con martillo.</td><td class="n">1</td><td class="n">—</td><td>Atornillada al dorso del portaperfil; el pie horizontal lleva colgado el rodamiento, con su perno en el plano de la lámina.</td></tr>
+  <tr><td><span class="num alt">20</span></td><td>Rodamiento seguidor</td><td class="m">608ZZ, 22 × 8 × 7 mm</td><td>«Rodamiento 608 de patín» en Ferrisariato, casa de rodamientos o tienda de patinetas. Perno 5/16" × 1" con tuerca de seguridad.</td><td class="n">1 (+1)</td><td class="n">1,5</td><td>Rueda por el canto del plato-guía. Un segundo de repuesto.</td></tr>
+  <tr><td><span class="num alt">21</span></td><td>Plato-guía</td><td class="m">forma de la maceta, MDF 18 mm</td><td>MDF de 18 mm; uno por modelo, cortado con la plantilla 1:1.</td><td class="n">1 por modelo</td><td class="n">2</td><td>Agujero central Ø 10 mm para la punta del eje. Canto lijado a escuadra y sellado: el rodamiento copia cada muesca.</td></tr>
+  <tr><td><span class="num alt">22</span></td><td>Liga de retorno</td><td class="m">≈ 20 cm</td><td>Tira de cámara de bicicleta (la bicicletería regala las pinchadas) o «resorte de gancho» de 5 × 60 mm.</td><td class="n">1</td><td class="n">0,5</td><td>Tira del brazo hacia el eje y mantiene el rodamiento apretado contra el plato-guía.</td></tr>
+</table>
+</div>
+
+<h3>Tornillería (mostrador de pernos, en pulgadas)</h3>
+<div class="tablewrap">
+<table>
+  <tr><th>Uso</th><th>Elemento</th><th class="n">Cant.</th></tr>
+  <tr><td>Bancada → patas</td><td class="m">Tornillo para madera #10 × 2½", cabeza plana, desde abajo</td><td class="n">4</td></tr>
+  <tr><td>Bloque → bancada</td><td class="m">Tornillo para madera #10 × 3", desde abajo de la bancada</td><td class="n">4</td></tr>
+  <tr><td>Poste → bancada</td><td class="m">Tirafondo 5/16" × 4" con arandela (pieza 7)</td><td class="n">2</td></tr>
+  <tr><td>Pletina 13 → bloque</td><td class="m">Tornillo para madera #10 × 1¼"</td><td class="n">2</td></tr>
+  <tr><td>Plato → ala de la manzana</td><td class="m">Perno 1/8" × ¾" con tuerca y arandela (agujeros de los radios abiertos con broca 9/64")</td><td class="n">4</td></tr>
+  <tr><td>Riel fijo → poste (a través de la pletina 4)</td><td class="m">Tornillo para madera #8 × 1¼", cabeza plana, por los agujeros propios del riel</td><td class="n">4</td></tr>
+  <tr><td>Riel fijo → pletina 4 (tramo trasero)</td><td class="m">Perno 5/32" × ½" cabeza plana con tuerca (si no hay 5/32", usar 3/16" y abrir el agujero del riel con broca 3/16")</td><td class="n">6</td></tr>
+  <tr><td>Riel móvil → portaperfil 5</td><td class="m">Perno 5/32" × ½" con tuerca de seguridad</td><td class="n">4</td></tr>
+  <tr><td>Barra 19 → portaperfil 5</td><td class="m">Perno 5/32" × ½" con tuerca</td><td class="n">2</td></tr>
+  <tr><td>Rodamiento 20 → pie de la barra 19</td><td class="m">Perno 5/16" × 1" con 2 arandelas y tuerca de seguridad</td><td class="n">1</td></tr>
+  <tr><td>Portaperfil ↔ contraplaca 9 (cambio de perfil)</td><td class="m">Perno 1/4" × 1" con arandela y tuerca mariposa 1/4"</td><td class="n">2</td></tr>
+  <tr><td>Orejas 8</td><td class="m">Tornillo para madera #8 × ¾" (poste) y perno 5/32" × ½" (riel)</td><td class="n">1 + 1</td></tr>
+  <tr><td>Espárragos 15</td><td class="m">Perno 1/4" × 1½" con 2 tuercas y arandela</td><td class="n">4</td></tr>
+  <tr><td>Brocas necesarias</td><td class="m">1/8", 9/64", 5/32", 3/16", 1/4", 5/16", 7/16", 1/2" para metal; 12 mm (o 1/2") de paleta para madera</td><td class="n">—</td></tr>
+</table>
+</div>
+
+<h2>Lista de cortes</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>Material de partida</th><th>Cortes</th><th>Sobrante</th></tr>
+  <tr><td class="m">Alfajía 2" × 4" cepillada, 50 cm</td><td><span class="num">2</span> 48 cm</td><td class="m">2 cm</td></tr>
+  <tr><td class="m">Alfajía 4 × 6 cm, 40 cm</td><td><span class="num">3</span> 34 cm</td><td class="m">6 cm</td></tr>
+  <tr><td class="m">Tabla de 1" × 6 cm, 60 cm</td><td><span class="num">1</span> 26 cm × 2</td><td class="m">8 cm</td></tr>
+  <tr><td class="m">Tira 2" × 2", 45 cm</td><td><span class="num">6</span> 40 cm</td><td class="m">5 cm</td></tr>
+  <tr><td class="m">Platina 1" × 3/16", 70 cm</td><td><span class="num">4</span> 26 cm × 2 · <span class="num alt">19</span> 13 cm</td><td class="m">5 cm</td></tr>
+  <tr><td class="m">Platina 1½" × 3/16", 30 cm</td><td><span class="num">5</span> 19 cm · <span class="num alt">13</span> 10 cm</td><td class="m">1 cm</td></tr>
+  <tr><td class="m">Platina ¾" × 3/16", 30 cm</td><td><span class="num">9</span> 15,5 cm · <span class="num">8</span> 6,5 cm × 2</td><td class="m">1,5 cm</td></tr>
+  <tr><td class="m">Plancha 5/16" (8 mm)</td><td><span class="num">10</span> 32 × 24, esquinas redondeadas r = 2 cm</td><td class="m">—</td></tr>
+  <tr><td class="m">MDF 12 mm</td><td><span class="num alt">14</span> 30 × 22, esquinas r = 2 cm</td><td class="m">—</td></tr>
+  <tr><td class="m">MDF 18 mm</td><td><span class="num alt">21</span> un plato-guía por modelo, según plantilla (hasta 32 × 24)</td><td class="m">retazos</td></tr>
+  <tr><td class="m">Tol galvanizado 0,9 mm, 30 × 40</td><td><span class="num alt">16</span> dos perfiles por modelo, según plantilla</td><td class="m">retazos</td></tr>
+</table>
+</div>
+
+<figure>
+  <svg viewBox="0 0 480 236" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="9">
+    <g class="lbl">
+      <text x="8" y="22">alfajía 2×4 · 50</text>
+      <rect x="110" y="12" width="250" height="14" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <line x1="350" y1="10" x2="350" y2="28" stroke="var(--dwg-dim)" stroke-width="1.2"/><text x="220" y="22" text-anchor="middle">2 · bancada 48</text>
+
+      <text x="8" y="48">alfajía 4×6 · 40</text>
+      <rect x="110" y="38" width="200" height="14" fill="var(--dwg-wood2)" stroke="var(--dwg-ink)"/>
+      <line x1="280" y1="36" x2="280" y2="54" stroke="var(--dwg-dim)" stroke-width="1.2"/><text x="195" y="48" text-anchor="middle">3 · bloque 34</text>
+
+      <text x="8" y="74">tabla 1" × 6 · 60</text>
+      <rect x="110" y="64" width="300" height="14" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <line x1="240" y1="62" x2="240" y2="80" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="370" y1="62" x2="370" y2="80" stroke="var(--dwg-dim)" stroke-width="1.2"/>
+      <text x="175" y="74" text-anchor="middle">1 · pata 26</text><text x="305" y="74" text-anchor="middle">1 · pata 26</text>
+
+      <text x="8" y="100">tira 2×2 · 45</text>
+      <rect x="110" y="90" width="225" height="14" fill="var(--dwg-wood)" stroke="var(--dwg-ink)"/>
+      <line x1="310" y1="88" x2="310" y2="106" stroke="var(--dwg-dim)" stroke-width="1.2"/><text x="210" y="100" text-anchor="middle">6 · poste 40</text>
+
+      <text x="8" y="126">platina 1"×3/16 · 70</text>
+      <rect x="110" y="118" width="350" height="10" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+      <line x1="240" y1="116" x2="240" y2="130" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="370" y1="116" x2="370" y2="130" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="435" y1="116" x2="435" y2="130" stroke="var(--dwg-dim)" stroke-width="1.2"/>
+      <text x="175" y="126" text-anchor="middle">4 · 26</text><text x="305" y="126" text-anchor="middle">4 · 26</text><text x="402" y="126" text-anchor="middle">19 · 13</text>
+
+      <text x="8" y="152">platina 1½"×3/16 · 30</text>
+      <rect x="110" y="142" width="150" height="14" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+      <line x1="205" y1="140" x2="205" y2="158" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="255" y1="140" x2="255" y2="158" stroke="var(--dwg-dim)" stroke-width="1.2"/>
+      <text x="157" y="152" text-anchor="middle">5 · 19</text><text x="230" y="152" text-anchor="middle">13 · 10</text>
+
+      <text x="8" y="178">platina ¾"×3/16 · 30</text>
+      <rect x="110" y="170" width="150" height="9" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/>
+      <line x1="187.5" y1="168" x2="187.5" y2="181" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="220" y1="168" x2="220" y2="181" stroke="var(--dwg-dim)" stroke-width="1.2"/><line x1="252.5" y1="168" x2="252.5" y2="181" stroke="var(--dwg-dim)" stroke-width="1.2"/>
+      <text x="148" y="177" text-anchor="middle">9 · 15,5</text><text x="204" y="177" text-anchor="middle">8</text><text x="236" y="177" text-anchor="middle">8</text>
+
+      <text x="8" y="212">plancha 5/16" y MDF</text>
+      <rect x="110" y="192" width="160" height="40" rx="6" fill="var(--dwg-metal2)" stroke="var(--dwg-ink)"/><text x="190" y="215" text-anchor="middle">10 · 32 × 24</text>
+      <rect x="290" y="196" width="150" height="32" rx="5" fill="var(--dwg-mdf)" stroke="var(--dwg-ink)"/><text x="365" y="215" text-anchor="middle">14 · 30 × 22 (MDF 12)</text>
+    </g>
+  </svg>
+  <figcaption>Esquema de despiece. Las marcas rojas son los cortes; a la izquierda, el material de partida tal como se pide. Ambas placas con esquinas redondeadas a r = 2 cm (el plato con lima o amoladora; el MDF con caladora).</figcaption>
+</figure>
+
+<h2>Perforaciones y mecanizado</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>Pieza</th><th>Perforación</th><th>Posición</th></tr>
+  <tr><td><span class="num">2</span> Bancada</td><td class="m">2 × Ø 8 (5/16") pasantes</td><td>Bajo el poste: a 44,25 y 46,75 del extremo izquierdo, a 7,5 del borde delantero. Avellanar por debajo para la cabeza del tirafondo.</td></tr>
+  <tr><td><span class="num">3</span> Bloque</td><td class="m">Ø 12 ciego, 15 mm de fondo · 2 × Ø 3 guía</td><td>Centro del eje: a 17 del extremo izquierdo y 2,7 del borde delantero. Los Ø 3 a 3,5 cm a cada lado, para la pletina 13.</td></tr>
+  <tr><td><span class="num">6</span> Poste</td><td class="m">2 × Ø 6 guía, 5 cm de fondo, en el pie</td><td>En la línea media de la cara inferior, a 1,25 de cada canto en el sentido de la bancada. Reciben los tirafondos 7.</td></tr>
+  <tr><td><span class="num">4</span> Pletinas</td><td class="m">2 × Ø 5 (3/16") · 3 × Ø 4,5 (5/32")</td><td>Ø 5 a 3 y 6 cm del extremo delantero (caen en el poste). Ø 4,5 a 10, 17 y 24 cm, copiando los agujeros del riel: presentar el riel y marcar.</td></tr>
+  <tr><td><span class="num">5</span> Portaperfil</td><td class="m">4 × Ø 4,5 (5/32") · 2 × Ø 6,5 (1/4")</td><td>Ø 4,5 para los rieles a 1,5 del canto trasero, a 8 y 15 del extremo inferior. Ø 4,5 para la barra 19 a 1,2 del canto delantero, a 1,5 y 4 del extremo inferior. Ø 6,5 en la línea media (2 de cada canto), a 5,5 y 12,5 del extremo inferior.</td></tr>
+  <tr><td><span class="num">9</span> Contraplaca</td><td class="m">2 × Ø 6,5 (1/4")</td><td>A 4,25 y 11,25 del extremo (7 entre centros, igual que el portaperfil).</td></tr>
+  <tr><td><span class="num alt">19</span> Barra del seguidor</td><td class="m">2 × Ø 4,5 (5/32") en la vertical · Ø 8,5 (5/16") en el pie</td><td>Doblar a 90° a 3 cm de un extremo. Los Ø 4,5 a 1 y 3,5 cm del doblez, a 1,2 del canto trasero. El Ø 8,5 del rodamiento a 1 cm del doblez y a 0,8 del canto delantero (cae en el plano de la lámina).</td></tr>
+  <tr><td><span class="num">10</span> Plato</td><td class="m">Ø 12 central · 4 × Ø 3,5 (9/64") · 4 × Ø 6,5 (1/4")</td><td>Ø 3,5 en la circunferencia de los agujeros de radios del ala superior (medir en la manzana, ≈ Ø 40 mm), a 90°. Ø 6,5 en rectángulo de 20 × 14 centrado.</td></tr>
+  <tr><td><span class="num alt">13</span> Pletina manzana</td><td class="m">Ø 11 (7/16") central · 2 × Ø 5,5 avellanados</td><td>Los Ø 5,5 a 3,5 cm del centro, a cada lado.</td></tr>
+  <tr><td><span class="num alt">14</span> Tabla</td><td class="m">Ø 12 central · 4 × Ø 7</td><td>Mismo rectángulo 20 × 14 que el plato. Los Ø 7 dan holgura para calzar y sacar la tabla.</td></tr>
+  <tr><td><span class="num alt">21</span> Plato-guía</td><td class="m">Ø 10 central</td><td>En el centro marcado por la plantilla; entra en la punta del eje. Canto exterior lijado a 90° y sellado.</td></tr>
+  <tr><td><span class="num alt">11</span> Manzana</td><td class="m">Ampliar 4 agujeros de radios a Ø 3,5 (9/64")</td><td>Ala superior, a 90° (cada 9 agujeros en una manzana de 36). Cortar la punta superior del eje si sobresale más de 2 cm de la contratuerca.</td></tr>
+  <tr><td><span class="num alt">16</span> Lámina</td><td class="m">2 ranuras 6,5 × 30 mm</td><td>Vienen dibujadas en la plantilla: a 2,5 cm del borde del plato-guía, a 6,2 y 13,2 cm sobre su cara. Se hacen con dos agujeros de 1/4" y lima. Limar el borde de barrido sin rebabas.</td></tr>
+</table>
+</div>
+
+<h2 class="pb">Montaje paso a paso</h2>
+<ol class="steps">
+  <li><div><b>Bancada y patas</b>Atornilla las patas <span class="num">1</span> bajo la bancada <span class="num">2</span>, atravesadas y centradas, a 4 cm de cada extremo. Apoya sobre una superficie plana y comprueba que no cojea; cepilla la pata que sobre.</div></li>
+  <li><div><b>Bloque y agujero del eje</b>Atornilla el bloque <span class="num">3</span> desde abajo de la bancada, al ras del borde delantero y del extremo izquierdo. Marca el centro del eje (17 del extremo, 2,7 del borde) y perfora el Ø 12 ciego de 15 mm perfectamente vertical: usa guía de taladro o una escuadra en dos caras.<ul><li>Este agujero define la verticalidad del eje. Una inclinación de 1° se nota en la maceta.</li></ul></div></li>
+  <li><div><b>Manzana</b>Retira los radios si los tiene, limpia y engrasa. Ajusta los conos hasta que no haya juego lateral y gire libre. Amplía a 9/64" cuatro agujeros de radios del ala superior, a 90°. Atornilla la pletina <span class="num alt">13</span> al bloque, centrada en el agujero; pasa la punta inferior del eje por ella y aprieta la tuerca del eje con arandela.</div></li>
+  <li><div><b>Plato y espárragos</b>Perfora el plato <span class="num">10</span>: Ø 12 central, 4 × 9/64" copiando el ala (presenta la manzana sobre el plato y marca por los agujeros), 4 × 1/4" en el rectángulo 20 × 14. Fija los espárragos <span class="num alt">15</span> desde abajo. Apoya el plato sobre el ala superior y pásale los 4 pernos de 1/8" con tuerca por debajo del ala. Gira: el plato no debe cabecear más de 0,5 mm en el borde; si lo hace, afloja y recoloca.</div></li>
+  <li><div><b>Poste</b>Perfora la bancada bajo el poste (al ras del extremo derecho y del borde trasero) y los dos agujeros guía en el pie del poste <span class="num">6</span>. Entra los tirafondos <span class="num">7</span> desde abajo con arandela ancha. Antes de apretar a fondo, comprueba el poste vertical con nivel en dos caras; calza con papel si hace falta.</div></li>
+  <li><div><b>Pletinas y rieles</b>Presenta cada riel <span class="num alt">12</span> (miembro fijo) contra la cara delantera del poste con la pletina <span class="num">4</span> entre ambos: cara delantera del riel fijo a 19 cm del eje, centro del riel inferior a 26 cm de la bancada, el superior a 33 cm. Marca por los agujeros del riel, perfora la pletina y atornilla al poste con los #8 × 1¼". Atornilla el tramo trasero de cada riel a su pletina con los pernos de 5/32".<ul><li>Los dos rieles deben quedar exactamente paralelos entre sí y a la bancada: mide del riel a la bancada en ambos extremos.</li></ul></div></li>
+  <li><div><b>Portaperfil</b>Cierra los rieles hasta el tope. Presenta el portaperfil <span class="num">5</span> contra los extremos móviles con su línea media a 19 cm del eje y el extremo inferior a 18 cm de la bancada; marca por los agujeros del miembro móvil, perfora y fija con pernos de 5/32" y tuerca de seguridad. Abre y cierra varias veces: sin roces ni giro.</div></li>
+  <li><div><b>Barra del seguidor y rodamiento</b>Dobla la barra <span class="num alt">19</span> en L (10 vertical + 3 de pie). Atorníllala al dorso del portaperfil con el pie hacia el frente, a la altura justa para que el rodamiento <span class="num alt">20</span>, colgado del pie con el perno de 5/16", quede con su cara de rodadura entre 15,7 y 16,4 cm sobre la bancada (canto del plato-guía). El centro del rodamiento debe quedar en el plano de la lámina y 1,4 cm hacia el eje desde la línea de los pernos de mariposa.</div></li>
+  <li><div><b>Lámina, contraplaca y liga</b>Pasa los dos pernos de 1/4" por el portaperfil, la lámina <span class="num alt">16</span> y la contraplaca <span class="num">9</span>; aprieta con las mariposas. Atornilla una oreja <span class="num">8</span> a la cara trasera del poste y otra al extremo trasero del miembro móvil del riel superior; engancha la liga <span class="num alt">22</span> entre ambas: debe tirar del brazo hacia el eje con firmeza pero dejar abrirlo con una mano.</div></li>
+  <li><div><b>Tabla, plato-guía y sellado</b>Sella con barniz la tabla <span class="num alt">14</span>, el bloque y la bancada (todas las caras). Calza la tabla en los espárragos y el plato-guía <span class="num alt">21</span> en la punta del eje. Pinta el plato o engrásalo. Coloca la máquina sobre una mesa firme y nivela la bancada en los dos sentidos con calzos bajo las patas.</div></li>
+  <li><div><b>Calibración</b>Monta un plato-guía redondo y una lámina de prueba con un rebaje recto. Suelta el brazo con la liga puesta: el rodamiento debe apoyar en el canto del plato-guía en toda la vuelta y el borde de barrido pasar a la misma altura sin tocar el plato-guía. Si el borde de barrido no cae en la vertical del punto de contacto del rodamiento, afloja la barra 19 y corrígela. Repite con un plato-guía rectangular: el rodamiento debe recorrer las esquinas sin saltos.</div></li>
+</ol>
+
+<h2>Cómo se usa el brazo</h2>
+<div class="grid">
+  <div class="card"><div class="k">Cualquier forma</div><h3>La liga empuja, el plato-guía manda</h3><p>Con la liga enganchada el brazo va solo hacia el eje hasta que el rodamiento toca el canto del plato-guía. Al girar el plato, el brazo entra y sale copiando la forma: redonda, ovalada o rectangular con el mismo aparato. Para abrir el brazo y cargar mortero, tira de él hacia atrás; el riel cerrado es solo la posición de reposo.</p></div>
+  <div class="card"><div class="k">Cambio de perfil</div><h3>Dos mariposas</h3><p>Afloja las dos mariposas, saca la lámina y pon la del siguiente modelo o la del perfil interior: las ranuras de todas las láminas están en el mismo sitio, así que el borde de barrido queda siempre en la vertical del rodamiento. Las ranuras verticales dan 3 cm de ajuste de altura.</p></div>
+  <div class="card"><div class="k">Capacidad</div><h3>Hasta 32 × 24 cm y 16 cm de alto</h3><p>El brazo alcanza un plato-guía de hasta 16 cm de semieje (Ø 32 o 32 × 24) y láminas de hasta 16 cm sobre el plato-guía. El modelo Ishitsuki de 36 × 24 no cabe: haría falta un plato de 40 × 28 y rieles de 18". La herramienta de plantillas avisa cuando un modelo excede la máquina.</p></div>
+  <div class="card"><div class="k">Mortero y curado</div><h3>Ver instrucciones</h3><p>Mezcla, pasada exterior e interior, volteo y curado están en <a href="maquina.html">Instrucciones de la máquina</a>. Este plano solo cubre la construcción.</p></div>
+</div>
+
+<h2>Dónde se apartó de la referencia</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>Referencia</th><th>Aquí</th><th>Motivo</th></tr>
+  <tr><td>Poste 40 × 5 × 0,5</td><td>Listón de madera 40 × 5 × 5</td><td>Con 0,5 cm sería una platina; los rieles necesitan una cara de 5 cm.</td></tr>
+  <tr><td>Patas en los extremos</td><td>Patas a 4 cm de los extremos</td><td>Deja libre la cara inferior bajo el poste para las cabezas de los tirafondos.</td></tr>
+  <tr><td>Pernos Ø 10 × 8 en el poste</td><td>Tirafondos 5/16" × 4" desde abajo</td><td>Un perno horizontal en el poste chocaría con el dorso del riel; el tirafondo se consigue en cualquier ferretería y no necesita tuerca de inserción.</td></tr>
+  <tr><td>Portaperfil de 14,5</td><td>Portaperfil de 19</td><td>Para bajar la barra del seguidor hasta el canto del plato-guía sin chocar con la tabla.</td></tr>
+  <tr><td>Piezas 8 (2 × 6,5 × 2)</td><td>Orejas de la liga</td><td>Su función no se distingue en la foto; se les da el uso más útil con esas medidas.</td></tr>
+  <tr><td>Plato 32 × 24 × 0,8 solo</td><td>Plato + tabla de MDF + plato-guía centrado en el eje</td><td>La tabla protege el acero y el plato-guía se cambia por modelo sin desmontar nada.</td></tr>
+  <tr><td>Guía bajo el plato (video de ejemplo)</td><td>Plato-guía sobre la tabla, seguidor bajo el portaperfil</td><td>Con la guía arriba las plantillas 1:1 coinciden con la huella de la maceta y el seguidor queda en la vertical del borde de barrido; la guía bajo el plato exigiría un brazo inferior que pase por debajo del plato.</td></tr>
+</table>
+</div>
+
+<p class="note">Antes de cortar metal comprueba dos medidas en tus piezas reales: la circunferencia de agujeros del ala de la manzana (para los 4 × 9/64" del plato) y la altura y el patrón de agujeros de los rieles (para las pletinas 4 y el portaperfil 5). Todo lo demás se puede cortar directamente con esta lista.</p>
+</div>
+</body>
+</html>
