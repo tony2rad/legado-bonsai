@@ -76,7 +76,7 @@
   #arte{position:absolute;width:0;height:0;overflow:hidden}
   @media print{
     body{background:#fff;padding:0}
-    .topbar,.panel,.toolbar,.hoja .cap,#aviso,#nota-escala{display:none!important}
+    .topbar,.panel,.toolbar,.hoja .cap,#aviso,#nota-escala,#nota-duplex{display:none!important}
     .app{display:block}
     #hojas{display:block;padding:0;overflow:visible}
     .hoja{display:block;height:var(--ph);overflow:hidden;break-after:page;page-break-after:always}
@@ -93,7 +93,11 @@
     <h1>Imprimibles de marca</h1>
     <div class="sub">Etiquetas colgantes, tarjetas, sellos y logotipos en vectores, a escala real. Cada pieza se adapta a la medida que elijas y se reparte sola en la hoja con marcas de corte.</div>
   </div>
-  <button class="btn" id="imprimir" type="button">Imprimir</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn ghost" id="imp-frentes" type="button" hidden>1. Imprimir frentes</button>
+    <button class="btn ghost" id="imp-dorsos" type="button" hidden>2. Imprimir dorsos</button>
+    <button class="btn" id="imprimir" type="button">Imprimir</button>
+  </div>
 </header>
 
 <div class="app">
@@ -113,6 +117,7 @@
         <label><input type="radio" name="pieza" value="bolsa"><b>Bolsa de regalo</b><span>Troquel a escala 1:1</span></label>
         <label><input type="radio" name="pieza" value="carta"><b>Carta de color</b><span>Pantone de la marca</span></label>
         <label><input type="radio" name="pieza" value="registro"><b>Prueba de doble cara</b><span>Calibra frente y dorso</span></label>
+        <label><input type="radio" name="pieza" value="fondo"><b>Fondo Pasochoa</b><span>Hoja completa para el dorso</span></label>
       </div>
     </section>
 
@@ -249,6 +254,12 @@
       <p class="hint" id="b-info"></p>
     </section>
 
+    <section class="stack" data-pieza="fondo">
+      <h2>Fondo Pasochoa</h2>
+      <p class="hint">Hoja completa cubierta con siluetas del Pasochoa, nubes y sol. Imprímela detrás de cualquier hoja ya impresa: como no tiene bordes que calzar, al recortar cada pieza queda con un fondo bonito aunque la impresora se corra.</p>
+      <label class="field"><span>Cantidad de hojas</span><input type="number" id="fo-n" min="1" max="200" step="1"></label>
+    </section>
+
     <section class="stack" data-pieza="registro">
       <h2>Prueba de doble cara</h2>
       <ol class="hint" style="padding-left:18px;margin:0;display:grid;gap:4px">
@@ -352,7 +363,25 @@
       <label class="check"><input type="checkbox" id="imp-fondo"><span>Imprimir el color del papel<small>Para simular kraft sobre papel blanco. Añade 2 mm de sangrado.</small></span></label>
       <label class="check"><input type="checkbox" id="contorno"><span>Contorno de corte<small>Línea fina con la forma de la pieza</small></span></label>
       <label class="check"><input type="checkbox" id="marcas"><span>Marcas de corte en los márgenes</span></label>
-      <label class="check"><input type="checkbox" id="duplex"><span>Doble cara (dorso espejado)<small>El dorso se coloca para voltear la hoja de izquierda a derecha, como la página de un libro</small></span></label>
+      <label class="field"><span>Doble cara</span><select id="dmodo">
+        <option value="auto">Automática (la impresora voltea la hoja)</option>
+        <option value="manual">Manual (sale boca arriba y la vuelvo a meter)</option>
+        <option value="una">Una sola cara</option>
+      </select></label>
+      <p class="hint" id="dmodo-hint"></p>
+      <label class="field"><span>Dorso de la hoja</span><select id="dtipo">
+        <option value="diseno">Diseño de cada pieza</option>
+        <option value="fondo">Fondo Pasochoa (hoja completa, no necesita calzar)</option>
+      </select></label>
+      <div class="grid2">
+        <label class="field"><span>Intensidad del fondo</span><select id="fo-int">
+          <option value="0.35">Suave</option><option value="0.55">Media</option><option value="0.8">Fuerte</option>
+        </select></label>
+        <label class="field"><span>Tamaño de las montañas</span><select id="fo-tam">
+          <option value="0.34">Pequeñas</option><option value="0.5">Medianas</option><option value="1">Una por fila</option>
+        </select></label>
+      </div>
+      <label class="check" id="dinv-wrap"><input type="checkbox" id="dinv"><span>Invertir el orden de los dorsos<small>Márcalo si al volver a meter el montón el primer dorso cae en la última hoja</small></span></label>
       <div class="grid2">
         <label class="field"><span>Ajuste del dorso → (mm)</span><input type="number" id="ddx" min="-10" max="10" step="0.5"></label>
         <label class="field"><span>Ajuste del dorso ↓ (mm)</span><input type="number" id="ddy" min="-10" max="10" step="0.5"></label>
@@ -379,6 +408,7 @@
         <option value="1">Tamaño real</option>
       </select></label>
     </div>
+    <p class="warn" id="nota-duplex" style="margin:-6px 0 12px;background:var(--soft);color:var(--ink)" hidden></p>
     <p class="hint" id="nota-escala" style="margin:-6px 0 14px">Al imprimir elige «Tamaño real» o escala 100 %, nunca «Ajustar a la página». Mide la regla de control para comprobarlo.</p>
     <div id="hojas"></div>
   </main>
@@ -553,6 +583,14 @@ const PIEZAS = {
     items: () => [null],
     paginas: s => bolsaPaginas(s)
   },
+  fondo: {
+    nombre: 'Fondo Pasochoa',
+    presets: [[210, 297, 'Hoja completa']],
+    caras: ['Fondo'],
+    min: [10, 10], sinMedida: true,
+    items: () => [null],
+    paginas: s => fondoPaginas(s)
+  },
   registro: {
     nombre: 'Prueba de doble cara',
     presets: [[180, 250, 'A4 · 18 × 25 cm']],
@@ -616,10 +654,11 @@ function etiquetaFrente(W, H, s) {
 
 function etiquetaDorso(W, H, vals, s) {
   const g = geoEtiqueta(W), forma = formaEtiqueta(W, H);
-  const ih = s.ilus ? W * ART.dorso.h / ART.dorso.w : 0;
+  // dorso: silueta del Pasochoa (montaña principal); su cuarto superior es cielo, ahí pueden bajar los campos
+  const ih = s.ilus ? W * ART.montana.h / ART.montana.w : 0;
   const mx = 0.087 * W, n = s.campos.length;
   const first = g.holeY + g.holeR + 0.33 * W;
-  const limit = (s.ilus ? H - ih : H - 0.08 * W) - 0.06 * W;
+  const limit = (s.ilus ? H - ih * 0.8 : H - 0.08 * W) - 0.05 * W;
   const gap = n > 1 ? Math.min(0.2 * W, (limit - first) / (n - 1)) : 0;
   const fs = clamp(Math.min(0.062 * W, (gap || 0.2 * W) * 0.42), 1.6, 6);
   const codigo = (vals[n - 1] || '').trim();
@@ -627,7 +666,17 @@ function etiquetaDorso(W, H, vals, s) {
   const last = first + (n - 1) * gap;
   const q = qr ? clamp(Math.min(0.3 * W, gap * 1.9), 9, 30) : 0;
   let out = '';
-  if (s.ilus) out += conClip(W, H, forma, use('dorso', 0, H - ih, W, ih));
+  if (s.ilus) {
+    out += conClip(W, H, forma, use('montana', 0, H - ih, W, ih));
+    // cielo entre el último campo y las cumbres: sol a la derecha y dos nubes
+    const arriba = last + fs * 1.2, abajo = H - ih + 0.24 * ih, alto = abajo - arriba;
+    if (alto > 5) {
+      const cy = arriba + alto * 0.5, r = Math.min(0.07 * W, alto * 0.36), sw = Math.max(0.2, W * 0.0045);
+      out += sol(W * 0.74, cy, r, sw, s.tinta);
+      out += nube(W * 0.1, cy + r * 0.55, W * 0.3, sw, s.tinta, false);
+      out += nube(W * 0.42, cy - r * 0.35, W * 0.16, sw, s.tinta, true);
+    }
+  }
   out += `<g font-family="${SERIF}" font-size="${r2(fs)}" fill="${s.tinta}">`;
   vals.forEach((v, i) => {
     const ly = first + i * gap;
@@ -1023,7 +1072,7 @@ function troquelPaginas(s, o) {
     const svg = `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}"><rect class="prev" width="${pw}" height="${ph}" fill="#FFFFFF"/>` +
       `<g transform="translate(${m + 3} ${m + 3})">${d.svg}</g>${reglaSvg(m, ph - m - 2)}` +
       `<text x="${m + 70}" y="${r2(ph - m - 1.2)}" font-family="IBM Plex Sans,sans-serif" font-size="2.4" fill="#444">${esc(leyenda + troquel)}</text>${muestras(pw - m - tintas.length * 32, ph - m - 1)}</svg>`;
-    return { pw, ph, paginas: [{ cap: 'Lámina 1:1', svg }], resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en una lámina de <b>${fmt(pw)} × ${fmt(ph)}</b> mm` };
+    return { pw, ph, lamina: true, paginas: [{ cap: 'Lámina 1:1', svg }], resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en una lámina de <b>${fmt(pw)} × ${fmt(ph)}</b> mm` };
   }
   // mosaico: ventanas del desplegado con 10 mm de solape para pegar las hojas
   let [pw, ph] = s.papel === 'custom' ? [s.pw, s.ph] : (PAPELES[s.papel] || PAPELES.A4);
@@ -1049,6 +1098,66 @@ function troquelPaginas(s, o) {
     paginas.push({ cap: `Hoja ${nombre}`, svg });
   }
   return { pw: mejor.w, ph: mejor.h, paginas, resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en <b>${paginas.length}</b> hojas (${mejor.rows} × ${mejor.cols}) con 10 mm de solape` };
+}
+
+/* ---------------------- Cielo: nubes y sol en estilo grabado ----------------------
+   Nube japonesa (kumo): lóbulos arriba, base con doble línea y un rizo en la punta. Sol: círculo con
+   rayado horizontal en la mitad baja, como en los grabados. Solo trazo (sin relleno) para no tapar nada. */
+function nube(x, y, w, sw, color, espejo) {
+  const pesos = [0.75, 1, 0.85, 0.6], tot = pesos.reduce((a, b) => a + b, 0), k = (w * 0.86) / (2 * tot);
+  let d = `M${r2(x)} ${r2(y)}`;
+  pesos.forEach(p => { const r = p * k; d += `a${r2(r)} ${r2(r)} 0 0 1 ${r2(2 * r)} 0`; });
+  const r0 = pesos[0] * k;
+  d += `M${r2(x - w * 0.04)} ${r2(y)}h${r2(w * 0.96)}a${r2(r0 * 0.45)} ${r2(r0 * 0.45)} 0 1 0 ${r2(-r0 * 0.6)} ${r2(-r0 * 0.55)}`;
+  d += `M${r2(x + w * 0.06)} ${r2(y + sw * 4)}h${r2(w * 0.62)}`;
+  const t = espejo ? ` transform="translate(${r2(2 * x + w * 0.86)} 0) scale(-1 1)"` : '';
+  return `<path${t} d="${d}" fill="none" stroke="${color}" stroke-width="${r2(sw)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+function sol(cx, cy, r, sw, color) {
+  let o = `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(r)}" fill="none" stroke="${color}" stroke-width="${r2(sw)}"/>`;
+  for (let i = 1; i <= 4; i++) {
+    const dy = r * (0.12 + i * 0.19), m = Math.sqrt(Math.max(0, r * r - dy * dy)) * 0.92;
+    o += `<path d="M${r2(cx - m)} ${r2(cy + dy)}h${r2(2 * m)}" stroke="${color}" stroke-width="${r2(sw * 0.8)}"/>`;
+  }
+  return o;
+}
+// azar con semilla: el mismo fondo cada vez que se imprime
+const azar = semilla => () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+
+/* Fondo Pasochoa: la hoja entera cubierta por filas de la montaña principal (alternadas en espejo y
+   desfasadas como ladrillos), con nubes y a veces un sol en el cielo de cada vista. Va a sangre: no tiene
+   bordes, así que al recortar cualquier pieza queda con fondo aunque la impresora corra la hoja. */
+function fondoSvg(pw, ph, s, semilla = 7) {
+  const rnd = azar(semilla), op = +s.foInt || 0.55, ink = s.tinta;
+  const a = ART.montana, tw = pw * (+s.foTam || 0.5) + 0.01, th = tw * a.h / a.w, sw = Math.max(0.22, tw * 0.0035);
+  let o = '', fila = 0;
+  for (let y = -th * 0.12; y < ph; y += th * 0.98, fila++) {
+    const off = fila % 2 ? -tw / 2 : 0;
+    for (let x = off - (fila % 2 ? 0 : tw * 0.15), i = 0; x < pw; x += tw, i++) {
+      const esp = fila % 2 === 1;   // se espeja la fila entera: las vistas vecinas no forman reflejos
+      o += `<g transform="translate(${r2(esp ? x + tw : x)} ${r2(y)}) scale(${esp ? -1 : 1} 1)">${use('montana', 0, 0, tw, th)}</g>`;
+      // cielo de esta vista (≈ 22 % superior): una o dos nubes y, cada tanto, el sol
+      const cielo = th * 0.2;
+      if ((i + fila * 2) % 3 === 0) o += sol(x + tw * (0.62 + rnd() * 0.22), y + cielo * 0.5, Math.min(cielo * 0.38, tw * 0.05), sw, ink);
+      o += nube(x + tw * (0.06 + rnd() * 0.2), y + cielo * (0.55 + rnd() * 0.25), tw * (0.16 + rnd() * 0.08), sw, ink, rnd() > 0.5);
+      if (rnd() > 0.45) o += nube(x + tw * (0.38 + rnd() * 0.15), y + cielo * (0.3 + rnd() * 0.2), tw * (0.1 + rnd() * 0.06), sw, ink, rnd() > 0.5);
+    }
+  }
+  return `<g fill="${ink}" opacity="${op}">${o}</g>`;
+}
+function fondoHoja(pw, ph, s, semilla) {
+  const id = 'fz' + semilla + Math.round(pw);
+  return `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}">` +
+    `<rect class="prev" width="${pw}" height="${ph}" fill="${s.fondo}"/>${s.impFondo ? `<rect width="${pw}" height="${ph}" fill="${s.fondo}"/>` : ''}` +
+    `<clipPath id="${id}"><rect width="${pw}" height="${ph}"/></clipPath><g clip-path="url(#${id})">${fondoSvg(pw, ph, s, semilla)}</g></svg>`;
+}
+function fondoPaginas(s) {
+  let [pw, ph] = s.papel === 'custom' ? [s.pw, s.ph] : (PAPELES[s.papel] || PAPELES.A4);
+  if (pw > ph) [pw, ph] = [ph, pw];
+  if (s.orient === 'h') [pw, ph] = [ph, pw];
+  const n = clamp(Math.round(+s.foN || 1), 1, 200);
+  const paginas = Array.from({ length: n }, (_, i) => ({ cap: `Fondo ${i + 1}`, svg: fondoHoja(pw, ph, s, 7 + i * 13) }));
+  return { pw, ph, paginas, resumen: `<b>${n}</b> ${n === 1 ? 'hoja' : 'hojas'} de fondo Pasochoa de <b>${fmt(pw)} × ${fmt(ph)}</b> mm, a hoja completa` };
 }
 
 /* Prueba de doble cara: cruces en posiciones simétricas (coinciden al voltear como página de libro).
@@ -1215,7 +1324,7 @@ const DEF = {
   kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
   bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
   papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 8, sep: 3, rotar: true,
-  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
+  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dInv: false, dTipo: 'diseno', foInt: '0.55', foTam: '0.5', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
 };
 let S = { ...DEF };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
@@ -1238,7 +1347,7 @@ const CAMPOS = {
   'f-filas': ['fFilas', 'v'], 'f-dorso': ['fDorso', 'c'], 'f-uso': ['fUso', 'v'], 'f-lote': ['fLote', 'v'], 'f-fecha': ['fFecha', 'v'],
   's-inv': ['sInv', 'c'], 's-lema': ['sLema', 'c'], 's-n': ['sN', 'n'], 'l-var': ['lVar', 'v'], 'l-n': ['lN', 'n'],
   papel: 'v', orient: 'v', pw: 'n', ph: 'n', margen: 'n', sep: 'n', rotar: 'c',
-  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', duplex: 'c', ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
+  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', dmodo: ['dModo', 'v'], dinv: ['dInv', 'c'], dtipo: ['dTipo', 'v'], 'fo-int': ['foInt', 'v'], 'fo-tam': ['foTam', 'v'], 'fo-n': ['foN', 'n'], ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
 };
 const campo = id => Array.isArray(CAMPOS[id]) ? CAMPOS[id] : [id, CAMPOS[id]];
 function aFormulario() {
@@ -1276,6 +1385,8 @@ function estado() {
     bW: clamp(+S.bW || 250, 80, 600), bG: clamp(+S.bG || 100, 30, 300), bH: clamp(+S.bH || 300, 80, 700), bTi: clamp(+S.bTi || 40, 20, 80),
     kL: clamp(+S.kL || 300, 80, 1000), kA: clamp(+S.kA || 200, 60, 800), kH: clamp(+S.kH || 150, 40, 800), kT: clamp(+S.kT || 0, 0, 8), kG: clamp(+S.kG || 35, 20, 60),
     gN: clamp(Math.round(+S.gN || 1), 1, 500), cN: clamp(Math.round(+S.cN || 1), 1, 500), iN: clamp(Math.round(+S.iN || 1), 1, 500), tN: clamp(Math.round(+S.tN || 1), 1, 500), sN: clamp(Math.round(+S.sN || 1), 1, 500), lN: clamp(Math.round(+S.lN || 1), 1, 500),
+    // doble cara automática: siempre hojas verticales para que el volteo sea siempre por el borde largo
+    duplex: (S.dModo || 'auto') !== 'una', orient: S.dModo === 'manual' || S.dModo === 'una' ? S.orient : 'v',
     margen: clamp(+S.margen || 8, 3, 30), sep: clamp(+S.sep || 0, 0, 20), pw: clamp(+S.pw || 210, 50, 1200), ph: clamp(+S.ph || 297, 50, 1200)
   };
 }
@@ -1296,10 +1407,10 @@ function render() {
   if (pz.paginas) {
     const r = pz.paginas(s);
     $('aviso').hidden = true;
-    $('hojas').innerHTML = r.paginas.map(h => `<div class="hoja"><div class="cap">${esc(h.cap)}</div>${h.svg}</div>`).join('');
+    pintarHojas(r.paginas, r.pw, r.ph, s, false, r.lamina);
     document.documentElement.style.setProperty('--pw', r.pw + 'mm');
     document.documentElement.style.setProperty('--ph', r.ph + 'mm');
-    $('page-size').textContent = `@page{size:${r.pw}mm ${r.ph}mm;margin:0}`;
+    $('page-size').textContent = reglaPagina(r.pw, r.ph);
     $('resumen').innerHTML = r.resumen;
     if (s.pieza === 'bolsa') { const k = bolsaGeo(s); $('b-info').textContent = `Caras de ${fmt(k.W)} × ${fmt(k.H)} mm, fuelles de ${fmt(k.G)} mm, fondo de ${fmt(r2(k.bd))} mm. Desplegado ${fmt(r2(k.FW))} × ${fmt(r2(k.FH))} mm.`; }
     if (s.pieza === 'caja') { const k = cajaGeo(s); $('k-info').textContent = `Paneles: largo ${fmt(r2(k.a))} · ancho ${fmt(r2(k.b))} · alto ${fmt(r2(k.hb))} mm; solapas de ${fmt(r2(k.f))} mm. Desplegado ${fmt(r2(k.FW))} × ${fmt(r2(k.FH))} mm.`; }
@@ -1324,17 +1435,70 @@ function render() {
     const chunk = items.slice(i * p.n, (i + 1) * p.n);
     caras.forEach((cara, ci) => {
       const espejo = ci > 0 && s.duplex;
-      hojas.push({ cap: `Hoja ${i + 1}${caras.length > 1 ? ' · ' + cara : ''}`, svg: hoja(p, s, pz, cara, chunk, i + 1, totalHojas, espejo) });
+      // con «Dorso de la hoja: Fondo Pasochoa» el reverso es el fondo continuo en vez del diseño de la pieza
+      const fondoDorso = ci > 0 && s.dTipo === 'fondo';
+      hojas.push({ cap: `Hoja ${i + 1}${caras.length > 1 ? ' · ' + (fondoDorso ? 'Fondo Pasochoa' : cara) : ''}`, cara: ci > 0 ? 'dorso' : 'frente', svg: fondoDorso ? fondoHoja(p.pw, p.ph, s, 7 + i * 13) : hoja(p, s, pz, cara, chunk, i + 1, totalHojas, espejo) });
     });
   }
-  $('hojas').innerHTML = hojas.map(h => `<div class="hoja"><div class="cap">${esc(h.cap)}</div>${h.svg}</div>`).join('');
+  pintarHojas(hojas, p.pw, p.ph, s, caras.length > 1);
   document.documentElement.style.setProperty('--pw', p.pw + 'mm');
   document.documentElement.style.setProperty('--ph', p.ph + 'mm');
-  $('page-size').textContent = `@page{size:${p.pw}mm ${p.ph}mm;margin:0}`;
+  $('page-size').textContent = reglaPagina(p.pw, p.ph);
   $('resumen').innerHTML = `<b>${items.length}</b> ${items.length === 1 ? 'pieza' : 'piezas'} de <b>${fmt(s.W)} × ${fmt(s.H)}</b> mm · <b>${p.n}</b> por hoja (${p.cols} × ${p.rows}${p.rot ? ', giradas' : ''}) · <b>${hojas.length}</b> ${hojas.length === 1 ? 'página' : 'páginas'} ${p.pw > p.ph ? 'horizontales' : 'verticales'}`;
   zoom();
   ajustarTextos();
 }
+/* Tamaño de página para imprimir. Los papeles estándar se piden por su nombre (A4, A3, Carta), no en mm:
+   en mm Chrome redondea (A4 salía de 209,9 × 297 mm) y el controlador lo toma como tamaño personalizado,
+   lo que dispara en la impresora el aviso de «el tamaño de papel no coincide». */
+function reglaPagina(pw, ph) {
+  const nombres = { A4: 'A4', A3: 'A3', Carta: 'letter' };
+  const [a, b] = pw <= ph ? [pw, ph] : [ph, pw];
+  for (const [k, css] of Object.entries(nombres)) {
+    const [w, h] = PAPELES[k];
+    if (Math.abs(a - w) < 1 && Math.abs(b - h) < 1) return `@page{size:${css} ${pw > ph ? 'landscape' : 'portrait'};margin:0}`;
+  }
+  return `@page{size:${pw}mm ${ph}mm;margin:0}`;
+}
+
+/* Pone las hojas en la página según el modo de doble cara:
+   - automática: frente y dorso intercalados; las piezas de una cara llevan un reverso en blanco para que
+     «Imprimir en ambos lados» pueda quedar siempre activado;
+   - manual: botones para imprimir solo los frentes y luego solo los dorsos. */
+function pintarHojas(hojas, pw, ph, s, dosCaras, sinReverso) {
+  const blanco = `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}"><rect class="prev" width="${pw}" height="${ph}" fill="#FFFFFF"/><text class="prev" x="${pw / 2}" y="${ph / 2}" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="6" fill="#999">Reverso en blanco</text></svg>`;
+  const conFondo = s.dTipo === 'fondo';
+  const lista = s.dModo === 'auto' && !dosCaras && !sinReverso && s.pieza !== 'fondo'
+    ? hojas.flatMap((h, i) => [h, conFondo ? { cap: 'Dorso · Fondo Pasochoa', cara: 'dorso', svg: fondoHoja(pw, ph, s, 7 + i * 13) } : { cap: 'Reverso en blanco', cara: 'dorso', svg: blanco }]) : hojas;
+  $('hojas').innerHTML = lista.map(h => `<div class="hoja" data-cara="${h.cara || 'frente'}"><div class="cap">${esc(h.cap)}</div>${h.svg}</div>`).join('');
+  const manual = s.dModo === 'manual' && dosCaras;
+  $('imp-frentes').hidden = $('imp-dorsos').hidden = !manual;
+  $('dinv-wrap').hidden = !manual;
+  $('orient').disabled = s.dModo === 'auto';
+  const nota = $('nota-duplex');
+  nota.hidden = s.dModo === 'una' && s.pieza !== 'fondo';
+  nota.textContent = s.pieza === 'fondo' ? 'Hoja de fondo: imprímela en una sola cara, en el reverso de hojas que ya imprimiste (o antes, sobre hojas en blanco). No necesita calzar con nada.'
+    : s.dModo === 'auto'
+    ? (dosCaras
+      ? 'Doble cara automática: en Imprimir, «Más ajustes» → marca «Imprimir en ambos lados» → «Voltear en el borde largo». Las hojas salen siempre verticales, así ese ajuste nunca cambia.'
+      : 'Doble cara automática: esta pieza es de una cara, por eso cada hoja lleva un reverso en blanco. Puedes dejar «Imprimir en ambos lados» activado.')
+    : dosCaras
+      ? 'Doble cara manual: pulsa «1. Imprimir frentes». Cuando salgan boca arriba, voltea el montón como la página de un libro, vuelve a meterlo igual que antes y pulsa «2. Imprimir dorsos».'
+      : 'Esta pieza es de una cara: imprime normalmente.';
+  $('dmodo-hint').textContent = s.dModo === 'auto'
+    ? 'Marca una vez «Imprimir en ambos lados → borde largo» en Chrome (o como predeterminado en las preferencias de Epson) y déjalo así.'
+    : s.dModo === 'manual' ? 'Usa los botones «Imprimir frentes» e «Imprimir dorsos» de arriba.' : '';
+}
+// Imprime solo los frentes o solo los dorsos (doble cara manual) y luego restaura la vista.
+async function imprimirParte(cara) {
+  try { await document.fonts.ready; } catch { /* nada */ }
+  const cont = $('hojas');
+  cont.querySelectorAll(`.hoja:not([data-cara="${cara}"])`).forEach(e => e.remove());
+  if (cara === 'dorso' && S.dInv) [...cont.querySelectorAll('.hoja')].reverse().forEach(e => cont.appendChild(e));
+  window.print();
+  render();
+}
+
 // Textos con ancho máximo: primero baja la letra hasta el 70 % y, si aún no cabe, la comprime.
 function ajustarTextos() {
   $('hojas').querySelectorAll('text[data-max]').forEach(t => {
@@ -1396,6 +1560,8 @@ $('combo').addEventListener('change', () => {
 });
 window.addEventListener('resize', () => { if (S.zoom === 'fit') zoom(); });
 $('imprimir').addEventListener('click', async () => { try { await document.fonts.ready; } catch { /* nada */ } window.print(); });
+$('imp-frentes').addEventListener('click', () => imprimirParte('frente'));
+$('imp-dorsos').addEventListener('click', () => imprimirParte('dorso'));
 
 $('g-reset').addEventListener('click', () => {
   Object.assign(S, { gTitulo: GUIA_TEXTOS.titulo, gSub: GUIA_TEXTOS.sub, gFilas: GUIA_TEXTOS.filas, gCta: GUIA_TEXTOS.cta, gCta2: GUIA_TEXTOS.cta2 });
