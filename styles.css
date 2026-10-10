@@ -129,8 +129,12 @@ rt{ font-size:.55em; font-weight:400; color:var(--ink-faint); letter-spacing:0; 
   border-bottom:1px solid var(--line);
 }
 .nav{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem clamp(1.25rem,4vw,2.5rem); }
-.brand{ display:flex; align-items:center; gap:.55rem; text-decoration:none; }
-.brand img{ height:26px; }
+.brand{ display:flex; align-items:center; gap:.55rem; text-decoration:none; flex-shrink:0; }
+/* con el menú completo no hay sitio para el kanji: el logotipo ya lleva el nombre */
+@media (min-width:1121px){ .nav .brand .jp{ display:none; } }
+.brand img{ height:35px; width:auto; display:block; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .brand img{ filter:brightness(0) invert(.93); } }
+:root[data-theme="dark"] .brand img{ filter:brightness(0) invert(.93); }
 .brand .jp{ font-family:'Shippori Mincho',serif; font-size:.72rem; color:var(--ink-faint); letter-spacing:.04em; white-space:nowrap; }
 .nav-links{ display:flex; gap:2rem; list-style:none; margin:0; padding:0; }
 .nav-links a{

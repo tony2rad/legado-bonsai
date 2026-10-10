@@ -94,16 +94,23 @@ const vistas = {
   config: renderConfig, inicio: renderInicio, ejemplares: renderEjemplares, ejemplar: renderDetalle,
   nuevo: () => renderFormulario(null), editar: renderFormulario, venta: renderVenta, cuidado: renderCuidado,
   materiales: renderMateriales,
-  macetas: () => {}, maquina: () => {}
+  recordatorios: renderRecordatorios, clientes: renderClientes, cotizaciones: renderCotizaciones, tablero: renderTablero,
+  macetas: () => {}, maquina: () => {}, diseno: () => {}, imprimibles: () => {}
 };
 // Vistas que viven dentro de la pestaña Ejemplares (sub-pestañas de inventario)
-const tabDe = { formulario: 'formulario', macetas: 'ejemplares', maquina: 'ejemplares' };
+const tabDe = { formulario: 'formulario', macetas: 'ejemplares', maquina: 'ejemplares', diseno: 'ejemplares', imprimibles: 'ejemplares' };
 
 /* Páginas embebidas (producción de macetas, máquina): el iframe de la vista visible se carga la primera vez,
    antes y con independencia de la carga de datos del sheet. */
 function cargarEmbeds() {
   $$('.view:not([hidden]) iframe.embed[data-src]').forEach(f => { if (!f.src) f.src = f.dataset.src; });
 }
+
+const PLANES = (window.LEGADO_CONFIG?.PLANES || []);
+const SITE_URL = String(window.LEGADO_CONFIG?.SITE_URL || '').replace(/\/$/, '');
+const urlPasaporte = (id) => (SITE_URL || new URL('..', location.href).href.replace(/\/$/, '')) + '/arbol.html?id=' + encodeURIComponent(id);
+const telNorm = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.length === 10 && d[0] === '0') d = '593' + d.slice(1); if (d.length === 9 && d[0] === '9') d = '593' + d; return d; };
+const waLink = (tel, texto) => 'https://wa.me/' + telNorm(tel) + (texto ? '?text=' + encodeURIComponent(texto) : '');
 
 async function router() {
   const hash = location.hash.replace(/^#\/?/, '') || 'inicio';
@@ -152,8 +159,12 @@ function renderInicio() {
   $('kpis').innerHTML = [
     ['Disponibles', r.disponibles, 'accent'], ['Reservados', r.reservados], ['Vendidos', r.vendidos],
     ['Valor disponible', money(r.valorDisponible)], ['Ejemplares', r.total], ['En formación', r.enFormacion],
-    ['Materiales', money(r.valorMateriales)], ['Ventas (30 últ.)', d.ventas.length]
+    ['Clientes', r.clientes ?? 0], ['Planes activos', r.planesActivos ?? 0]
   ].map(([k, v, cls]) => `<div class="kpi ${cls || ''}"><b>${v}</b><span>${k}</span></div>`).join('');
+  const pr = $('pill-recordatorios'), pc = $('pill-cotizaciones');
+  pr.hidden = !r.recordatoriosPendientes; pr.textContent = r.recordatoriosPendientes || '';
+  pc.hidden = !r.cotizacionesNuevas; pc.textContent = r.cotizacionesNuevas || '';
+  $('fase-hoy').textContent = d.faseHoy ? `Hoy: ${d.faseHoy.nombre.toLowerCase()} (día ${Math.round(d.faseHoy.edad)} del ciclo)${d.faseHoy.evento ? ' — ' + d.faseHoy.evento : ''}` : '';
 
   const movs = [
     ...d.ventas.map(v => ({ f: v['Fecha'], tag: 'venta', t: `${v['ID Ejemplar']} · ${v['Cliente']} · ${money(v['Precio final'])}`, s: v['Plan de acompañamiento'] || v['Estado'] })),
@@ -225,6 +236,8 @@ function renderDetalle(id) {
       <a class="btn solid" href="#/editar/${encodeURIComponent(id)}">Editar / fotos</a>
       <a class="btn" href="#/venta?id=${encodeURIComponent(id)}">Registrar venta</a>
       <a class="btn wide" href="#/cuidado?id=${encodeURIComponent(id)}">Registrar cuidado</a>
+      <a class="btn" href="${esc(urlPasaporte(id))}" target="_blank" rel="noopener">Ver pasaporte</a>
+      <button type="button" class="btn" id="btn-copiar-pasaporte">Copiar enlace del pasaporte</button>
     </div>
     <h2>Historial</h2>
     <ul class="history">
@@ -234,6 +247,10 @@ function renderDetalle(id) {
     </ul>`;
 
   if (fotos.length > 1) activarGiro($('detail-viewer'), fotos, (i) => { $('detail-img').src = fotos[i]; $('detail-n').textContent = (i + 1) + ' / ' + fotos.length; });
+  $('btn-copiar-pasaporte').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(urlPasaporte(id)); toast('Enlace del pasaporte copiado'); }
+    catch { prompt('Copia el enlace:', urlPasaporte(id)); }
+  });
 }
 
 /** Arrastre horizontal → cambia de foto (misma sensación que la tienda). */
@@ -403,10 +420,24 @@ function renderVenta(_, query) {
   const f = $('form-venta');
   f.reset();
   $('venta-msg').textContent = '';
-  llenarSelectEjemplares($('venta-ejemplar'), e => ['Disponible', 'Reservado'].includes(e['Estado comercial']));
+  $('venta-post').hidden = true;
+  llenarSelectEjemplares($('venta-ejemplar'), e => ['Disponible', 'Reservado', 'En formación'].includes(e['Estado comercial']));
+  const sp = $('venta-plan');
+  sp.innerHTML = '<option value="">Sin acompañamiento</option>' + PLANES.map(p => `<option value="${esc(p.nombre)}">${esc(p.nombre)} (${money(p.precio)})</option>`).join('');
+  $('dl-clientes').innerHTML = (state.data?.clientes || []).map(c => `<option value="${esc(c['Nombre'])}">${esc(c['WhatsApp'] || '')}</option>`).join('');
   f.fecha.value = hoyISO();
   const id = query.get('id');
   if (id) { f.id.value = id; precioSugerido(); }
+}
+
+/** Al escribir un nombre que ya existe en CLIENTES, completa contacto, correo y ciudad. */
+function autocompletarCliente() {
+  const f = $('form-venta');
+  const c = (state.data?.clientes || []).find(x => String(x['Nombre']).trim().toLowerCase() === f.cliente.value.trim().toLowerCase());
+  if (!c) return;
+  if (!f.contacto.value) f.contacto.value = c['WhatsApp'] || '';
+  if (!f.correo.value) f.correo.value = c['Correo'] || '';
+  if (!f.ciudad.value) f.ciudad.value = c['Ciudad'] || '';
 }
 
 function precioSugerido() {
@@ -423,17 +454,169 @@ async function guardarVenta(ev) {
   btn.disabled = true; msg.className = 'msg'; msg.textContent = 'Guardando…';
   try {
     const r = await api('venta', {
-      id: f.id.value, cliente: f.cliente.value.trim(), contacto: f.contacto.value.trim(),
+      id: f.id.value, cliente: f.cliente.value.trim(), contacto: f.contacto.value.trim(), correo: f.correo.value.trim(),
+      ciudad: f.ciudad.value.trim(), canal: f.canal.value, recordatorios: f.recordatorios.value,
       precioFinal: f.precioFinal.value, fecha: isoAFecha(f.fecha.value), plan: f.plan.value,
-      estado: f.estado.value, notas: f.notas.value.trim(), cantidad: 1
+      estado: f.estado.value, notas: f.notas.value.trim(), cantidad: 1,
+      codigoUsado: f.codigoUsado.value.trim().toUpperCase(), descuento: f.descuento.value, anticipo: f.anticipo.value,
+      extras: f.extras.value.trim(), nombrePasaporte: f.nombrePasaporte.value.trim()
     });
     msg.className = 'msg ok'; msg.textContent = `Venta registrada. ${r.id} ahora está ${r.estadoEjemplar}.`;
     toast('Venta registrada');
+    // Mensaje de bienvenida listo para enviar: pasaporte + código de referido.
+    const nombre = f.cliente.value.trim().split(' ')[0];
+    const cred = window.LEGADO_CONFIG?.REFERIDOS?.creditoReferente ?? 10;
+    const texto = `${nombre}, ¡gracias por tu legado! 🌿 Este es el pasaporte de tu árbol, con su historial y certificado: ${r.pasaporte}\n\nTu código para regalar 10% a un amigo (y ganar $${cred} de crédito): ${r.cliente.codigo}\n\n— Legado Bonsai 家族の木`;
+    const post = $('venta-post');
+    post.hidden = false;
+    post.innerHTML = `<p><b>Cliente ${r.cliente.nuevo ? 'nuevo' : 'existente'}</b> ${esc(r.cliente.id)} · código de referido <b>${esc(r.cliente.codigo)}</b>${r.referente ? `<br>Referido por ${esc(r.referente.nombre)} → ahora tiene ${money(r.referente.creditos)} de crédito.` : ''}</p>
+      <div class="row">${telNorm(f.contacto.value) ? `<a class="btn wa" target="_blank" rel="noopener" href="${waLink(f.contacto.value, texto)}">Enviar bienvenida por WhatsApp</a>` : ''}<a class="btn" target="_blank" rel="noopener" href="${esc(r.pasaporte)}">Abrir pasaporte</a></div>`;
     await cargarDatos({ forzar: true });
     f.reset(); f.fecha.value = hoyISO();
-    llenarSelectEjemplares($('venta-ejemplar'), e => ['Disponible', 'Reservado'].includes(e['Estado comercial']));
+    llenarSelectEjemplares($('venta-ejemplar'), e => ['Disponible', 'Reservado', 'En formación'].includes(e['Estado comercial']));
   } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
   btn.disabled = false;
+}
+
+/* ------------------------- Recordatorios ---------------------------- */
+
+function renderRecordatorios() {
+  const items = (state.data?.recordatorios || []).slice().reverse();
+  $('recordatorios-count').textContent = items.length + ' pendiente' + (items.length === 1 ? '' : 's');
+  $('lista-recordatorios').innerHTML = items.length ? items.map(r => `
+    <div class="rec" data-fila="${esc(r._fila)}">
+      <div class="rec-head"><b>${esc(r['Cliente'])}</b><span class="badge">${esc(r['Tipo'])}${r['ID Ejemplar'] ? ' · ' + esc(r['ID Ejemplar']) : ''}</span></div>
+      <div class="rec-msg">${esc(r['Mensaje'])}</div>
+      <small class="hint" style="margin:0">${esc(r['Fecha'])} · ${esc(r['Fase lunar'] || '')}</small>
+      <div class="rec-actions">
+        ${r['Enlace'] ? `<a class="btn wa" href="${esc(r['Enlace'])}" target="_blank" rel="noopener">WhatsApp</a>` : '<span class="btn" style="opacity:.5">Sin número</span>'}
+        <button type="button" class="btn" data-marcar="Enviado">Enviado ✓</button>
+        <button type="button" class="btn small" data-marcar="Omitido">Omitir</button>
+      </div>
+    </div>`).join('') : '<div class="empty">No hay recordatorios pendientes. Se generan cada mañana a las 8:00 si hay algo que enviar.</div>';
+}
+
+async function marcarRecordatorio(fila, estado) {
+  try {
+    await api('recordatorio', { fila, estado });
+    state.data.recordatorios = state.data.recordatorios.filter(r => String(r._fila) !== String(fila));
+    state.data.resumen.recordatoriosPendientes = state.data.recordatorios.length;
+    renderRecordatorios();
+    toast(estado === 'Enviado' ? 'Marcado como enviado' : 'Omitido');
+  } catch (err) { toast(err.message, true); }
+}
+
+/* ---------------------------- Clientes ------------------------------ */
+
+function renderClientes() {
+  const q = ($('buscar-cliente').value || '').toLowerCase();
+  const filtro = $('filtro-cliente').value;
+  const items = (state.data?.clientes || []).filter(c =>
+    (!q || [c['Nombre'], c['WhatsApp'], c['Correo'], c['Código referido'], c['Ciudad'], c['Ejemplares']].join(' ').toLowerCase().includes(q)) &&
+    (filtro !== 'plan' || c['Plan activo']) &&
+    (filtro !== 'creditos' || parseFloat(c['Créditos ($)']) > 0) &&
+    (filtro !== 'recordatorios' || /^s[ií]$/i.test(String(c['Recordatorios'] || '')))
+  ).reverse();
+  $('clientes-count').textContent = items.length + ' cliente' + (items.length === 1 ? '' : 's');
+  const cred = window.LEGADO_CONFIG?.REFERIDOS?.creditoReferente ?? 10;
+  $('lista-clientes').innerHTML = items.length ? items.map(c => {
+    const arboles = String(c['Ejemplares'] || '').split(',').map(s => s.trim()).filter(Boolean);
+    const msgCodigo = `${String(c['Nombre']).split(' ')[0]}, tu código Legado para regalar 10% a un amigo es ${c['Código referido']}. Cada vez que alguien lo usa, tú ganas $${cred} de crédito para tu próximo plan o taller. 🌿`;
+    return `<div class="cliente">
+      <div class="nombre">${esc(c['Nombre'])}</div>
+      <div class="code">${esc(c['Código referido'] || '')}</div>
+      <div class="sub">${esc([c['ID Cliente'], c['WhatsApp'], c['Ciudad']].filter(Boolean).join(' · '))}</div>
+      <div class="sub">${esc([c['Plan activo'] ? 'Plan ' + c['Plan activo'] + (c['Vence plan'] ? ' hasta ' + c['Vence plan'] : '') : 'Sin plan', parseFloat(c['Créditos ($)']) > 0 ? 'Créditos ' + money(c['Créditos ($)']) : '', arboles.length ? arboles.join(', ') : '', c['Total comprado'] ? 'Total ' + money(c['Total comprado']) : ''].filter(Boolean).join(' · '))}</div>
+      <div class="acts">
+        ${telNorm(c['WhatsApp']) ? `<a class="btn wa" target="_blank" rel="noopener" href="${waLink(c['WhatsApp'], '')}">WhatsApp</a><a class="btn" target="_blank" rel="noopener" href="${waLink(c['WhatsApp'], msgCodigo)}">Enviar código</a>` : ''}
+        ${arboles.length ? `<a class="btn" target="_blank" rel="noopener" href="${esc(urlPasaporte(arboles[0]))}">Pasaporte</a>` : ''}
+        <button type="button" class="btn" data-editar-cliente="${esc(c['ID Cliente'])}">Editar</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">Sin clientes. Se crean automáticamente al registrar una venta.</div>';
+}
+
+function editarCliente(id) {
+  const c = (state.data?.clientes || []).find(x => x['ID Cliente'] === id);
+  if (!c) return;
+  const f = $('form-cliente');
+  f.id.value = id; f.nombre.value = c['Nombre'] || ''; f.whatsapp.value = c['WhatsApp'] || ''; f.correo.value = c['Correo'] || '';
+  f.ciudad.value = c['Ciudad'] || ''; f.origen.value = c['Origen'] || ''; f.recordatorios.value = /^n/i.test(String(c['Recordatorios'] || '')) ? 'No' : 'Sí'; f.notas.value = c['Notas'] || '';
+  f.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function guardarCliente(ev) {
+  ev.preventDefault();
+  const f = $('form-cliente');
+  const msg = $('cliente-msg');
+  const btn = f.querySelector('button[type=submit]');
+  btn.disabled = true; msg.className = 'msg'; msg.textContent = 'Guardando…';
+  try {
+    const r = await api('cliente', { id: f.id.value, nombre: f.nombre.value.trim(), whatsapp: f.whatsapp.value.trim(), correo: f.correo.value.trim(), ciudad: f.ciudad.value.trim(), origen: f.origen.value, recordatorios: f.recordatorios.value, notas: f.notas.value.trim() });
+    msg.className = 'msg ok'; msg.textContent = `${r.nuevo ? 'Cliente creado' : 'Cliente actualizado'}: ${r.id} · código ${r.codigo}`;
+    toast('Cliente guardado');
+    await cargarDatos({ forzar: true });
+    f.reset(); renderClientes();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+  btn.disabled = false;
+}
+
+/* -------------------------- Cotizaciones ---------------------------- */
+
+function renderCotizaciones() {
+  const items = state.data?.cotizaciones || [];
+  $('lista-cotizaciones').innerHTML = items.length ? items.map(c => `
+    <div class="cot" data-fila="${esc(c._fila)}">
+      <div class="cot-head"><b>${esc(c['Empresa'] || c['Contacto'])}</b><span class="badge">${esc(c['Estado'])}</span></div>
+      <div>${esc(c['Cantidad'])} × ${esc(c['Paquete'])}${/^s/i.test(c['Placa personalizada']) ? ' + placa' : ''} · estimado ${money(c['Estimado ($)'])}</div>
+      <div class="hint" style="margin:0">${esc(c['Contacto'])} · ${esc(c['WhatsApp / Correo'])} · ${esc(c['Ciudad'] || '')} · entrega ${esc(c['Fecha deseada'] || 'por definir')} · ${esc(c['Fecha'])}</div>
+      ${c['Mensaje'] ? `<div class="hint" style="margin:0"><i>${esc(c['Mensaje'])}</i></div>` : ''}
+      <div class="row" style="margin:0">
+        ${telNorm(c['WhatsApp / Correo']).length >= 9 ? `<a class="btn wa small" target="_blank" rel="noopener" href="${waLink(c['WhatsApp / Correo'], 'Hola ' + String(c['Contacto']).split(' ')[0] + ', soy de Legado Bonsai. Recibimos tu cotización de ' + c['Cantidad'] + ' ' + c['Paquete'] + '. ')}">WhatsApp</a>` : (String(c['WhatsApp / Correo']).includes('@') ? `<a class="btn small" href="mailto:${esc(c['WhatsApp / Correo'])}?subject=${encodeURIComponent('Cotización Legado Bonsai')}">Correo</a>` : '')}
+        <select data-cot-estado><option${c['Estado'] === 'Nueva' ? ' selected' : ''}>Nueva</option><option${c['Estado'] === 'Contactada' ? ' selected' : ''}>Contactada</option><option${c['Estado'] === 'Aceptada' ? ' selected' : ''}>Aceptada</option><option${c['Estado'] === 'Perdida' ? ' selected' : ''}>Perdida</option></select>
+      </div>
+    </div>`).join('') : '<div class="empty">Sin cotizaciones todavía.</div>';
+}
+
+/* ----------------------------- Tablero ------------------------------ */
+
+async function renderTablero() {
+  const box = $('tablero');
+  box.innerHTML = '<div class="empty">Calculando…</div>';
+  try {
+    const dias = parseInt($('tablero-dias').value, 10) || 30;
+    const m = await api('metricas', { dias });
+    const pct = (a, b) => b ? Math.round(a / b * 100) + ' %' : '—';
+    const max = Math.max(m.sesiones, 1);
+    const bar = (label, n, rate) => `<div class="bar"><span>${label}</span><i style="width:${Math.max(2, n / max * 100)}%"></i><b>${n}</b>${rate ? `<span class="rate">${rate}</span>` : ''}</div>`;
+    const dias_ = Object.keys(m.porDia || {});
+    const maxDia = Math.max(1, ...dias_.map(k => m.porDia[k].vistas));
+    box.innerHTML = `
+      <div class="kpis">
+        <div class="kpi accent"><b>${money(m.ingresos)}</b><span>Ingresos (${m.dias} d)</span></div>
+        <div class="kpi"><b>${m.pagadas}</b><span>Ventas pagadas</span></div>
+        <div class="kpi"><b>${money(m.ticket)}</b><span>Ticket promedio</span></div>
+        <div class="kpi"><b>${m.sesiones}</b><span>Sesiones web</span></div>
+      </div>
+      <h2>Embudo</h2>
+      <div class="funnel">
+        ${bar('Sesiones', m.sesiones)}
+        ${bar('Fichas abiertas', m.fichas, pct(m.fichas, m.sesiones) + ' de las sesiones')}
+        ${bar('Al carrito', m.carritos, pct(m.carritos, m.fichas) + ' de las fichas')}
+        ${bar('Clic WhatsApp', m.whatsapp, pct(m.whatsapp, m.carritos) + ' de los carritos')}
+        ${bar('Ventas', m.ventas, pct(m.ventas, m.sesiones) + ' de las sesiones')}
+      </div>
+      ${dias_.length ? `<h2>Vistas por día <small class="hint" style="display:inline">(verde = clics a WhatsApp)</small></h2><div class="spark">${dias_.map(k => `<i title="${k}: ${m.porDia[k].vistas} vistas" style="height:${m.porDia[k].vistas / maxDia * 100}%"></i>`).join('')}</div>` : ''}
+      <h2>Ventas por plan</h2>
+      <table class="mini-table">${Object.entries(m.porPlan).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('') || '<tr><td>Sin ventas en el período</td><td></td></tr>'}</table>
+      <h2>Ventas por canal</h2>
+      <table class="mini-table">${Object.entries(m.porCanal).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('') || '<tr><td>—</td><td></td></tr>'}</table>
+      <h2>Fichas más vistas</h2>
+      <table class="mini-table">${(m.topFichas || []).map(t => `<tr><td>${esc(t.id)}</td><td>${t.n}</td></tr>`).join('') || '<tr><td>Sin datos de la tienda todavía</td><td></td></tr>'}</table>
+      <h2>De dónde llegan</h2>
+      <table class="mini-table">${Object.entries(m.referencias || {}).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('') || '<tr><td>—</td><td></td></tr>'}</table>
+      <p class="hint">Otros: ${m.cotizaciones} cotizaciones · ${m.newsletter} suscripciones · ${m.pasaportes} pasaportes abiertos.</p>`;
+  } catch (err) { box.innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
 }
 
 /* ----------------------------- Cuidado ------------------------------ */
@@ -816,6 +999,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('form-venta').addEventListener('submit', guardarVenta);
   $('venta-ejemplar').addEventListener('change', precioSugerido);
+  $('form-venta').cliente.addEventListener('change', autocompletarCliente);
   $('form-cuidado').addEventListener('submit', guardarCuidado);
   $('form-material').addEventListener('submit', guardarMaterial);
+
+  // v1.1: recordatorios, clientes, cotizaciones, tablero
+  $('lista-recordatorios').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-marcar]');
+    if (b) marcarRecordatorio(b.closest('.rec').dataset.fila, b.dataset.marcar);
+  });
+  $('btn-generar-recordatorios').addEventListener('click', async () => {
+    try { const r = await api('generarRecordatorios'); toast(r.generados + ' recordatorio(s) generado(s)'); await cargarDatos({ forzar: true }); renderRecordatorios(); }
+    catch (err) { toast(err.message, true); }
+  });
+  $('buscar-cliente').addEventListener('input', renderClientes);
+  $('filtro-cliente').addEventListener('change', renderClientes);
+  $('lista-clientes').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-editar-cliente]');
+    if (b) editarCliente(b.dataset.editarCliente);
+  });
+  $('form-cliente').addEventListener('submit', guardarCliente);
+  $('lista-cotizaciones').addEventListener('change', async (ev) => {
+    const sel = ev.target.closest('[data-cot-estado]');
+    if (!sel) return;
+    try { await api('cotizacionEstado', { fila: sel.closest('.cot').dataset.fila, estado: sel.value }); toast('Estado actualizado'); await cargarDatos({ forzar: true }); }
+    catch (err) { toast(err.message, true); }
+  });
+  $('tablero-dias').addEventListener('change', renderTablero);
 });

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Legado Bonsai — Generador de reels 360°</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .reel-preview{ aspect-ratio:9/16; max-height:70vh; margin:0 auto; background:#111; border-radius:var(--radius); overflow:hidden; display:block; width:auto; }
+  .reel-grid{ display:grid; gap:1rem; }
+  @media (min-width:760px){ .reel-grid{ grid-template-columns:1fr 340px; align-items:start; } }
+  .swatches{ display:flex; gap:.4rem; }
+  .swatches label{ display:grid; place-items:center; width:40px; height:40px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
+  .swatches input{ display:none; }
+  .swatches input:checked + span{ outline:2px solid var(--jade); outline-offset:2px; }
+  .swatches span{ display:block; width:30px; height:30px; border-radius:50%; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html#/inicio" class="brand"><img src="../assets/img/logo/legado-emblema-tinta.svg" alt="Legado Bonsái"><span>Reels 360° <em>家族の木</em></span></a>
+</header>
+
+<main id="app">
+  <a href="index.html#/inicio" class="back">← Volver a la app</a>
+  <h1>Generador de reels 360°</h1>
+  <p class="lead">Convierte las fotos 360° de un ejemplar en un video vertical (1080×1920, 9:16) con logo, nombre y precio, listo para Instagram, TikTok o estados de WhatsApp. Todo ocurre en este dispositivo; nada se sube.</p>
+
+  <div class="reel-grid">
+    <div>
+      <canvas id="cv" class="reel-preview" width="1080" height="1920"></canvas>
+      <p class="hint" style="text-align:center" id="estado">Elige un ejemplar.</p>
+    </div>
+    <form class="form" id="f" onsubmit="return false">
+      <fieldset>
+        <legend>Ejemplar</legend>
+        <label>Del catálogo público<select id="sel"><option value="">Cargando…</option></select></label>
+        <label>Título<input id="titulo" placeholder="Junípero Shimpaku"></label>
+        <label>Subtítulo<input id="sub" placeholder="直幹 · Chokkan · 32 cm"></label>
+        <label>Precio o llamado<input id="precio" placeholder="$45 · reserva por WhatsApp"></label>
+        <label>Cierre (última pantalla)<input id="cierre" value="Cada árbol con pasaporte digital · legadobonsai"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Estilo</legend>
+        <label>Fondo
+          <div class="swatches">
+            <label><input type="radio" name="bg" value="#EDE0D4" checked><span style="background:#EDE0D4"></span></label>
+            <label><input type="radio" name="bg" value="#1B241F"><span style="background:#1B241F"></span></label>
+            <label><input type="radio" name="bg" value="#2F5D50"><span style="background:#2F5D50"></span></label>
+            <label><input type="radio" name="bg" value="#FAFAF6"><span style="background:#FAFAF6; border:1px solid #ccc"></span></label>
+          </div>
+        </label>
+        <div class="grid2">
+          <label>Segundos por vuelta<select id="vel"><option>4</option><option selected>6</option><option>8</option></select></label>
+          <label>Vueltas<select id="vueltas"><option>1</option><option selected>2</option><option>3</option></select></label>
+        </div>
+        <label class="check"><input type="checkbox" id="ken" checked><span>Acercamiento lento (efecto Ken Burns)</span></label>
+      </fieldset>
+      <div class="row">
+        <button type="button" class="btn solid big" id="btn-grabar">Grabar video</button>
+        <button type="button" class="btn big" id="btn-portada">Descargar portada 4:5</button>
+      </div>
+      <div id="progreso" class="progress" hidden><div class="progress-bar"><i id="pb"></i></div><p id="pm"></p></div>
+      <p class="hint">El video sale en formato WebM. Instagram y TikTok lo aceptan desde el teléfono; si tu editor pide MP4, conviértelo en CapCut o en <code>cloudconvert.com</code>. Duración = segundos × vueltas + 3 s de cierre.</p>
+    </form>
+  </div>
+</main>
+
+<script src="../config.js"></script>
+<script>
+(function () {
+  const CFG = window.LEGADO_CONFIG || {};
+  const $ = (id) => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  const W = 1080, H = 1920;
+  let productos = [], fotos = [], logo = null, previewTimer = null, previewIdx = 0;
+
+  const money = (n) => '$' + (parseFloat(n) || 0).toLocaleString('es-EC', { maximumFractionDigits: 2 });
+  const cargarImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => rej(new Error('No se pudo cargar ' + src)); i.src = src; });
+
+  async function cargarCatalogo() {
+    try {
+      const res = await fetch(CFG.API_URL + '?action=catalogo', { redirect: 'follow' });
+      const data = await res.json();
+      productos = (data.productos || []).filter(p => String(p.Fotos || '').trim());
+      $('sel').innerHTML = '<option value="">— Elegir —</option>' + productos.map((p, i) => `<option value="${i}">${p.ID} · ${p.Nombre} (${String(p.Fotos).split(',').length} fotos)</option>`).join('');
+      if (!productos.length) $('estado').textContent = 'Ningún ejemplar publicado tiene fotos en Drive todavía.';
+    } catch (e) { $('estado').textContent = 'No se pudo leer el catálogo: ' + e.message; }
+  }
+
+  async function elegir() {
+    const p = productos[$('sel').value];
+    if (!p) return;
+    $('titulo').value = p.Nombre || '';
+    $('sub').value = [p.EstiloJP || p.Estilo, p.Altura, p.Edad].filter(Boolean).join(' · ');
+    $('precio').value = (p.Precio ? money(p.Precio) : '') + (p['Estado comercial'] === 'En formación' ? ' · preventa' : ' · reserva por WhatsApp');
+    $('estado').textContent = 'Cargando fotos…';
+    const urls = String(p.Fotos).split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+    try {
+      fotos = await Promise.all(urls.map(cargarImg));
+      $('estado').textContent = fotos.length + ' fotos listas. Vista previa girando.';
+      iniciarPreview();
+    } catch (e) { $('estado').textContent = e.message + '. Las fotos de Drive deben ser públicas (la app las sube así).'; }
+  }
+
+  function iniciarPreview() {
+    clearInterval(previewTimer);
+    previewIdx = 0;
+    previewTimer = setInterval(() => { dibujar(previewIdx % fotos.length, 0); previewIdx++; }, 1000 * parseFloat($('vel').value) / Math.max(fotos.length, 1));
+  }
+
+  function bg() { return document.querySelector('input[name=bg]:checked').value; }
+  function esClaro() { const h = bg().replace('#', ''); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return (r * 299 + g * 587 + b * 114) / 1000 > 140; }
+
+  /* Dibuja un cuadro: fondo, foto cuadrada con zoom, textos y logo. t = progreso 0..1 del video. */
+  function dibujar(idx, t, cierre) {
+    const claro = esClaro();
+    const ink = claro ? '#1B241F' : '#FAFAF6', soft = claro ? '#68766F' : '#B9C2BC', accent = claro ? '#2F5D50' : '#8FBFAC';
+    ctx.fillStyle = bg(); ctx.fillRect(0, 0, W, H);
+    // marco washi sutil
+    ctx.strokeStyle = claro ? 'rgba(27,36,31,.12)' : 'rgba(250,250,246,.14)'; ctx.lineWidth = 2; ctx.strokeRect(48, 48, W - 96, H - 96);
+
+    const img = fotos[idx];
+    if (img && !cierre) {
+      const size = 960, x = (W - size) / 2, y = 380;
+      const zoom = $('ken').checked ? 1 + 0.08 * t : 1;
+      const s = Math.min(img.width, img.height);
+      const sw = s / zoom, sh = s / zoom, sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+      ctx.save(); ctx.beginPath(); ctx.rect(x, y, size, size); ctx.clip();
+      ctx.drawImage(img, sx, sy, sw, sh, x, y, size, size);
+      ctx.restore();
+    }
+    ctx.textAlign = 'center';
+    ctx.fillStyle = soft; ctx.font = '500 34px "Shippori Mincho", serif'; ctx.fillText('家族の木 · Legado Bonsai', W / 2, 200);
+    if (cierre) {
+      ctx.fillStyle = ink; ctx.font = '600 92px "Shippori Mincho", serif'; envolver($('cierre').value, W / 2, H / 2 - 40, 900, 110);
+      ctx.fillStyle = accent; ctx.font = '500 40px "Zen Kaku Gothic New", sans-serif'; ctx.fillText('旅券 · pasaporte con historial y QR', W / 2, H / 2 + 200);
+    } else {
+      ctx.fillStyle = ink; ctx.font = '600 76px "Shippori Mincho", serif'; envolver($('titulo').value, W / 2, 1470, 940, 90);
+      ctx.fillStyle = soft; ctx.font = '400 40px "Zen Kaku Gothic New", sans-serif'; ctx.fillText($('sub').value, W / 2, 1585);
+      ctx.fillStyle = accent; ctx.font = '700 52px "Zen Kaku Gothic New", sans-serif'; ctx.fillText($('precio').value, W / 2, 1690);
+      // indicador de giro
+      const n = fotos.length || 1;
+      ctx.fillStyle = claro ? 'rgba(27,36,31,.15)' : 'rgba(250,250,246,.2)'; ctx.fillRect(160, 1380, W - 320, 4);
+      ctx.fillStyle = accent; ctx.fillRect(160, 1380, (W - 320) * ((idx + 1) / n), 4);
+    }
+    if (logo) { const lw = 440, lh = lw * logo.height / logo.width; ctx.globalAlpha = .9; ctx.drawImage(logo, (W - lw) / 2, H - 150 - lh / 2, lw, lh); ctx.globalAlpha = 1; }
+  }
+
+  function envolver(texto, x, y, maxW, lh) {
+    const palabras = String(texto).split(' '); let linea = '', lineas = [];
+    palabras.forEach(p => { const t = linea ? linea + ' ' + p : p; if (ctx.measureText(t).width > maxW && linea) { lineas.push(linea); linea = p; } else linea = t; });
+    if (linea) lineas.push(linea);
+    lineas.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
+  }
+
+  async function grabar() {
+    if (!fotos.length) { alert('Elige un ejemplar con fotos.'); return; }
+    if (!('MediaRecorder' in window)) { alert('Este navegador no puede grabar video. Usa Chrome en Android o en la PC.'); return; }
+    clearInterval(previewTimer);
+    const fps = 30, seg = parseFloat($('vel').value), vueltas = parseInt($('vueltas').value, 10), cierreSeg = 3;
+    const total = seg * vueltas + cierreSeg;
+    const frames = Math.round(total * fps);
+    const stream = cv.captureStream(fps);
+    const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m => MediaRecorder.isTypeSupported(m)) || '';
+    const rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 8_000_000 } : undefined);
+    const chunks = [];
+    rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    const listo = new Promise(res => { rec.onstop = res; });
+    $('progreso').hidden = false; $('btn-grabar').disabled = true;
+    rec.start(250);
+    const t0 = performance.now();
+    for (let f = 0; f < frames; f++) {
+      const t = f / frames;
+      const enCierre = f >= (seg * vueltas) * fps;
+      const idx = Math.floor((f / fps / seg) * fotos.length) % fotos.length;
+      dibujar(idx, t, enCierre);
+      $('pb').style.width = (t * 100) + '%'; $('pm').textContent = `Grabando ${Math.round(t * 100)} %`;
+      // Ritmo real: espera hasta el siguiente cuadro.
+      const objetivo = t0 + (f + 1) * 1000 / fps;
+      const espera = objetivo - performance.now();
+      await new Promise(r => setTimeout(r, Math.max(0, espera)));
+    }
+    rec.stop();
+    await listo;
+    const blob = new Blob(chunks, { type: rec.mimeType || 'video/webm' });
+    const ext = (rec.mimeType || '').includes('mp4') ? 'mp4' : 'webm';
+    descargar(blob, `reel-${(productos[$('sel').value] || {}).ID || 'legado'}.${ext}`);
+    $('pm').textContent = 'Listo: ' + Math.round(blob.size / 1024 / 1024 * 10) / 10 + ' MB';
+    $('btn-grabar').disabled = false;
+    iniciarPreview();
+  }
+
+  function portada() {
+    if (!fotos.length) { alert('Elige un ejemplar con fotos.'); return; }
+    // 1080×1350 (4:5) para el feed: recorta el reel por arriba y abajo.
+    dibujar(0, 0, false);
+    const c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+    c.getContext('2d').drawImage(cv, 0, 285, 1080, 1350, 0, 0, 1080, 1350);
+    c.toBlob(b => descargar(b, `portada-${(productos[$('sel').value] || {}).ID || 'legado'}.jpg`), 'image/jpeg', .92);
+  }
+
+  function descargar(blob, nombre) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try { logo = await cargarImg('../assets/img/logo/png/legado-logo-horizontal-tinta.png'); } catch { logo = null; }
+    document.fonts && document.fonts.load('600 76px "Shippori Mincho"');
+    cargarCatalogo();
+    $('sel').addEventListener('change', elegir);
+    ['titulo', 'sub', 'precio', 'cierre', 'vel', 'ken'].forEach(id => $(id).addEventListener('input', () => { if (fotos.length) iniciarPreview(); }));
+    document.querySelectorAll('input[name=bg]').forEach(r => r.addEventListener('change', () => { if (fotos.length) iniciarPreview(); }));
+    $('btn-grabar').addEventListener('click', grabar);
+    $('btn-portada').addEventListener('click', portada);
+    dibujar(0, 0, false);
+  });
+})();
+</script>
+</body>
+</html>

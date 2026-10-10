@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pasaporte del árbol — Legado Bonsai · 家族の木</title>
+<meta name="description" content="Pasaporte digital de un junípero de Legado Bonsai: fotos 360°, historial de podas, trasplantes y alambrados, y certificado de custodia con código QR.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/img/logo/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/logo/png/icono-180.png">
+<script>
+  (function(){
+    var t = localStorage.getItem('legadoBonsaiTheme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/img/logo/legado-logo-horizontal-tinta.svg" alt="Legado Bonsái" width="152" height="35">
+      <span class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html#marca">Nuestro legado</a></li>
+      <li><a href="catalogo.html">Catálogo</a></li>
+      <li><a href="index.html#servicios">Acompañamiento</a></li>
+      <li><a href="index.html#talleres">Talleres</a></li>
+      <li><a href="index.html#calendario">Cuidado lunar</a></li>
+      <li><a href="regalos.html">Regalos corporativos</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle-btn" aria-label="Cambiar a modo oscuro">
+        <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+        <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7"/></svg>
+      </button>
+      <button class="icon-btn nav-toggle" id="nav-toggle-btn" aria-label="Abrir menú" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="pass-head">
+    <div class="wrap">
+      <a class="back" href="catalogo.html">← Volver al catálogo</a>
+      <div class="eyebrow">旅券 · Pasaporte del árbol</div>
+      <div id="pass-status" class="pass-status">Buscando el árbol…</div>
+    </div>
+  </section>
+
+  <section class="wrap" id="pass-body" hidden>
+    <div class="pass-grid">
+      <div>
+        <div class="pass-viewer" id="pass-viewer">
+          <div class="ph" id="pass-ph">Sin fotos todavía</div>
+          <img id="pass-img" alt="" hidden>
+          <span class="hint" id="pass-hint" hidden>Arrastra para girar 360°</span>
+        </div>
+        <div class="pass-lunar" id="pass-lunar" hidden>
+          <div class="phase" id="pass-lunar-phase"></div>
+          <p id="pass-lunar-text"></p>
+        </div>
+      </div>
+      <div>
+        <div class="pass-id" id="pass-id"></div>
+        <h1 class="pass-title" id="pass-title"></h1>
+        <div class="pass-species" id="pass-species"></div>
+        <div class="pass-specs" id="pass-specs"></div>
+        <p class="pass-story" id="pass-story"></p>
+
+        <h2 style="font-size:1.15rem; font-weight:500; margin:2.2rem 0 1rem;">Historial de cuidados <span style="font-family:'Shippori Mincho',serif; color:var(--ink-faint); font-size:.85rem; font-weight:400;">手入れの記録</span></h2>
+        <ul class="timeline" id="pass-timeline"></ul>
+
+        <div class="pass-actions">
+          <a class="btn btn-primary" id="pass-share" href="#" target="_blank" rel="noopener">Compartir por WhatsApp</a>
+          <button type="button" class="btn btn-outline" id="pass-copy">Copiar enlace</button>
+          <button type="button" class="btn btn-ghost" id="pass-print">Imprimir certificado</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cert" id="pass-cert">
+      <div class="cert-grid">
+        <div>
+          <div class="eyebrow">Certificado de custodia · 証明書</div>
+          <h2 id="cert-title"></h2>
+          <p id="cert-line1"></p>
+          <div class="custodio" id="cert-custodio" hidden></div>
+          <p id="cert-line2"></p>
+          <p style="font-size:.8rem; color:var(--ink-faint);">Cada poda, trasplante y alambrado registrado por Legado Bonsai queda en este pasaporte. Quien herede el árbol hereda su historia.</p>
+          <span class="sello" aria-hidden="true">永</span>
+        </div>
+        <div class="cert-qr">
+          <div id="cert-qr"></div>
+          <small id="cert-url"></small>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin:3rem 0 4rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:center; border-top:1px solid var(--line); padding-top:1.6rem;">
+      <p style="margin:0; color:var(--ink-soft); font-size:.9rem; max-width:52ch;">¿Este árbol es tuyo y quieres podas, trasplantes y recordatorios lunares con nosotros? Agrega un plan de acompañamiento: la primera visita registra su estado aquí.</p>
+      <a class="btn btn-outline" href="index.html#servicios">Ver planes</a>
+    </div>
+  </section>
+</main>
+
+<div class="kintsugi" aria-hidden="true"></div>
+
+<footer class="site-footer" id="contacto">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">
+          <div class="jp"><ruby>家族の木<rt>かぞくのき</rt></ruby></div>
+          <span class="hanko" aria-hidden="true">永</span>
+        </div>
+        <p>Legado Bonsai cultiva junípero de cuatro estilos y acompaña cada trasplante, poda y alambrado como parte de la venta.</p>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/593988731431" target="_blank" rel="noopener">WhatsApp</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Explorar</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="catalogo.html">Catálogo</a></li>
+          <li><a href="index.html#servicios">Acompañamiento</a></li>
+          <li><a href="regalos.html">Regalos corporativos</a></li>
+        </ul>
+      </div>
+      <div></div>
+    </div>
+    <div class="footer-bottom">&copy; <span id="year"></span> Legado Bonsai · 家族の木. Todos los derechos reservados.</div>
+  </div>
+</footer>
+
+<a href="https://wa.me/593988731431" class="wa-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.2 8.7 3.2 15.7c0 2.5.7 4.8 1.9 6.8L3 29l6.7-2c1.9 1 4.1 1.6 6.3 1.6 7 0 12.8-5.7 12.8-12.7C28.8 8.7 23 3 16 3zm0 23.1c-2 0-3.9-.5-5.5-1.5l-.4-.2-4 1.1 1.1-3.9-.3-.4a10.4 10.4 0 0 1-1.6-5.5C5.3 9.9 10 5.2 16 5.2S26.7 9.9 26.7 15.9 22 26.1 16 26.1zm5.9-7.6c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.5-.1-.1-.3-.2-.6-.4z"/></svg>
+</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="pasaporte.js"></script>
+</body>
+</html>

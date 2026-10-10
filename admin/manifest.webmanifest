@@ -10,6 +10,7 @@
   "theme_color": "#1B241F",
   "lang": "es",
   "icons": [
-    { "src": "../assets/img/logo-negro.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "../assets/img/logo/png/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../assets/img/logo/png/icono-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
   ]
 }

@@ -24,16 +24,22 @@ Google Sheet "Legado Bonsai — Sistema de Gestión"   ← ÚNICA fuente de verd
 ├─ CUIDADOS          poda / trasplante / alambrado / … por ejemplar      │ escribe la app admin/
 ├─ VENTAS            una fila por venta, cambia el estado del ejemplar   │ (también editable a mano)
 ├─ MATERIALES        herramientas e insumos con costo                   ─┘
-├─ CALENDARIO_LUNAR  guía mensual (la usa RESUMEN)
-├─ CATALOGO          fórmula: solo "Disponible"  → lo lee la TIENDA (index / catalogo.html)
+├─ CALENDARIO_LUNAR  guía mensual (la usa RESUMEN y los recordatorios)
+├─ CLIENTES          un cliente por fila CL-0001…, código de referido, plan, créditos   ← v1.1
+├─ RECORDATORIOS     mensajes diarios generados por el disparador (WhatsApp listo)      ← v1.1
+├─ COTIZACIONES      solicitudes corporativas desde regalos.html                        ← v1.1
+├─ EVENTOS           analítica anónima de la tienda (vista, ficha, carrito, whatsapp…)  ← v1.1
+├─ EMBUDO            fórmulas: conversión mensual                                       ← v1.1
+├─ CALENDARIO_EDITORIAL  41 publicaciones del trimestre                                 ← v1.1
+├─ CATALOGO          fórmula: "Disponible" + "En formación" → lo lee la TIENDA
 ├─ RESUMEN           indicadores en vivo
-└─ CONFIG            token de la app, carpeta de fotos
+└─ CONFIG            token de la app, carpeta de fotos, correo del resumen diario
 
 Google Drive "Legado Bonsai — Fotos 360"/<ID>/<id>_01.jpg …            ← fotos subidas desde el teléfono
 Repositorio imagenes/360/<Carpeta imagen>/                             ← respaldo local (ejemplares antiguos)
 ```
 
-Flujo: **teléfono (admin/) → Apps Script → Sheet + Drive → tienda**. Un cambio en el sheet se ve en la tienda en menos de 1 minuto (caché de 60 s).
+Flujo: **teléfono (admin/) → Apps Script → Sheet + Drive → tienda**. Un cambio en el sheet se ve en la tienda en menos de 1 minuto (caché de 60 s). La tienda, además, **escribe** dos cosas sin token: eventos anónimos (EVENTOS) y cotizaciones (COTIZACIONES). El pasaporte público de cada árbol (`arbol.html?id=LB-0001`) lee INVENTARIO + CUIDADOS + VENTAS (solo campos públicos).
 
 ## 3. Diccionario de datos — INVENTARIO
 
@@ -58,6 +64,40 @@ Flujo: **teléfono (admin/) → Apps Script → Sheet + Drive → tienda**. Un c
 | Destacado | Sí/No | Sale primero en la portada. |
 | Notas | texto | Interno; no se publica. |
 | Última actualización | fecha hora | Automática. |
+| Entrega estimada | texto | v1.1. Solo para "En formación": mes o fecha aproximada que ve el cliente en la preventa ("Diciembre 2026"). |
+
+### VENTAS (columnas v1.1)
+
+| Columna | Regla |
+|---|---|
+| ID Cliente | `CL-0001`, lo asigna el script al crear o encontrar al cliente (por WhatsApp o nombre). |
+| Correo, Ciudad | Copiados a CLIENTES. |
+| Canal | Web / WhatsApp / Instagram / Taller / Referido / Corporativo / Feria / Otro. Alimenta el tablero. |
+| Código usado | Código de referido o promo (`LEG-XXXX`, `LEGADO10`). Si es de otro cliente, ese cliente recibe el crédito. |
+| Descuento ($), Anticipo ($) | Montos informativos; Precio final es lo pactado. |
+| Extras | Texto libre: kits, alambre, placa. |
+| Nombre en pasaporte | Lo único de la venta que se publica (certificado). Vacío = no mostrar. |
+
+### CLIENTES
+
+| Columna | Regla |
+|---|---|
+| ID Cliente | `CL-0001`, único. |
+| WhatsApp | Se normaliza a `593…` para los enlaces; se busca por este campo para no duplicar. |
+| Código referido | `LEG-` + iniciales + 3 caracteres. Único. Lo valida la tienda. |
+| Referido por | ID del cliente cuyo código se usó en la primera compra. |
+| Créditos ($) | Suma de bonos por referidos; se descuentan a mano al canjear y se anota en Notas. |
+| Plan activo / Vence plan | Último plan vendido y su vencimiento (+12 meses). Dispara el recordatorio de renovación 15 días antes. |
+| Recordatorios | Sí/No: si recibe los mensajes de fase lunar. |
+| Ejemplares | IDs separados por coma. El primero se usa en el enlace del pasaporte. |
+
+### RECORDATORIOS
+
+Una fila por mensaje generado: Fecha, cliente, tipo (Fase lunar / Revisión / Renovación / Bienvenida), mensaje, enlace `wa.me` y Estado (Pendiente / Enviado / Omitido). No se duplican en el mismo día.
+
+### EVENTOS
+
+Sin datos personales. Columnas: Fecha hora, Fecha, Evento, Página, ID Ejemplar, Valor, Detalle, Sesión (id aleatorio por pestaña del navegador), Referencia (`utm_source` o dominio de origen). Se puede vaciar cuando crezca; EMBUDO se recalcula solo.
 
 ## 4. Tareas de limpieza recomendadas (a mano, 10 minutos)
 

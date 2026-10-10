@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1B241F">
+<title>Imprimibles de marca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@400;600&family=EB+Garamond:wght@400;600&family=Lora:wght@400&display=swap">
+<style>
+  :root{
+    --bg:#EEF0EA; --panel:#FFFFFF; --ink:#1E2622; --muted:#5F6963; --line:#CBD0C8;
+    --accent:#2F5D50; --accent-ink:#FFFFFF; --soft:#E3ECE7;
+    --paper-shadow:rgba(20,30,25,.22); --warn:#9A5B00; --warn-bg:#FBF1DC;
+    --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+      --accent:#8FBFAC; --accent-ink:#0F1915; --soft:#22312B;
+      --paper-shadow:rgba(0,0,0,.55); --warn:#E0A94A; --warn-bg:#2E2513;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#151917; --panel:#1E2421; --ink:#E5E8E2; --muted:#9AA49D; --line:#333B36;
+    --accent:#8FBFAC; --accent-ink:#0F1915; --soft:#22312B;
+    --paper-shadow:rgba(0,0,0,.55); --warn:#E0A94A; --warn-bg:#2E2513;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px;padding-block:0 32px}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-block:18px 10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .topbar h1{font:700 26px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+  .topbar .sub{color:var(--muted);font-size:13px;margin-top:4px;max-width:72ch}
+  .btn{font:600 14px var(--sans);border:0;border-radius:6px;padding:10px 16px;cursor:pointer;background:var(--accent);color:var(--accent-ink);text-decoration:none;display:inline-block}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .app{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px;align-items:start}
+  @media (max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.panel{position:static!important;max-height:none!important}}
+  .panel{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:18px}
+  .panel h2{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  .pieces{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pieces label{display:block;border:1px solid var(--line);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px;line-height:1.3}
+  .pieces label b{display:block;font-weight:600;font-size:14px}
+  .pieces label span{color:var(--muted)}
+  .pieces input{position:absolute;opacity:0;pointer-events:none}
+  .pieces label:has(input:checked){border-color:var(--accent);background:var(--soft);box-shadow:inset 0 0 0 1px var(--accent)}
+  .pieces label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+  .field{display:grid;gap:4px;font-size:13px}
+  .field > span{color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end}
+  input[type=number],input[type=text],select,textarea{width:100%;font:14px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+  textarea{font:13px/1.45 var(--mono);min-height:110px;resize:vertical}
+  input:disabled{opacity:.55}
+  .check{display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer}
+  .check input{margin-top:3px;accent-color:var(--accent)}
+  .check small{display:block;color:var(--muted)}
+  .stack{display:grid;gap:10px}
+  .hint{font-size:12px;color:var(--muted);margin:0}
+  .warn{font-size:13px;color:var(--warn);background:var(--warn-bg);border-radius:6px;padding:8px 10px;margin:0}
+  .files{display:grid;gap:4px;font-size:13px}
+  .files a{color:var(--accent)}
+  .files div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding-block:3px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .stats{font-size:14px;color:var(--muted)}
+  .stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .zoom{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+  .zoom select{width:auto}
+  #hojas{display:grid;gap:22px;justify-items:center;overflow-x:auto;padding-bottom:8px}
+  .hoja{display:grid;gap:6px;justify-items:start}
+  .hoja .cap{font:500 12px var(--mono);color:var(--muted)}
+  .hoja svg.sheet{display:block;background:#fff;box-shadow:0 10px 28px -12px var(--paper-shadow),0 0 0 1px rgba(0,0,0,.06)}
+  #arte{position:absolute;width:0;height:0;overflow:hidden}
+  @media print{
+    body{background:#fff;padding:0}
+    .topbar,.panel,.toolbar,.hoja .cap,#aviso,#nota-escala{display:none!important}
+    .app{display:block}
+    #hojas{display:block;padding:0;overflow:visible}
+    .hoja{display:block;height:var(--ph);overflow:hidden;break-after:page;page-break-after:always}
+    .hoja:last-child{break-after:auto;page-break-after:auto}
+    .hoja svg.sheet{box-shadow:none;width:var(--pw)!important;height:var(--ph)!important}
+    .hoja svg.sheet .prev{display:none}
+  }
+</style>
+<style id="page-size">@page{size:A4;margin:0}</style>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Imprimibles de marca</h1>
+    <div class="sub">Etiquetas colgantes, tarjetas, sellos y logotipos en vectores, a escala real. Cada pieza se adapta a la medida que elijas y se reparte sola en la hoja con marcas de corte.</div>
+  </div>
+  <button class="btn" id="imprimir" type="button">Imprimir</button>
+</header>
+
+<div class="app">
+  <aside class="panel" aria-label="Opciones">
+    <section>
+      <h2>Pieza</h2>
+      <div class="pieces" id="pieces">
+        <label><input type="radio" name="pieza" value="etiqueta" checked><b>Etiqueta colgante</b><span>Frente y dorso</span></label>
+        <label><input type="radio" name="pieza" value="tarjeta"><b>Tarjeta</b><span>De presentación</span></label>
+        <label><input type="radio" name="pieza" value="sello"><b>Sello circular</b><span>Sticker o cierre</span></label>
+        <label><input type="radio" name="pieza" value="logo"><b>Logotipo</b><span>A la medida exacta</span></label>
+        <label><input type="radio" name="pieza" value="guia"><b>Guía de cuidados</b><span>Tarjeta para el cliente</span></label>
+        <label><input type="radio" name="pieza" value="fertilizante"><b>Fertilizante</b><span>Etiqueta de bolsita</span></label>
+        <label><input type="radio" name="pieza" value="cuidados"><b>Tarjeta de cuidados</b><span>Frente verde y dorso</span></label>
+        <label><input type="radio" name="pieza" value="instructivo"><b>Instructivo rápido</b><span>Para tener a mano</span></label>
+        <label><input type="radio" name="pieza" value="caja"><b>Caja de envío</b><span>Troquel a escala 1:1</span></label>
+        <label><input type="radio" name="pieza" value="bolsa"><b>Bolsa de regalo</b><span>Troquel a escala 1:1</span></label>
+        <label><input type="radio" name="pieza" value="carta"><b>Carta de color</b><span>Pantone de la marca</span></label>
+      </div>
+    </section>
+
+    <section class="stack" id="sec-medida">
+      <h2>Medida</h2>
+      <label class="field"><span>Tamaño</span><select id="preset"></select></label>
+      <div class="grid2">
+        <label class="field"><span>Ancho (mm)</span><input type="number" id="w" min="15" max="400" step="0.5"></label>
+        <label class="field"><span>Alto (mm)</span><input type="number" id="h" min="15" max="400" step="0.5"></label>
+      </div>
+      <p class="hint" id="medida-hint"></p>
+    </section>
+
+    <section class="stack" data-pieza="etiqueta">
+      <h2>Dorso de la etiqueta</h2>
+      <label class="field"><span>Campos (separados por coma)</span><input type="text" id="campos"></label>
+      <label class="field"><span>Una etiqueta por línea; valores en el orden de los campos, separados por <code>;</code></span>
+        <textarea id="filas" spellcheck="false" placeholder="Junípero chinensis; Moyogi; 8 años; Ecuador; LB-0001"></textarea></label>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost sm" type="button" id="traer">Traer del catálogo</button>
+        <span class="hint" id="traer-estado"></span>
+      </div>
+      <label class="field"><span>Etiquetas en blanco (además de las filas)</span><input type="number" id="blancas" min="0" max="500" step="1"></label>
+      <label class="check"><input type="checkbox" id="qr"><span>QR al pasaporte del árbol<small>Usa el último campo (Código) como ID: <span id="qr-url"></span></small></span></label>
+      <label class="check"><input type="checkbox" id="ilus"><span>Ilustraciones de paisaje</span></label>
+      <label class="check"><input type="checkbox" id="ojal"><span>Marcar el ojal<small>Círculo de perforación en la parte superior</small></span></label>
+    </section>
+
+    <section class="stack" data-pieza="tarjeta">
+      <h2>Datos de la tarjeta</h2>
+      <label class="field"><span>Nombre</span><input type="text" id="t-nombre"></label>
+      <label class="field"><span>Cargo</span><input type="text" id="t-cargo"></label>
+      <div class="grid2">
+        <label class="field"><span>WhatsApp</span><input type="text" id="t-tel"></label>
+        <label class="field"><span>Instagram</span><input type="text" id="t-ig"></label>
+      </div>
+      <label class="field"><span>Web</span><input type="text" id="t-web"></label>
+      <label class="field"><span>Correo</span><input type="text" id="t-mail"></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="t-n" min="1" max="500" step="1"></label>
+    </section>
+
+    <section class="stack" data-pieza="sello">
+      <h2>Sello</h2>
+      <label class="check"><input type="checkbox" id="s-inv"><span>Invertido<small>Círculo lleno de tinta y logotipo en el color del papel</small></span></label>
+      <label class="check"><input type="checkbox" id="s-lema"><span>Con «El arte de cultivar el tiempo.»</span></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="s-n" min="1" max="500" step="1"></label>
+    </section>
+
+    <section class="stack" data-pieza="fertilizante">
+      <h2>Etiquetas de fertilizante</h2>
+      <label class="field"><span>Una variedad por línea: <code>color | Nombre | Detalle | Contenido | Cantidad</code>. Color: verde, crema o kraft</span>
+        <textarea id="f-filas" spellcheck="false"></textarea></label>
+      <label class="check"><input type="checkbox" id="f-dorso"><span>Imprimir dorso<small>Modo de uso, lote y fecha de envasado</small></span></label>
+      <label class="field"><span>Modo de uso</span><textarea id="f-uso" style="min-height:90px;font-family:var(--sans)"></textarea></label>
+      <div class="grid2">
+        <label class="field"><span>Lote (vacío = para escribir)</span><input type="text" id="f-lote"></label>
+        <label class="field"><span>Envasado (vacío = para escribir)</span><input type="text" id="f-fecha"></label>
+      </div>
+      <p class="hint">El verde se imprime siempre con su fondo y 2 mm de sangrado. Crema y kraft son el color del papel: marca «Imprimir el color del papel» si imprimes sobre papel blanco.</p>
+    </section>
+
+    <section class="stack" data-pieza="cuidados">
+      <h2>Tarjeta de cuidados</h2>
+      <div class="grid2">
+        <label class="field"><span>Frente</span><select id="c-frente">
+          <option value="verde">Verde y dorado</option><option value="crema">Crema y verde</option><option value="kraft">Kraft y tinta</option>
+        </select></label>
+        <label class="field"><span>Dorso</span><select id="c-dorso">
+          <option value="crema">Crema y verde</option><option value="verde">Verde y dorado</option><option value="kraft">Kraft y tinta</option>
+        </select></label>
+      </div>
+      <label class="field"><span>Título del frente</span><input type="text" id="c-titulo"></label>
+      <label class="field"><span>Título del dorso</span><input type="text" id="c-titulo2"></label>
+      <label class="field"><span>Una fila por línea: <code>ícono | Título | Texto</code>. Íconos: sol, gota, hoja, tijeras, casa</span>
+        <textarea id="c-filas" spellcheck="false" style="min-height:130px"></textarea></label>
+      <label class="field"><span>Cierre</span><input type="text" id="c-cta"></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="c-n" min="1" max="500" step="1"></label>
+    </section>
+
+    <section class="stack" data-pieza="instructivo">
+      <h2>Instructivo rápido</h2>
+      <label class="field"><span>Color</span><select id="i-color">
+        <option value="crema">Crema y verde</option><option value="verde">Verde y dorado</option><option value="kraft">Kraft y tinta</option>
+      </select></label>
+      <label class="field"><span>Título</span><input type="text" id="i-titulo"></label>
+      <label class="field"><span>Una fila por línea: <code>ícono | Texto</code></span>
+        <textarea id="i-filas" spellcheck="false" style="min-height:110px"></textarea></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="i-n" min="1" max="500" step="1"></label>
+    </section>
+
+    <section class="stack" data-pieza="caja">
+      <h2>Caja de envío</h2>
+      <p class="hint">Medidas interiores de la caja armada. Caja de solapas: las tapas de arriba y abajo se juntan al centro y una pestaña lateral la cierra con pegamento.</p>
+      <div class="grid3">
+        <label class="field"><span>Largo (mm)</span><input type="number" id="k-l" min="80" max="1000" step="1"></label>
+        <label class="field"><span>Ancho (mm)</span><input type="number" id="k-a" min="60" max="800" step="1"></label>
+        <label class="field"><span>Alto (mm)</span><input type="number" id="k-h" min="40" max="800" step="1"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Grosor del cartón (mm)</span><input type="number" id="k-t" min="0" max="8" step="0.5"></label>
+        <label class="field"><span>Pestaña de pegado (mm)</span><input type="number" id="k-g" min="20" max="60" step="1"></label>
+      </div>
+      <label class="field"><span>Color</span><select id="k-color">
+        <option value="kraft">Kraft · tinta Black 3 C</option><option value="verde">Verde Legado 5535 C · dorado 7502 C</option><option value="crema">Crema · verde 5535 C</option>
+      </select></label>
+      <label class="field"><span>Frase del frente</span><input type="text" id="k-lema"></label>
+      <label class="check"><input type="checkbox" id="k-avisos"><span>Avisos de envío en los costados<small>«Este lado arriba · Planta viva»</small></span></label>
+      <label class="check"><input type="checkbox" id="k-troquel"><span>Líneas de troquel<small>Corte continuo y doblez punteado. Quítalas en el archivo final si la imprenta pide el troquel aparte.</small></span></label>
+      <label class="field"><span>Salida</span><select id="k-modo">
+        <option value="lamina">Lámina única a escala 1:1 (imprenta o plotter)</option>
+        <option value="mosaico">Mosaico en hojas del papel elegido (prueba en casa)</option>
+      </select></label>
+      <p class="hint" id="k-info"></p>
+    </section>
+
+    <section class="stack" data-pieza="bolsa">
+      <h2>Bolsa de regalo</h2>
+      <p class="hint">Medidas de la bolsa armada. El fuelle es el costado plegable; el dobladillo refuerza la boca y sostiene el cordón.</p>
+      <div class="grid3">
+        <label class="field"><span>Ancho (mm)</span><input type="number" id="b-w" min="80" max="600" step="1"></label>
+        <label class="field"><span>Fuelle (mm)</span><input type="number" id="b-g" min="30" max="300" step="1"></label>
+        <label class="field"><span>Alto (mm)</span><input type="number" id="b-h" min="80" max="700" step="1"></label>
+      </div>
+      <label class="field"><span>Dobladillo de la boca (mm)</span><input type="number" id="b-ti" min="20" max="80" step="1"></label>
+      <label class="field"><span>Color</span><select id="b-color">
+        <option value="verde">Verde Legado 5535 C · dorado 7502 C</option><option value="kraft">Kraft · tinta Black 3 C</option><option value="crema">Crema · verde 5535 C</option>
+      </select></label>
+      <label class="field"><span>Frase del frente (vacío = sin frase)</span><input type="text" id="b-lema"></label>
+      <label class="check"><input type="checkbox" id="b-troquel"><span>Líneas de troquel y agujeros del cordón</span></label>
+      <label class="field"><span>Salida</span><select id="b-modo">
+        <option value="lamina">Lámina única a escala 1:1 (imprenta o plotter)</option>
+        <option value="mosaico">Mosaico en hojas del papel elegido (prueba en casa)</option>
+      </select></label>
+      <p class="hint" id="b-info"></p>
+    </section>
+
+    <section class="stack" data-pieza="carta">
+      <h2>Carta de color</h2>
+      <p class="hint">Imprímela en la misma impresora y papel que las piezas y compárala con la guía Pantone Formula Guide (Coated) bajo luz de día. Si no coincide, ajusta el perfil de color de la impresora, no el diseño.</p>
+    </section>
+
+    <section class="stack" data-pieza="guia">
+      <h2>Guía de cuidados</h2>
+      <label class="field"><span>Título</span><input type="text" id="g-titulo"></label>
+      <label class="field"><span>Subtítulo</span><input type="text" id="g-sub"></label>
+      <label class="field"><span>Una fila por línea: <code>ícono | Título | Texto</code>. Íconos: sol, gota, hoja, tijeras, casa</span>
+        <textarea id="g-filas" spellcheck="false" style="min-height:170px"></textarea></label>
+      <div class="grid2">
+        <label class="field"><span>Pregunta final</span><input type="text" id="g-cta"></label>
+        <label class="field"><span>Invitación</span><input type="text" id="g-cta2"></label>
+      </div>
+      <label class="field"><span>Enlace del QR (vacío = sin QR)</span><input type="text" id="g-qr"></label>
+      <label class="field"><span>Color</span><select id="g-color">
+        <option value="original">Original (verde y café)</option>
+        <option value="tinta">Una sola tinta</option>
+      </select></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="g-n" min="1" max="500" step="1"></label>
+      <button class="btn ghost sm" type="button" id="g-reset">Restablecer textos originales</button>
+    </section>
+
+    <section class="stack" data-pieza="logo">
+      <h2>Logotipo</h2>
+      <label class="field"><span>Versión</span><select id="l-var">
+        <option value="vertical">Vertical (emblema + nombre)</option>
+        <option value="lema">Vertical con lema</option>
+        <option value="horizontal">Horizontal</option>
+        <option value="emblema">Solo emblema</option>
+        <option value="wordmark">Solo nombre</option>
+      </select></label>
+      <label class="field"><span>Cantidad</span><input type="number" id="l-n" min="1" max="500" step="1"></label>
+      <p class="hint">El alto se calcula solo para no deformar el logotipo.</p>
+    </section>
+
+    <section class="stack">
+      <h2>Hoja</h2>
+      <div class="grid2">
+        <label class="field"><span>Papel</span><select id="papel">
+          <option value="A4">A4 · 210 × 297</option>
+          <option value="Carta">Carta · 216 × 279</option>
+          <option value="A3">A3 · 297 × 420</option>
+          <option value="Oficio">Oficio · 216 × 330</option>
+          <option value="custom">Personalizado</option>
+        </select></label>
+        <label class="field"><span>Orientación</span><select id="orient">
+          <option value="auto">La que más rinde</option>
+          <option value="v">Vertical</option>
+          <option value="h">Horizontal</option>
+        </select></label>
+      </div>
+      <div class="grid2" id="papel-custom">
+        <label class="field"><span>Ancho hoja (mm)</span><input type="number" id="pw" min="50" max="1200" step="1"></label>
+        <label class="field"><span>Alto hoja (mm)</span><input type="number" id="ph" min="50" max="1200" step="1"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Margen (mm)</span><input type="number" id="margen" min="3" max="30" step="0.5"></label>
+        <label class="field"><span>Separación (mm)</span><input type="number" id="sep" min="0" max="20" step="0.5"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="rotar"><span>Girar piezas si caben más</span></label>
+    </section>
+
+    <section class="stack">
+      <h2>Acabado</h2>
+      <label class="field"><span>Colores de marca</span><select id="combo">
+        <option value="">Elegir tinta y papel a mano</option>
+        <option value="kraft">Kraft · tinta Pantone Black 3 C</option>
+        <option value="verde">Verde Legado 5535 C · dorado 7502 C</option>
+        <option value="crema">Crema · verde Legado 5535 C</option>
+      </select></label>
+      <div class="grid2">
+        <label class="field"><span>Tinta</span><select id="tinta">
+          <option value="#192010">Tinta · Pantone Black 3 C</option>
+          <option value="#1E3328">Verde Legado · 5535 C</option>
+          <option value="#CEB88A">Dorado · 7502 C</option>
+          <option value="#2F5D50">Jade</option>
+          <option value="#000000">Negro</option>
+          <option value="#FFFFFF">Blanco</option>
+        </select></label>
+        <label class="field"><span>Papel (vista previa)</span><select id="fondo">
+          <option value="#CDAE84">Kraft</option>
+          <option value="#1E3328">Verde Legado · 5535 C</option>
+          <option value="#FFFFFF">Blanco</option>
+          <option value="#F1EAE1">Washi</option>
+          <option value="#EDE3D2">Crema (guía)</option>
+          <option value="#1B241F">Negro</option>
+        </select></label>
+      </div>
+      <label class="check"><input type="checkbox" id="imp-fondo"><span>Imprimir el color del papel<small>Para simular kraft sobre papel blanco. Añade 2 mm de sangrado.</small></span></label>
+      <label class="check"><input type="checkbox" id="contorno"><span>Contorno de corte<small>Línea fina con la forma de la pieza</small></span></label>
+      <label class="check"><input type="checkbox" id="marcas"><span>Marcas de corte en los márgenes</span></label>
+      <label class="check"><input type="checkbox" id="duplex"><span>Doble cara (dorso espejado)<small>Para imprimir a doble cara volteando por el borde largo</small></span></label>
+      <label class="check"><input type="checkbox" id="regla"><span>Regla de control de 50 mm</span></label>
+    </section>
+
+    <section>
+      <h2>Archivos de logotipo</h2>
+      <div class="files" id="archivos"></div>
+      <p class="hint" style="margin-top:6px">SVG vectorial (para imprenta, corte láser o grabado) y PNG transparente de 2400 px (redes, WhatsApp, documentos).</p>
+    </section>
+  </aside>
+
+  <main>
+    <p class="warn" id="aviso" hidden></p>
+    <div class="toolbar">
+      <div class="stats" id="resumen"></div>
+      <label class="zoom">Vista <select id="zoom">
+        <option value="fit">Ajustar</option>
+        <option value="0.5">50 %</option>
+        <option value="0.75">75 %</option>
+        <option value="1">Tamaño real</option>
+      </select></label>
+    </div>
+    <p class="hint" id="nota-escala" style="margin:-6px 0 14px">Al imprimir elige «Tamaño real» o escala 100 %, nunca «Ajustar a la página». Mide la regla de control para comprobarlo.</p>
+    <div id="hojas"></div>
+  </main>
+</div>
+
+<svg id="arte" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs id="arte-defs"></defs></svg>
+
+<script src="../config.js" onerror="window.LEGADO_CONFIG = window.LEGADO_CONFIG || {}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   Imprimibles de marca — Legado Bonsái
+   Todo se dibuja en SVG con unidades en milímetros. El arte (logotipos e
+   ilustraciones) vive en ../assets/img/logo/ y ../assets/img/ilustraciones/
+   y se carga una vez como <symbol>, así cada pieza es un <use>.
+   ===================================================================== */
+const CFG = window.LEGADO_CONFIG || {};
+const SITE = String(CFG.SITE_URL || '').replace(/\/$/, '') || new URL('..', location.href).href.replace(/\/$/, '');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const r2 = v => Math.round(v * 100) / 100;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const SERIF = "'Shippori Mincho','Times New Roman',serif";
+
+const ARTE = {
+  lema: 'logo/legado-logo-lema-tinta.svg', vertical: 'logo/legado-logo-vertical-tinta.svg',
+  horizontal: 'logo/legado-logo-horizontal-tinta.svg', emblema: 'logo/legado-emblema-tinta.svg',
+  wordmark: 'logo/legado-wordmark-tinta.svg',
+  frente: 'ilustraciones/paisaje-frente.svg', dorso: 'ilustraciones/paisaje-dorso.svg',
+  guiaArbol: 'ilustraciones/guia-arbol.svg', guiaPaisaje: 'ilustraciones/guia-paisaje.svg',
+  montana: 'ilustraciones/montana-principal.svg'
+};
+
+/* Colores de marca. HEX = color en pantalla (medido en el tablero de marca); Pantone = referencia para imprenta
+   (offset o serigrafía con tinta directa); CMYK = aproximado para impresión digital. Confirmar siempre con la
+   guía Pantone física: ninguna pantalla ni impresora casera reproduce un Pantone exacto. */
+const MARCA = {
+  verde:  { nombre: 'Verde Legado', hex: '#1E3328', pantone: 'Pantone 5535 C', cmyk: 'C80 M50 Y75 K60' },
+  dorado: { nombre: 'Dorado Legado', hex: '#CEB88A', pantone: 'Pantone 7502 C · metálico 871 C', cmyk: 'C18 M24 Y50 K0' },
+  tinta:  { nombre: 'Tinta', hex: '#192010', pantone: 'Pantone Black 3 C', cmyk: 'C65 M45 Y75 K85' },
+  crema:  { nombre: 'Crema', hex: '#EDE3D2', pantone: 'Papel marfil (sin tinta)', cmyk: 'C5 M8 Y16 K0' },
+  kraft:  { nombre: 'Kraft', hex: '#CDAE84', pantone: 'Papel kraft (sin tinta)', cmyk: '—' }
+};
+// Combinaciones del tablero: fondo, color principal (logo y nombres), texto e ilustración
+const COMBOS = {
+  verde: { fondo: MARCA.verde.hex, principal: MARCA.dorado.hex, texto: MARCA.crema.hex, ilus: MARCA.dorado.hex, ilusOp: 0.5, tintaFondo: true, tintas: ['verde', 'dorado'] },
+  crema: { fondo: MARCA.crema.hex, principal: MARCA.verde.hex, texto: MARCA.verde.hex, ilus: MARCA.verde.hex, ilusOp: 0.55, tintaFondo: false, tintas: ['verde'] },
+  kraft: { fondo: MARCA.kraft.hex, principal: MARCA.tinta.hex, texto: MARCA.tinta.hex, ilus: MARCA.tinta.hex, ilusOp: 0.7, tintaFondo: false, tintas: ['tinta'] }
+};
+const FERT_FILAS = 'verde | Fertilizante orgánico | Para bonsáis | Contenido: 10 g | 6\ncrema | Fertilizante de liberación lenta | Para bonsáis | Contenido: 10 g | 6';
+const FERT_USO = 'Esparce una cucharadita sobre el sustrato cada 30 días, de primavera a otoño. Riega después de aplicar. No lo uses en árboles recién trasplantados ni enfermos. Guárdalo en un lugar fresco y seco, fuera del alcance de niños y mascotas.';
+const CUID_FILAS = [
+  'sol | Luz | Ubícalo en un lugar con buena luz natural.',
+  'gota | Riego | Riega cuando la capa superior del sustrato esté seca.',
+  'hoja | Abono | Utiliza fertilizante según la temporada.',
+  'tijeras | Poda | Mantén su forma y elimina brotes no deseados.',
+  'casa | Ubicación | En exterior, protegido de vientos fuertes.'
+].join('\n');
+const INST_FILAS = ['sol | Luz natural', 'gota | Riego moderado', 'hoja | Fertilizante periódico', 'tijeras | Poda y formación', 'casa | En exterior'].join('\n');
+const ART = {};  // nombre -> { w, h } (proporción del viewBox)
+
+const PAPELES = { A4: [210, 297], Carta: [215.9, 279.4], A3: [297, 420], Oficio: [215.9, 330.2] };
+
+/* ---------------------------- Piezas ---------------------------- */
+// Cada pieza: presets, caras, items(s) -> datos por ejemplar, draw(cara, W, H, item, s) -> SVG en mm.
+const PIEZAS = {
+  etiqueta: {
+    nombre: 'Etiqueta colgante',
+    presets: [[50, 118, 'Clásica 5 × 11,8 cm'], [40, 95, 'Pequeña 4 × 9,5 cm'], [60, 142, 'Grande 6 × 14,2 cm'], [55, 100, 'Corta 5,5 × 10 cm']],
+    caras: ['Frente', 'Dorso'],
+    min: [30, 60],
+    items(s) {
+      const n = s.campos.length;
+      const filas = s.filas.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+        .map(l => { const v = l.split(/\s*[;|\t]\s*/); while (v.length < n) v.push(''); return v.slice(0, n); });
+      return filas.concat(Array.from({ length: s.blancas }, () => Array(n).fill('')));
+    },
+    draw(cara, W, H, item, s) { return cara === 'Frente' ? etiquetaFrente(W, H, s) : etiquetaDorso(W, H, item, s); },
+    forma: (W, H) => formaEtiqueta(W, H)
+  },
+  tarjeta: {
+    nombre: 'Tarjeta de presentación',
+    presets: [[85, 55, 'Estándar 8,5 × 5,5 cm'], [90, 50, 'Ecuador 9 × 5 cm'], [85, 85, 'Cuadrada 8,5 cm']],
+    caras: ['Frente', 'Dorso'],
+    min: [50, 30],
+    items: s => Array(s.tN).fill(null),
+    draw(cara, W, H, item, s) { return cara === 'Frente' ? tarjetaFrente(W, H, s) : tarjetaDorso(W, H, s); },
+    forma: (W, H) => rectR(W, H, Math.min(W, H) * 0.035)
+  },
+  sello: {
+    nombre: 'Sello circular',
+    presets: [[50, 50, 'Ø 5 cm'], [40, 40, 'Ø 4 cm'], [30, 30, 'Ø 3 cm'], [75, 75, 'Ø 7,5 cm']],
+    caras: ['Frente'],
+    min: [20, 20], cuadrada: true,
+    items: s => Array(s.sN).fill(null),
+    draw: (cara, W, H, item, s) => sello(W, s),
+    forma: W => `M${W / 2} 0a${W / 2} ${W / 2} 0 1 1 0 ${W}a${W / 2} ${W / 2} 0 1 1 0 ${-W}z`
+  },
+  logo: {
+    nombre: 'Logotipo',
+    presets: [[80, 0, 'Ancho 8 cm'], [40, 0, 'Ancho 4 cm'], [120, 0, 'Ancho 12 cm'], [180, 0, 'Ancho 18 cm']],
+    caras: ['Frente'],
+    min: [10, 5], altoAuto: true,
+    items: s => Array(s.lN).fill(null),
+    draw: (cara, W, H, item, s) => `<use href="#a-${s.lVar}" x="0" y="0" width="${W}" height="${H}"/>`,
+    forma: null
+  },
+  guia: {
+    nombre: 'Guía de cuidados',
+    presets: [[100, 156, 'Original 10 × 15,6 cm'], [105, 148, 'A6 10,5 × 14,8 cm'], [148, 210, 'A5 14,8 × 21 cm'], [120, 187, 'Grande 12 × 18,7 cm']],
+    caras: ['Frente'],
+    min: [70, 100],
+    items: s => Array(s.gN).fill(null),
+    draw: (cara, W, H, item, s) => guia(W, H, s),
+    forma: (W, H) => rectR(W, H, Math.min(W, H) * 0.012)
+  },
+  fertilizante: {
+    nombre: 'Etiqueta de fertilizante',
+    presets: [[60, 80, 'Bolsita 10 g · 6 × 8 cm'], [50, 70, 'Pequeña 5 × 7 cm'], [70, 95, 'Grande 7 × 9,5 cm']],
+    caras: s => s.fDorso ? ['Frente', 'Dorso'] : ['Frente'],
+    min: [40, 55],
+    items(s) {
+      const out = [];
+      String(s.fFilas || '').split(/\r?\n/).map(l => l.split('|').map(t => t.trim())).filter(f => f.length >= 2 && f[1]).forEach(f => {
+        const it = { combo: COMBOS[(f[0] || '').toLowerCase()] ? f[0].toLowerCase() : 'verde', nombre: f[1], detalle: f[2] || '', contenido: f[3] || '' };
+        for (let i = 0, n = clamp(Math.round(+f[4] || 1), 1, 500); i < n; i++) out.push(it);
+      });
+      return out;
+    },
+    // el fondo es parte del diseño: verde siempre se imprime; crema y kraft solo si se imprime el papel
+    fondoDe: (item, s) => { const c = COMBOS[item.combo]; return { color: c.fondo, imprime: c.tintaFondo || s.impFondo }; },
+    tintas: items => [...new Set(items.flatMap(it => COMBOS[it.combo].tintas))],
+    draw: (cara, W, H, item, s) => cara === 'Frente' ? fertFrente(W, H, item, s) : fertDorso(W, H, item, s),
+    forma: (W, H) => rectR(W, H, Math.min(W, H) * 0.03)
+  },
+  cuidados: {
+    nombre: 'Tarjeta de cuidados',
+    presets: [[90, 160, 'Alargada 9 × 16 cm'], [100, 156, 'Como la guía 10 × 15,6 cm'], [105, 148, 'A6 10,5 × 14,8 cm']],
+    caras: ['Frente', 'Dorso'],
+    min: [60, 100],
+    items: s => Array(s.cN).fill(null),
+    fondoDe: (item, s, cara) => { const c = COMBOS[cara === 'Dorso' ? s.cDorso : s.cFrente] || COMBOS.verde; return { color: c.fondo, imprime: c.tintaFondo || s.impFondo }; },
+    tintas: (items, s) => [...new Set([s.cFrente, s.cDorso].flatMap(k => (COMBOS[k] || COMBOS.verde).tintas))],
+    draw: (cara, W, H, item, s) => cara === 'Frente' ? cuidadosFrente(W, H, s) : cuidadosDorso(W, H, s),
+    forma: (W, H) => rectR(W, H, Math.min(W, H) * 0.025)
+  },
+  instructivo: {
+    nombre: 'Instructivo rápido',
+    presets: [[65, 100, 'Bolsillo 6,5 × 10 cm'], [55, 85, 'Billetera 5,5 × 8,5 cm'], [74, 105, 'A7 7,4 × 10,5 cm']],
+    caras: ['Frente'],
+    min: [45, 70],
+    items: s => Array(s.iN).fill(null),
+    fondoDe: (item, s) => { const c = COMBOS[s.iColor] || COMBOS.crema; return { color: c.fondo, imprime: c.tintaFondo || s.impFondo }; },
+    tintas: (items, s) => (COMBOS[s.iColor] || COMBOS.crema).tintas,
+    draw: (cara, W, H, item, s) => instructivo(W, H, s),
+    forma: (W, H) => rectR(W, H, Math.min(W, H) * 0.03)
+  },
+  caja: {
+    nombre: 'Caja de envío',
+    presets: [[300, 200, 'Caja']],
+    caras: ['Exterior'],
+    min: [10, 10], sinMedida: true,
+    items: () => [null],
+    paginas: s => cajaPaginas(s)
+  },
+  bolsa: {
+    nombre: 'Bolsa de regalo',
+    presets: [[250, 300, 'Bolsa']],
+    caras: ['Exterior'],
+    min: [10, 10], sinMedida: true,
+    items: () => [null],
+    paginas: s => bolsaPaginas(s)
+  },
+  carta: {
+    nombre: 'Carta de color',
+    presets: [[190, 120, 'Carta 19 × 12 cm']],
+    caras: ['Frente'],
+    min: [150, 100],
+    items: () => [null],
+    tintas: () => ['verde', 'dorado', 'tinta'],
+    // se imprime sobre papel blanco (la vista previa no hereda el kraft)
+    fondoDe: () => ({ color: '#FFFFFF', imprime: false }),
+    draw: (cara, W, H) => cartaColor(W, H),
+    forma: null
+  }
+};
+
+/* --------------------------- Dibujo ----------------------------- */
+let clipN = 0;
+const use = (k, x, y, w, h, extra = '') => `<use href="#a-${k}" x="${r2(x)}" y="${r2(y)}" width="${r2(w)}" height="${r2(h)}"${extra}/>`;
+const rectR = (W, H, r) => `M${r} 0H${W - r}Q${W} 0 ${W} ${r}V${H - r}Q${W} ${H} ${W - r} ${H}H${r}Q0 ${H} 0 ${H - r}V${r}Q0 0 ${r} 0Z`;
+
+// Geometría compartida de la etiqueta (todo proporcional al ancho, como el diseño original de 50 × 118 mm)
+function geoEtiqueta(W) {
+  return { cham: 0.13 * W, rad: 0.025 * W, holeY: clamp(0.2 * W, 6, 14), holeR: clamp(0.05 * W, 1.5, 3) };
+}
+function formaEtiqueta(W, H) {
+  const { cham: c, rad: r } = geoEtiqueta(W);
+  return `M${r2(c)} 0H${r2(W - c)}L${W} ${r2(c)}V${r2(H - r)}Q${W} ${H} ${r2(W - r)} ${H}H${r2(r)}Q0 ${H} 0 ${r2(H - r)}V${r2(c)}Z`;
+}
+function ojal(W, s) {
+  if (!s.ojal) return '';
+  const { holeY, holeR } = geoEtiqueta(W), cx = W / 2;
+  return `<g fill="none" stroke="${s.tinta}" stroke-width="0.18" opacity=".7"><circle cx="${cx}" cy="${r2(holeY)}" r="${r2(holeR)}"/>` +
+    `<path d="M${cx - 0.8} ${r2(holeY)}h1.6M${cx} ${r2(holeY - 0.8)}v1.6"/></g>`;
+}
+function conClip(W, H, forma, contenido) {
+  const id = 'c' + (++clipN);
+  return `<clipPath id="${id}"><path d="${forma}"/></clipPath><g clip-path="url(#${id})">${contenido}</g>`;
+}
+
+function etiquetaFrente(W, H, s) {
+  const g = geoEtiqueta(W), forma = formaEtiqueta(W, H);
+  const ih = s.ilus ? W * ART.frente.h / ART.frente.w : 0;
+  const top = g.holeY + g.holeR + 0.12 * W, bottom = (s.ilus ? H - ih : H - 0.1 * W) - 0.04 * W;
+  const avail = Math.max(10, bottom - top);
+  let bw = 0.824 * W, bh = bw * ART.lema.h / ART.lema.w;
+  if (bh > avail) { bh = avail; bw = bh * ART.lema.w / ART.lema.h; }
+  const y = top + (avail - bh) * 0.9;
+  let out = '';
+  if (s.ilus) out += conClip(W, H, forma, use('frente', 0, H - ih, W, ih));
+  out += use('lema', (W - bw) / 2, y, bw, bh);
+  return out + ojal(W, s);
+}
+
+function etiquetaDorso(W, H, vals, s) {
+  const g = geoEtiqueta(W), forma = formaEtiqueta(W, H);
+  const ih = s.ilus ? W * ART.dorso.h / ART.dorso.w : 0;
+  const mx = 0.087 * W, n = s.campos.length;
+  const first = g.holeY + g.holeR + 0.33 * W;
+  const limit = (s.ilus ? H - ih : H - 0.08 * W) - 0.06 * W;
+  const gap = n > 1 ? Math.min(0.2 * W, (limit - first) / (n - 1)) : 0;
+  const fs = clamp(Math.min(0.062 * W, (gap || 0.2 * W) * 0.42), 1.6, 6);
+  const codigo = (vals[n - 1] || '').trim();
+  const qr = s.qr && codigo && typeof qrcode === 'function' ? qrPath(SITE + '/arbol.html?id=' + encodeURIComponent(codigo)) : null;
+  const last = first + (n - 1) * gap;
+  const q = qr ? clamp(Math.min(0.3 * W, gap * 1.9), 9, 30) : 0;
+  let out = '';
+  if (s.ilus) out += conClip(W, H, forma, use('dorso', 0, H - ih, W, ih));
+  out += `<g font-family="${SERIF}" font-size="${r2(fs)}" fill="${s.tinta}">`;
+  vals.forEach((v, i) => {
+    const ly = first + i * gap;
+    const corto = qr && ly > last - q - 0.5;
+    const x2 = corto ? W - mx - q - 1.5 : W - mx;
+    const lab = s.campos[i] ? s.campos[i] + ':' : '';
+    // data-max: ancho disponible; ajustarTextos() reduce la letra si el valor no cabe
+    out += `<text x="${r2(mx)}" y="${r2(ly - fs * 0.55)}" data-max="${r2(x2 - mx)}">${esc(lab)}${v ? `<tspan dx="${r2(fs * 0.45)}" font-weight="600">${esc(v)}</tspan>` : ''}</text>`;
+    out += `<rect x="${r2(mx)}" y="${r2(ly)}" width="${r2(x2 - mx)}" height="${r2(Math.max(0.18, W * 0.004))}"/>`;
+  });
+  out += '</g>';
+  if (qr) out += `<svg x="${r2(W - mx - q)}" y="${r2(last - q)}" width="${r2(q)}" height="${r2(q)}" viewBox="0 0 ${qr.n} ${qr.n}" shape-rendering="crispEdges"><path fill="${s.tinta}" d="${qr.d}"/></svg>`;
+  return out + ojal(W, s);
+}
+
+function qrPath(texto) {
+  const q = qrcode(0, 'M'); q.addData(texto); q.make();
+  const n = q.getModuleCount(); let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+  return { n, d };
+}
+
+function tarjetaFrente(W, H, s) {
+  let bw = W * 0.72, bh = bw * ART.horizontal.h / ART.horizontal.w;
+  if (bh > H * 0.5) { bh = H * 0.5; bw = bh * ART.horizontal.w / ART.horizontal.h; }
+  return use('horizontal', (W - bw) / 2, (H - bh) / 2, bw, bh);
+}
+function tarjetaDorso(W, H, s) {
+  const forma = rectR(W, H, Math.min(W, H) * 0.035), m = Math.min(W, H) * 0.12;
+  const iw = Math.min(W * 0.6, H * 0.95 * ART.dorso.w / ART.dorso.h), ih = iw * ART.dorso.h / ART.dorso.w;
+  const fsN = clamp(H * 0.075, 2.6, 6), fs = fsN * 0.62;
+  const lineas = [s.tTel, s.tIg, s.tWeb, s.tMail].filter(Boolean);
+  // paisaje del dorso (pino y roca) en la mitad derecha; el texto ocupa la columna izquierda
+  const id = 'c' + (++clipN);
+  let out = `<clipPath id="${id}"><rect x="${r2(W * 0.5)}" y="0" width="${r2(W * 0.5)}" height="${H}"/></clipPath>` +
+    conClip(W, H, forma, `<g clip-path="url(#${id})">${use('dorso', W - iw, H - ih + ih * 0.04, iw, ih)}</g>`);
+  out += `<g font-family="${SERIF}" fill="${s.tinta}">`;
+  let y = m + fsN;
+  if (s.tNombre) { out += `<text x="${r2(m)}" y="${r2(y)}" font-size="${r2(fsN)}" font-weight="600" letter-spacing="${r2(fsN * 0.04)}">${esc(s.tNombre)}</text>`; y += fsN * 0.95; }
+  if (s.tCargo) { out += `<text x="${r2(m)}" y="${r2(y)}" font-size="${r2(fs)}" letter-spacing="${r2(fs * 0.12)}">${esc(s.tCargo.toUpperCase())}</text>`; y += fs * 1.2; }
+  out += `<rect x="${r2(m)}" y="${r2(y)}" width="${r2(Math.min(W * 0.12, 12))}" height="0.25"/>`; y += fs * 2.1;
+  lineas.forEach(v => { out += `<text x="${r2(m)}" y="${r2(y)}" font-size="${r2(fs)}" data-max="${r2(W * 0.5 - m - 1)}">${esc(v)}</text>`; y += fs * 1.55; });
+  out += `<text x="${r2(m)}" y="${r2(H - m * 0.75)}" font-size="${r2(fs * 0.9)}" font-style="italic" opacity=".85">El arte de cultivar el tiempo.</text>`;
+  return out + '</g>';
+}
+
+/* ------------------------ Guía de cuidados ------------------------
+   Reproduce la tarjeta original (diseño de 664 × 1038 unidades). Se escala por el lado que limita;
+   el sobrante se reparte: las ilustraciones van pegadas a sus esquinas y el alto extra separa las filas. */
+const GUIA_TEXTOS = {
+  titulo: 'Guía de cuidados', sub: 'El arte de cultivar el tiempo',
+  filas: [
+    'sol | Luz | Ubícalo en un lugar con buena luz natural. Algunas especies prefieren luz directa, otras luz indirecta.',
+    'gota | Riego | Riega cuando la capa superior del sustrato esté seca. Evita el exceso de agua.',
+    'hoja | Abono | Utiliza fertilizante según la temporada (de primavera a otoño). Así favoreces un crecimiento sano y equilibrado.',
+    'tijeras | Poda | Mantén su forma y elimina brotes no deseados. La poda estimula un follaje más denso y saludable.',
+    'casa | Ubicación | En exterior, protegido de vientos fuertes. En interior, cerca de una ventana luminosa y con buena ventilación.'
+  ].join('\n'),
+  cta: '¿Tienes dudas sobre tu bonsái?', cta2: 'Escríbenos.'
+};
+const GUIA_COL = { titulo: '#12261A', cuerpo: '#3E4338', sub: '#6D5536', linea: '#BBAA90', divisor: '#5A3416', circulo: '#D8C5A5', verde: '#2C3F2B', cafe: '#7A5A36' };
+// Pictogramas de la guía (caja de 40 × 40, trazo como el original)
+const ICONOS = {
+  sol: '<circle cx="20" cy="20" r="7.2"/><path d="M20 4.5v5M20 30.5v5M4.5 20h5M30.5 20h5M9 9l3.5 3.5M27.5 27.5L31 31M31 9l-3.5 3.5M12.5 27.5L9 31"/>',
+  gota: '<path d="M20 5.5C17 11 11.5 18 11.5 25a8.5 8.5 0 0 0 17 0C28.5 18 23 11 20 5.5Z"/>',
+  hoja: '<path d="M12.5 28.5C10 17 18.5 8.5 31.5 7.5c.5 13-8 21.5-19 21Z"/><path d="M8 34.5L27 12.5M17.5 23.5l-1.5-5.5M21.5 19l-1-5.5M17.5 23.5l5.5.5M21.5 19l5.5.3"/>',
+  tijeras: '<path d="M14 4.5l11 23M26 4.5l-11 23"/><circle cx="13.5" cy="31.5" r="4"/><circle cx="26.5" cy="31.5" r="4"/>',
+  casa: '<path d="M7.5 19.5L20 7l12.5 12.5M11 16.5V33h18V16.5M16.5 33v-8.5h7V33M26.5 10.5V6.5h3v7"/>'
+};
+const ICON_WA = '<path d="M20 6.5a13 13 0 0 1 0 26c-2.3 0-4.4-.6-6.3-1.6L7.5 33l2.2-6A13 13 0 0 1 20 6.5Z"/><path stroke="none" d="M15.2 13.4c.4-.9 1-.9 1.4-.9h1c.3 0 .6.1.8.6l1.1 2.7c.1.3.1.6-.1.9l-.8 1c-.2.2-.2.5-.1.8.6 1 1.3 1.9 2.1 2.6.9.8 1.8 1.3 2.8 1.7.3.1.6.1.8-.2l1-1.2c.3-.3.6-.3.9-.2l2.5 1.2c.4.2.6.3.6.6 0 .6-.1 1.7-.9 2.4-.8.7-2.1 1-3.4.7-1.9-.4-4-1.6-5.8-3.3-1.7-1.7-3-3.7-3.4-5.6-.3-1.4.2-2.6.7-3.3Z"/>';
+const ICON_IG = '<rect x="7.5" y="7.5" width="25" height="25" rx="7"/><circle cx="20" cy="20" r="5.8"/><circle stroke="none" cx="27" cy="13" r="1.6"/>';
+
+let medidor = null;
+function partir(texto, fuente, tam, max) {
+  medidor = medidor || document.createElement('canvas').getContext('2d');
+  medidor.font = `${tam * 10}px ${fuente}`;
+  const ancho = t => medidor.measureText(t).width / 10;
+  const lineas = []; let l = '';
+  for (const p of String(texto).split(/\s+/).filter(Boolean)) {
+    const prueba = l ? l + ' ' + p : p;
+    if (l && ancho(prueba) > max) { lineas.push(l); l = p; } else l = prueba;
+  }
+  if (l) lineas.push(l);
+  return lineas;
+}
+function guia(W, H, s) {
+  const BW = 664, BH = 1038;
+  const k = Math.min(W / BW, H / BH), Wu = W / k, Hu = H / k, dx = (Wu - BW) / 2, by = Hu - BH;
+  const una = s.gColor === 'tinta', ink = s.tinta;
+  const c = una ? { titulo: ink, cuerpo: ink, sub: ink, linea: ink, divisor: ink, circulo: 'none', verde: ink, cafe: ink } : GUIA_COL;
+  const ser = "'EB Garamond','Times New Roman',serif", lora = "'Lora','Georgia',serif";
+  const ilu = (key, x, y, w) => { const a = ART[key]; return `<use href="#a-${key}" x="${r2(x)}" y="${r2(y)}" width="${r2(w)}" height="${r2(w * a.h / a.w)}" style="--verde:${c.verde};--cafe:${c.cafe}"/>`; };
+  const filas = String(s.gFilas || '').split(/\r?\n/).map(l => l.split('|').map(t => t.trim())).filter(f => f.length >= 2 && (f[1] || f[2]));
+  let o = `<g transform="scale(${k})">`;
+  // ilustraciones de esquina
+  o += ilu('guiaArbol', Wu - 210.6, 0, 210.6);
+  o += ilu('guiaPaisaje', 0, Hu - 263, 405.5);
+  // cabecera: emblema, nombre, filete, título y subtítulo
+  const cx = dx + 332;
+  const ea = ART.emblema, ew = 140, eh = ew * ea.h / ea.w;
+  o += `<g fill="${c.titulo}">${use('emblema', cx - ew / 2, 40, ew, eh)}`;
+  const wa = ART.wordmark, ww = 197.4, wh = ww * wa.h / wa.w;
+  o += `${use('wordmark', cx - ww / 2, 151, ww, wh)}</g>`;
+  o += `<rect x="${r2(cx - 25)}" y="226.5" width="50" height="1.6" fill="${c.divisor}"/>`;
+  o += `<text x="${r2(cx)}" y="280" text-anchor="middle" font-family="${ser}" font-weight="600" font-size="56" fill="${c.titulo}" data-max="430">${esc(s.gTitulo)}</text>`;
+  o += `<text x="${r2(cx)}" y="306" text-anchor="middle" font-family="${ser}" font-size="11.5" letter-spacing="4.2" fill="${c.sub}">${esc(String(s.gSub || '').toUpperCase())}</text>`;
+  // filas de cuidados
+  const n = Math.max(1, filas.length), top = 328, paso = (Hu - top - 178) / n;
+  filas.forEach(([ic, tit, txt = ''], i) => {
+    const y = top + i * paso, x0 = dx + 129.7;
+    if (c.circulo !== 'none') o += `<circle cx="${r2(x0 + 48.5)}" cy="${r2(y + 52)}" r="41" fill="${c.circulo}"/>`;
+    if (ICONOS[ic]) o += `<g transform="translate(${r2(x0 + 48.5 - 26)} ${r2(y + 52 - 26)}) scale(1.3)" fill="none" stroke="${c.titulo}" stroke-width="2.3" stroke-linejoin="round">${ICONOS[ic]}</g>`;
+    o += `<text x="${r2(dx + 251)}" y="${r2(y + 30)}" font-family="${ser}" font-weight="600" font-size="23" fill="${c.titulo}">${esc(tit)}</text>`;
+    // si el texto no cabe en el alto de la fila se reduce la letra (nunca se corta el texto)
+    let fs = 14.4, lh, lineas;
+    do { lh = fs * 1.264; lineas = partir(txt, lora, fs, 272 * 14.4 / fs > 300 ? 300 : 272 * 14.4 / fs); fs -= 0.4; }
+    while (fs >= 10.8 && 54 + (lineas.length - 1) * lh > paso - 18);
+    fs += 0.4;
+    lineas.forEach((l, j) => {
+      o += `<text x="${r2(dx + 251)}" y="${r2(y + 54 + j * lh)}" font-family="${lora}" font-size="${r2(fs)}" fill="${c.cuerpo}">${esc(l)}</text>`;
+    });
+    if (i < n - 1) o += `<rect x="${r2(x0)}" y="${r2(y + paso - 13)}" width="421" height="0.9" fill="${c.linea}"/>`;
+  });
+  // cierre: pregunta, invitación, WhatsApp, Instagram y QR
+  const ccx = dx + 488;
+  o += `<rect x="${r2(dx + 423)}" y="${r2(878 + by)}" width="53" height="1.6" fill="${c.divisor}"/>`;
+  if (s.gCta) o += `<text x="${r2(ccx)}" y="${r2(911 + by)}" text-anchor="middle" font-family="${ser}" font-weight="600" font-size="19.5" fill="${c.titulo}" data-max="250">${esc(s.gCta)}</text>`;
+  if (s.gCta2) o += `<text x="${r2(ccx - 5)}" y="${r2(934 + by)}" text-anchor="middle" font-family="${ser}" font-size="17" fill="${c.sub}">${esc(s.gCta2)}</text>`;
+  const ico = (svg, x) => `<g transform="translate(${r2(x)} ${r2(955 + by)}) scale(1.05)" fill="${c.titulo}" stroke="${c.titulo}" stroke-width="2.6" stroke-linejoin="round"><g fill="none">${svg.replace(/stroke="none"/g, 'stroke="none" fill="' + c.titulo + '"')}</g></g>`;
+  o += ico(ICON_WA, dx + 404) + ico(ICON_IG, dx + 470);
+  o += `<rect x="${r2(dx + 539)}" y="${r2(948 + by)}" width="1.2" height="52" fill="${c.linea}"/>`;
+  if (s.gQr && typeof qrcode === 'function') {
+    const q = qrPath(s.gQr), t = 66;
+    o += `<svg x="${r2(dx + 556)}" y="${r2(941 + by)}" width="${t}" height="${t}" viewBox="-1 -1 ${q.n + 2} ${q.n + 2}" shape-rendering="crispEdges"><path fill="${c.titulo}" d="${q.d}"/></svg>`;
+  }
+  return o + '</g>';
+}
+
+/* --------------------- Etiqueta de fertilizante ---------------------
+   Frente: emblema y nombre de marca arriba, nombre del producto en el cielo de la ilustración y la
+   montaña principal a sangre abajo (en tinte del color de ilustración). Todo proporcional al ancho. */
+const SER = "'EB Garamond','Times New Roman',serif", LORA = "'Lora','Georgia',serif";
+function fertFrente(W, H, it, s) {
+  const c = COMBOS[it.combo], forma = rectR(W, H, Math.min(W, H) * 0.03);
+  let o = '';
+  const ew = 0.32 * W, eh = ew * ART.emblema.h / ART.emblema.w, ey = 0.06 * H;
+  const ww = 0.58 * W, wh = ww * ART.wordmark.h / ART.wordmark.w, wy = ey + eh + 0.025 * H;
+  const fs = clamp(0.068 * W, 2.4, 6), lineas = partir(it.nombre, SER, fs, 0.84 * W);
+  let y = wy + wh + 0.085 * H;
+  const fs2 = fs * 0.72;
+  const fin = y + (lineas.length - 1) * fs * 1.18 + (it.detalle ? fs * 1.45 : 0);
+  // la cima de las montañas queda bajo el texto (≈ 25 % del alto de la ilustración es cielo)
+  const a = ART.montana, ih = W * a.h / a.w, cima = Math.max(fin + 0.06 * H, 0.62 * H);
+  o += conClip(W, H, forma, `<g fill="${c.ilus}" opacity="${c.ilusOp}">${use('montana', 0, cima - 0.25 * ih, W, ih)}</g>`);
+  o += `<g fill="${c.principal}">${use('emblema', (W - ew) / 2, ey, ew, eh)}${use('wordmark', (W - ww) / 2, wy, ww, wh)}</g>`;
+  o += `<g text-anchor="middle" font-family="${SER}">`;
+  lineas.forEach((l, i) => { o += `<text x="${r2(W / 2)}" y="${r2(y + i * fs * 1.18)}" font-size="${r2(fs)}" fill="${c.principal}">${esc(l)}</text>`; });
+  y += (lineas.length - 1) * fs * 1.18;
+  if (it.detalle) o += `<text x="${r2(W / 2)}" y="${r2(y + fs * 1.45)}" font-family="${LORA}" font-size="${r2(fs2)}" fill="${c.texto}" opacity=".9">${esc(it.detalle)}</text>`;
+  if (it.contenido) o += `<text x="${r2(W / 2)}" y="${r2(H - 0.065 * H)}" font-family="${LORA}" font-size="${r2(fs2)}" fill="${c.texto}" data-max="${r2(0.8 * W)}">${esc(it.contenido)}</text>`;
+  return o + '</g>';
+}
+function fertDorso(W, H, it, s) {
+  const c = COMBOS[it.combo], m = 0.09 * W;
+  let o = '';
+  const ew = 0.2 * W, eh = ew * ART.emblema.h / ART.emblema.w, ey = 0.05 * H;
+  o += `<g fill="${c.principal}">${use('emblema', (W - ew) / 2, ey, ew, eh)}</g>`;
+  const ft = clamp(0.062 * W, 2.4, 5.5);
+  let y = ey + eh + 0.06 * H;
+  o += `<text x="${r2(W / 2)}" y="${r2(y)}" text-anchor="middle" font-family="${SER}" font-size="${r2(ft)}" fill="${c.principal}">Modo de uso</text>`;
+  o += `<rect x="${r2(W / 2 - 0.06 * W)}" y="${r2(y + ft * 0.55)}" width="${r2(0.12 * W)}" height="${r2(Math.max(0.2, W * 0.004))}" fill="${c.principal}"/>`;
+  y += ft * 1.9;
+  // cuerpo: baja la letra hasta que quepa sobre los campos de lote y envasado
+  const limite = H - 0.27 * H;
+  let fb = clamp(0.04 * W, 1.8, 3.6), lin;
+  do { lin = partir(s.fUso, LORA, fb, W - 2 * m); fb -= 0.1; } while (fb > 1.5 && y + (lin.length - 1) * fb * 1.35 > limite);
+  fb += 0.1;
+  lin.forEach((l, i) => { o += `<text x="${r2(m)}" y="${r2(y + i * fb * 1.35)}" font-family="${LORA}" font-size="${r2(fb)}" fill="${c.texto}">${esc(l)}</text>`; });
+  // lote y fecha: el valor escrito o una línea para completar a mano
+  const fc = clamp(0.042 * W, 1.8, 3.4);
+  [['Lote', s.fLote], ['Envasado', s.fFecha]].forEach(([k, v], i) => {
+    const yy = H - 0.2 * H + i * fc * 2.1;
+    o += `<text x="${r2(m)}" y="${r2(yy)}" font-family="${LORA}" font-size="${r2(fc)}" fill="${c.texto}">${k}:${v ? ` <tspan font-weight="600">${esc(v)}</tspan>` : ''}</text>`;
+    if (!v) o += `<rect x="${r2(m + fc * (k.length * 0.55 + 1))}" y="${r2(yy + 0.4)}" width="${r2(W - 2 * m - fc * (k.length * 0.55 + 1))}" height="0.18" fill="${c.texto}" opacity=".7"/>`;
+  });
+  const pie = ['Legado Bonsái · Ecuador', [s.tWeb, s.tTel].filter(Boolean).join(' · ')].filter(Boolean);
+  pie.forEach((t, i) => { o += `<text x="${r2(W / 2)}" y="${r2(H - 0.075 * H + i * fc * 1.25)}" text-anchor="middle" font-family="${LORA}" font-size="${r2(fc * 0.82)}" fill="${c.principal}" data-max="${r2(W - 2 * m)}">${esc(t)}</text>`; });
+  return o;
+}
+
+/* ------------- Tarjeta de cuidados (frente y dorso) e instructivo rápido -------------
+   Mismos pictogramas que la guía (ICONOS), sin círculo de fondo, en el color principal de la combinación. */
+const filasIconos = (txt, min) => String(txt || '').split(/\r?\n/).map(l => l.split('|').map(t => t.trim())).filter(f => f.length >= min && f[1]);
+const icono = (k, x, y, t, color) => ICONOS[k] ? `<g transform="translate(${r2(x)} ${r2(y)}) scale(${r2(t / 40)})" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round">${ICONOS[k]}</g>` : '';
+const iconoRed = (svg, x, y, t, color) => `<g transform="translate(${r2(x)} ${r2(y)}) scale(${r2(t / 40)})" fill="none" stroke="${color}" stroke-width="2.6" stroke-linejoin="round">${svg.replace(/stroke="none"/g, `stroke="none" fill="${color}"`)}</g>`;
+// montaña principal a sangre en la parte baja; `cima` = altura donde empiezan las montañas
+function montanaAbajo(W, H, forma, c, cima) {
+  const a = ART.montana, ih = W * a.h / a.w;
+  return conClip(W, H, forma, `<g fill="${c.ilus}" opacity="${c.ilusOp}">${use('montana', 0, cima - 0.25 * ih, W, ih)}</g>`);
+}
+
+function cuidadosFrente(W, H, s) {
+  const c = COMBOS[s.cFrente] || COMBOS.verde, forma = rectR(W, H, Math.min(W, H) * 0.025);
+  let o = montanaAbajo(W, H, forma, c, 0.66 * H);
+  const ew = 0.44 * W, eh = ew * ART.emblema.h / ART.emblema.w, ey = 0.15 * H;
+  const ww = 0.64 * W, wh = ww * ART.wordmark.h / ART.wordmark.w, wy = ey + eh + 0.035 * H;
+  o += `<g fill="${c.principal}">${use('emblema', (W - ew) / 2, ey, ew, eh)}${use('wordmark', (W - ww) / 2, wy, ww, wh)}</g>`;
+  const ft = clamp(0.085 * W, 3, 9), ty = wy + wh + 0.09 * H;
+  o += `<text x="${r2(W / 2)}" y="${r2(ty)}" text-anchor="middle" font-family="${SER}" font-size="${r2(ft)}" fill="${c.texto}" data-max="${r2(0.86 * W)}">${esc(s.cTitulo)}</text>`;
+  o += `<rect x="${r2(W / 2 - 0.08 * W)}" y="${r2(ty + ft * 0.9)}" width="${r2(0.16 * W)}" height="${r2(Math.max(0.2, 0.004 * W))}" fill="${c.principal}"/>`;
+  return o;
+}
+function cuidadosDorso(W, H, s) {
+  const c = COMBOS[s.cDorso] || COMBOS.crema, m = 0.1 * W;
+  let o = '';
+  // pino de esquina (ilustración de la guía) a una sola tinta
+  const aw = 0.27 * W, a = ART.guiaArbol, ah = aw * a.h / a.w;
+  o += `<use href="#a-guiaArbol" x="${r2(W - aw)}" y="0" width="${r2(aw)}" height="${r2(aw * a.h / a.w)}" opacity=".9" style="--verde:${c.principal};--cafe:${c.principal}"/>`;
+  const ft = clamp(0.075 * W, 3, 8);
+  o += `<text x="${r2(m)}" y="${r2(0.11 * H)}" font-family="${SER}" font-size="${r2(ft)}" fill="${c.principal}" data-max="${r2(W - m - aw * 0.55)}">${esc(s.cTitulo2)}</text>`;
+  const filas = filasIconos(s.cFilas, 2), n = Math.max(1, filas.length);
+  const top = 0.17 * H, bottom = 0.84 * H, paso = (bottom - top) / n;
+  const it = Math.min(0.1 * W, paso * 0.55), tx = m + it + 0.06 * W, twMax = W - tx - m * 0.8;
+  filas.forEach(([ic, tit, txt = ''], i) => {
+    const y = top + i * paso;
+    o += icono(ic, m, y + paso * 0.08, it, c.principal);
+    const fs1 = clamp(0.052 * W, 2, 5.5);
+    o += `<text x="${r2(tx)}" y="${r2(y + paso * 0.08 + fs1 * 0.85)}" font-family="${SER}" font-weight="600" font-size="${r2(fs1)}" fill="${c.principal}">${esc(tit)}</text>`;
+    // el texto baja de tamaño si no cabe en su fila
+    let fs2 = clamp(0.04 * W, 1.6, 4), lin;
+    // las filas a la altura del pino dejan libre su ancho
+    const tw = y + paso * 0.5 < ah ? W - tx - aw * 0.8 : twMax;
+    do { lin = partir(txt, LORA, fs2, tw); fs2 -= 0.1; } while (fs2 > 1.4 && fs1 * 1.9 + (lin.length - 1) * fs2 * 1.3 > paso * 0.9);
+    fs2 += 0.1;
+    lin.forEach((l, j) => { o += `<text x="${r2(tx)}" y="${r2(y + paso * 0.08 + fs1 * 0.85 + fs2 * 1.45 + j * fs2 * 1.3)}" font-family="${LORA}" font-size="${r2(fs2)}" fill="${c.texto}" opacity=".9">${esc(l)}</text>`; });
+  });
+  const fc = clamp(0.04 * W, 1.6, 4);
+  if (s.cCta) o += `<text x="${r2(W / 2)}" y="${r2(0.895 * H)}" text-anchor="middle" font-family="${LORA}" font-size="${r2(fc)}" fill="${c.texto}" data-max="${r2(W - 2 * m)}">${esc(s.cCta)}</text>`;
+  const ri = 0.07 * W;
+  o += iconoRed(ICON_WA, W / 2 - ri - 0.02 * W, 0.92 * H, ri, c.principal) + iconoRed(ICON_IG, W / 2 + 0.02 * W, 0.92 * H, ri, c.principal);
+  return o;
+}
+
+function instructivo(W, H, s) {
+  const c = COMBOS[s.iColor] || COMBOS.crema, forma = rectR(W, H, Math.min(W, H) * 0.03);
+  let o = montanaAbajo(W, H, forma, c, 0.86 * H);
+  const ew = 0.3 * W, eh = ew * ART.emblema.h / ART.emblema.w, ey = 0.06 * H;
+  const ww = 0.48 * W, wh = ww * ART.wordmark.h / ART.wordmark.w, wy = ey + eh + 0.02 * H;
+  o += `<g fill="${c.principal}">${use('emblema', (W - ew) / 2, ey, ew, eh)}${use('wordmark', (W - ww) / 2, wy, ww, wh)}</g>`;
+  const ft = clamp(0.078 * W, 2.6, 7), ty = wy + wh + 0.08 * H;
+  o += `<text x="${r2(W / 2)}" y="${r2(ty)}" text-anchor="middle" font-family="${SER}" font-size="${r2(ft)}" fill="${c.principal}" data-max="${r2(0.86 * W)}">${esc(s.iTitulo)}</text>`;
+  const filas = filasIconos(s.iFilas, 2), n = Math.max(1, filas.length);
+  const top = ty + ft * 0.9, bottom = 0.84 * H, paso = (bottom - top) / n;
+  const it = Math.min(0.085 * W, paso * 0.62), x0 = 0.15 * W, tx = x0 + it + 0.07 * W;
+  const fs = clamp(Math.min(0.055 * W, paso * 0.42), 1.8, 5);
+  filas.forEach(([ic, txt], i) => {
+    const cy = top + (i + 0.5) * paso;
+    o += icono(ic, x0, cy - it / 2, it, c.principal);
+    o += `<text x="${r2(tx)}" y="${r2(cy + fs * 0.35)}" font-family="${LORA}" font-size="${r2(fs)}" fill="${c.texto}" data-max="${r2(W - tx - 0.06 * W)}">${esc(txt)}</text>`;
+  });
+  return o;
+}
+
+/* ------------------------- Caja de envío (troquel) -------------------------
+   Caja de solapas (RSC): pestaña de pegado | largo | ancho | largo | ancho, con solapas arriba y abajo
+   de medio ancho que se juntan al centro. Cada panel suma el grosor del cartón para que las medidas
+   interiores sean las pedidas. Todo en mm, origen en la esquina superior izquierda del desplegado. */
+function cajaGeo(s) {
+  const L = s.kL, A = s.kA, Hh = s.kH, t = s.kT, g = s.kG;
+  const a = L + t, b = A + t, hb = Hh + t, f = (A + t) / 2, ranura = Math.max(3, t);
+  const xs = [g, g + a, g + a + b, g + 2 * a + b, g + 2 * a + 2 * b];
+  const FW = xs[4], FH = 2 * f + hb;
+  const izq = i => i === 0 ? xs[0] : xs[i] + ranura / 2, der = i => i === 3 ? xs[4] : xs[i + 1] - ranura / 2;
+  // contorno de corte: solapas de arriba, lado derecho, solapas de abajo (de derecha a izquierda) y pestaña
+  const P = [[xs[0], 0]];
+  for (let i = 0; i < 4; i++) { P.push([der(i), 0]); if (i < 3) P.push([der(i), f], [izq(i + 1), f], [izq(i + 1), 0]); }
+  P.push([xs[4], FH]);
+  for (let i = 3; i >= 0; i--) { P.push([izq(i), FH]); if (i > 0) P.push([izq(i), f + hb], [der(i - 1), f + hb], [der(i - 1), FH]); }
+  const bisel = Math.min(12, hb * 0.1);
+  P.push([xs[0], f + hb], [0, f + hb - bisel], [0, f + bisel], [xs[0], f]);
+  const corte = 'M' + P.map(p => `${r2(p[0])} ${r2(p[1])}`).join('L') + 'Z';
+  const doblez = `M${xs[0]} ${r2(f)}H${r2(xs[4])}M${xs[0]} ${r2(f + hb)}H${r2(xs[4])}` + xs.slice(0, 4).map(x => `M${r2(x)} ${r2(f)}V${r2(f + hb)}`).join('');
+  return { L, A, Hh, t, g, a, b, hb, f, xs, FW, FH, corte, doblez };
+}
+function cajaDibujo(s) {
+  const k = cajaGeo(s), c = COMBOS[s.kColor] || COMBOS.kraft, y0 = k.f, hb = k.hb;
+  let o = '';
+  // fondo de color: se rellena el contorno y se engorda 3 mm hacia afuera como sangrado
+  if (c.tintaFondo || s.impFondo) o += `<path d="${k.corte}" fill="${c.fondo}" stroke="${c.fondo}" stroke-width="6" stroke-linejoin="round"/>`;
+  else o += `<path class="prev" d="${k.corte}" fill="${c.fondo}"/>`;
+  const panel = (i, contenido) => { const id = 'c' + (++clipN), x = k.xs[i], w = k.xs[i + 1] - x; return `<clipPath id="${id}"><rect x="${r2(x)}" y="${r2(y0)}" width="${r2(w)}" height="${r2(hb)}"/></clipPath><g clip-path="url(#${id})">${contenido(x, w)}</g>`; };
+  const montana = (x, w, alto) => { const a = ART.montana, ih = w * a.h / a.w; return `<g fill="${c.ilus}" opacity="${c.ilusOp}">${use('montana', x, y0 + hb - ih * alto, w, ih)}</g>`; };
+  // frente (largo): montaña principal abajo y logotipo a la izquierda, como en el tablero
+  o += panel(0, (x, w) => {
+    // paisaje en los dos tercios derechos (pino a la derecha), logotipo y frase a la izquierda
+    const iw = Math.min(w * 0.64, hb * 1.25), a = ART.montana, ih = iw * a.h / a.w;
+    let r = `<g fill="${c.ilus}" opacity="${c.ilusOp}">${use('montana', x + w - iw, y0 + hb - ih, iw, ih)}</g>`;
+    const lh = Math.min(hb * 0.52, (w - iw) * 1.2), lw = lh * ART.vertical.w / ART.vertical.h;
+    const cx = x + Math.max(lw / 2 + w * 0.05, (w - iw) * 0.55), ly = y0 + hb * 0.12;
+    r += `<g fill="${c.principal}">${use('vertical', cx - lw / 2, ly, lw, lh)}</g>`;
+    if (s.kLema) r += `<text x="${r2(cx)}" y="${r2(ly + lh + hb * 0.12)}" text-anchor="middle" font-family="${SER}" font-size="${r2(hb * 0.06)}" fill="${c.principal}" data-max="${r2(w * 0.5)}">${esc(s.kLema)}</text>`;
+    return r;
+  });
+  // costados (ancho): emblema y nombre; avisos de envío abajo (tamaños según el alto del panel)
+  const costado = (x, w) => {
+    const eh = Math.min(hb * 0.3, w * 0.3), ew = eh * ART.emblema.w / ART.emblema.h, ww = Math.min(ew * 1.35, w * 0.8), wh = ww * ART.wordmark.h / ART.wordmark.w;
+    let r = `<g fill="${c.principal}">${use('emblema', x + (w - ew) / 2, y0 + hb * 0.12, ew, eh)}${use('wordmark', x + (w - ww) / 2, y0 + hb * 0.12 + eh + hb * 0.03, ww, wh)}</g>`;
+    if (s.kAvisos) {
+      const fy = y0 + hb * 0.82, fz = Math.min(hb * 0.045, w * 0.045), ax = x + w / 2;
+      r += `<g fill="none" stroke="${c.principal}" stroke-width="${r2(fz * 0.16)}" stroke-linecap="round" stroke-linejoin="round"><path d="M${r2(ax - fz * 1.6)} ${r2(fy - fz * 1.2)}v${r2(-fz * 1.8)}m${r2(-fz * 0.6)} ${r2(fz * 0.6)}l${r2(fz * 0.6)} ${r2(-fz * 0.6)}l${r2(fz * 0.6)} ${r2(fz * 0.6)}M${r2(ax + fz * 1.6)} ${r2(fy - fz * 1.2)}v${r2(-fz * 1.8)}m${r2(-fz * 0.6)} ${r2(fz * 0.6)}l${r2(fz * 0.6)} ${r2(-fz * 0.6)}l${r2(fz * 0.6)} ${r2(fz * 0.6)}"/></g>`;
+      r += `<text x="${r2(ax)}" y="${r2(fy + fz * 0.6)}" text-anchor="middle" font-family="${SER}" font-size="${r2(fz)}" letter-spacing="${r2(fz * 0.15)}" fill="${c.principal}">ESTE LADO ARRIBA</text>`;
+      r += `<text x="${r2(ax)}" y="${r2(fy + fz * 2.1)}" text-anchor="middle" font-family="${LORA}" font-size="${r2(fz * 0.75)}" fill="${c.texto}">Planta viva · manipular con cuidado</text>`;
+    }
+    return r;
+  };
+  o += panel(1, costado) + panel(3, costado);
+  // dorso (largo): paisaje completo y la web
+  o += panel(2, (x, w) => montana(x, w, 1) + (s.tWeb ? `<text x="${r2(x + w / 2)}" y="${r2(y0 + hb * 0.16)}" text-anchor="middle" font-family="${LORA}" font-size="${r2(hb * 0.05)}" fill="${c.principal}">${esc(s.tWeb)}</text>` : ''));
+  if (s.kTroquel) {
+    o += `<path d="${k.corte}" fill="none" stroke="#C0185A" stroke-width="0.35"/>`;
+    o += `<path d="${k.doblez}" fill="none" stroke="#1E7FC0" stroke-width="0.3" stroke-dasharray="3 2"/>`;
+  }
+  return { ...k, svg: o };
+}
+function cajaPaginas(s) {
+  const d = cajaDibujo(s);
+  return troquelPaginas(s, { d, modo: s.kModo, color: s.kColor, troquel: s.kTroquel,
+    leyenda: `Legado Bonsái · Caja ${fmt(s.kL)} × ${fmt(s.kA)} × ${fmt(s.kH)} mm (interior) · desplegado ${fmt(r2(d.FW))} × ${fmt(r2(d.FH))} mm · cartón ${fmt(s.kT)} mm` });
+}
+
+/* --------------------------- Bolsa de regalo (troquel) ---------------------------
+   Pestaña de pegado | frente | fuelle | dorso | fuelle. Arriba, dobladillo de refuerzo que se dobla hacia
+   adentro; abajo, solapas de fondo (medio fuelle + 20 mm de cruce). Los fuelles llevan doblez central
+   y los dos dobleces en diagonal del fondo. Agujeros para el cordón alineados en la cara y el dobladillo. */
+function bolsaGeo(s) {
+  const W = s.bW, G = s.bG, H = s.bH, gp = 20, ti = s.bTi, bd = G / 2 + 20;
+  const xs = [gp, gp + W, gp + W + G, gp + 2 * W + G, gp + 2 * W + 2 * G];
+  const FW = xs[4], FH = ti + H + bd, yb = ti + H, bis = 8;
+  // contorno: rectángulo del cuerpo + pestaña biselada a la izquierda (solo en la altura del cuerpo)
+  const corte = `M${xs[0]} 0H${FW}V${FH}H${xs[0]}V${yb}L0 ${r2(yb - bis)}V${r2(ti + bis)}L${xs[0]} ${ti}Z` +
+    // ranuras del fondo entre paneles
+    [1, 2, 3].map(i => `M${r2(xs[i])} ${r2(yb)}V${r2(FH)}`).join('');
+  let doblez = `M${xs[0]} ${ti}H${FW}M${xs[0]} ${r2(yb)}H${FW}` + xs.slice(0, 4).map(x => `M${r2(x)} 0V${r2(yb)}`).join('');
+  [1, 3].forEach(i => {
+    const x = xs[i], c = x + G / 2;
+    doblez += `M${r2(c)} 0V${r2(yb)}M${r2(x)} ${r2(yb - G / 2)}L${r2(c)} ${r2(yb)}M${r2(x + G)} ${r2(yb - G / 2)}L${r2(c)} ${r2(yb)}`;
+  });
+  // agujeros del cordón: 25 mm bajo el borde ya doblado, y su reflejo en el dobladillo
+  const ag = [];
+  [0, 2].forEach(i => { const cx = xs[i] + W / 2; [-1, 1].forEach(sg => { const x = cx + sg * W * 0.2; ag.push([x, ti + 25], [x, ti - 25]); }); });
+  return { W, G, H, gp, ti, bd, xs, FW, FH, yb, corte, doblez, ag };
+}
+function bolsaDibujo(s) {
+  const k = bolsaGeo(s), c = COMBOS[s.bColor] || COMBOS.verde, y0 = k.ti, H = k.H;
+  let o = '';
+  if (c.tintaFondo || s.impFondo) o += `<path d="${k.corte}" fill="${c.fondo}" stroke="${c.fondo}" stroke-width="6" stroke-linejoin="round"/>`;
+  else o += `<path class="prev" d="${k.corte}" fill="${c.fondo}"/>`;
+  const panel = (i, f) => { const id = 'c' + (++clipN), x = k.xs[i], w = k.xs[i + 1] - x; return `<clipPath id="${id}"><rect x="${r2(x)}" y="${r2(y0)}" width="${r2(w)}" height="${r2(H)}"/></clipPath><g clip-path="url(#${id})">${f(x, w)}</g>`; };
+  const montana = (x, w, sube) => { const a = ART.montana, ih = w * a.h / a.w; return `<g fill="${c.ilus}" opacity="${c.ilusOp}">${use('montana', x, y0 + H - ih * sube, w, ih)}</g>`; };
+  // frente: logotipo dorado arriba y montaña principal abajo, como en el tablero
+  o += panel(0, (x, w) => {
+    const lw = w * 0.52, lh = lw * ART.vertical.h / ART.vertical.w;
+    let r = montana(x, w, 0.82) + `<g fill="${c.principal}">${use('vertical', x + (w - lw) / 2, y0 + H * 0.17, lw, lh)}</g>`;
+    if (s.bLema) r += `<text x="${r2(x + w / 2)}" y="${r2(y0 + H * 0.17 + lh + H * 0.07)}" text-anchor="middle" font-family="${SER}" font-size="${r2(w * 0.05)}" fill="${c.texto}" data-max="${r2(w * 0.85)}">${esc(s.bLema)}</text>`;
+    return r;
+  });
+  // dorso: paisaje y web; fuelles: emblema pequeño
+  o += panel(2, (x, w) => montana(x, w, 0.95) + (s.tWeb ? `<text x="${r2(x + w / 2)}" y="${r2(y0 + H * 0.12)}" text-anchor="middle" font-family="${LORA}" font-size="${r2(w * 0.04)}" fill="${c.principal}">${esc(s.tWeb)}</text>` : ''));
+  [1, 3].forEach(i => { o += panel(i, (x, w) => { const ew = w * 0.5, eh = ew * ART.emblema.h / ART.emblema.w; return `<g fill="${c.principal}">${use('emblema', x + (w - ew) / 2, y0 + H * 0.3, ew, eh)}</g>`; }); });
+  if (s.bTroquel) {
+    o += `<path d="${k.corte}" fill="none" stroke="#C0185A" stroke-width="0.35"/>`;
+    o += `<path d="${k.doblez}" fill="none" stroke="#1E7FC0" stroke-width="0.3" stroke-dasharray="3 2"/>`;
+    o += k.ag.map(([x, y]) => `<circle cx="${r2(x)}" cy="${r2(y)}" r="2.5" fill="none" stroke="#C0185A" stroke-width="0.35"/>`).join('');
+  }
+  return { ...k, svg: o };
+}
+function bolsaPaginas(s) {
+  const d = bolsaDibujo(s);
+  return troquelPaginas(s, { d, modo: s.bModo, color: s.bColor, troquel: s.bTroquel,
+    leyenda: `Legado Bonsái · Bolsa ${fmt(s.bW)} × ${fmt(s.bG)} × ${fmt(s.bH)} mm (ancho × fuelle × alto) · desplegado ${fmt(r2(d.FW))} × ${fmt(r2(d.FH))} mm` });
+}
+
+// Páginas de un troquel grande (caja o bolsa): lámina 1:1 o mosaico con solape. o = { d, leyenda, troquel, modo, color }
+function troquelPaginas(s, o) {
+  const d = o.d, m = s.margen, pie = 8;
+  const leyenda = o.leyenda;
+  const troquel = o.troquel ? ' · rojo = corte, azul punteado = doblez' : '';
+  const reglaSvg = (x, y) => `<g stroke="#000" stroke-width="0.2" fill="none"><path d="M${r2(x)} ${r2(y)}h50M${r2(x)} ${r2(y - 2)}v4M${r2(x + 50)} ${r2(y - 2)}v4"/></g><text x="${r2(x + 52)}" y="${r2(y + 0.9)}" font-family="IBM Plex Sans,sans-serif" font-size="2.3">50 mm</text>`;
+  const tintas = (COMBOS[o.color] || COMBOS.kraft).tintas;
+  const muestras = (x, y) => tintas.map((k, i) => `<rect x="${r2(x + i * 32)}" y="${r2(y - 4)}" width="5" height="5" fill="${MARCA[k].hex}" stroke="#999" stroke-width="0.1"/><text x="${r2(x + i * 32 + 6)}" y="${r2(y)}" font-family="IBM Plex Sans,sans-serif" font-size="1.9">${esc(MARCA[k].pantone.split(' · ')[0])}</text>`).join('');
+  if (o.modo !== 'mosaico') {
+    const pw = r2(d.FW + 2 * m + 6), ph = r2(d.FH + 2 * m + 6 + pie);
+    const svg = `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}"><rect class="prev" width="${pw}" height="${ph}" fill="#FFFFFF"/>` +
+      `<g transform="translate(${m + 3} ${m + 3})">${d.svg}</g>${reglaSvg(m, ph - m - 2)}` +
+      `<text x="${m + 70}" y="${r2(ph - m - 1.2)}" font-family="IBM Plex Sans,sans-serif" font-size="2.4" fill="#444">${esc(leyenda + troquel)}</text>${muestras(pw - m - tintas.length * 32, ph - m - 1)}</svg>`;
+    return { pw, ph, paginas: [{ cap: 'Lámina 1:1', svg }], resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en una lámina de <b>${fmt(pw)} × ${fmt(ph)}</b> mm` };
+  }
+  // mosaico: ventanas del desplegado con 10 mm de solape para pegar las hojas
+  let [pw, ph] = s.papel === 'custom' ? [s.pw, s.ph] : (PAPELES[s.papel] || PAPELES.A4);
+  if (pw > ph) [pw, ph] = [ph, pw];
+  const ov = 10, mejor = [[pw, ph], [ph, pw]].map(([w, h]) => {
+    const uw = w - 2 * m, uh = h - 2 * m - pie;
+    const cols = Math.ceil((d.FW + 6 - ov) / (uw - ov)), rows = Math.ceil((d.FH + 6 - ov) / (uh - ov));
+    return { w, h, uw, uh, cols, rows, n: cols * rows };
+  }).sort((p, q) => p.n - q.n)[0];
+  const paginas = [], letras = 'ABCDEFGHIJ';
+  for (let r = 0; r < mejor.rows; r++) for (let c2 = 0; c2 < mejor.cols; c2++) {
+    const vx = c2 * (mejor.uw - ov) - 3, vy = r * (mejor.uh - ov) - 3, id = 'v' + r + c2;
+    let marcas = `<rect x="${m}" y="${m}" width="${r2(mejor.uw)}" height="${r2(mejor.uh)}" fill="none" stroke="#999" stroke-width="0.15"/>`;
+    // franja de solape (derecha y abajo): ahí se pega la hoja siguiente
+    if (c2 < mejor.cols - 1) marcas += `<rect x="${r2(m + mejor.uw - ov)}" y="${m}" width="${ov}" height="${r2(mejor.uh)}" fill="#000" opacity=".05"/><path d="M${r2(m + mejor.uw - ov)} ${m}v${r2(mejor.uh)}" stroke="#555" stroke-width="0.2" stroke-dasharray="2 1.5"/>`;
+    if (r < mejor.rows - 1) marcas += `<rect x="${m}" y="${r2(m + mejor.uh - ov)}" width="${r2(mejor.uw)}" height="${ov}" fill="#000" opacity=".05"/><path d="M${m} ${r2(m + mejor.uh - ov)}h${r2(mejor.uw)}" stroke="#555" stroke-width="0.2" stroke-dasharray="2 1.5"/>`;
+    const nombre = `${letras[r]}${c2 + 1}`;
+    const svg = `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${mejor.w} ${mejor.h}" width="${mejor.w}mm" height="${mejor.h}mm" data-pw="${mejor.w}"><rect class="prev" width="${mejor.w}" height="${mejor.h}" fill="#FFFFFF"/>` +
+      `<clipPath id="${id}"><rect x="${m}" y="${m}" width="${r2(mejor.uw)}" height="${r2(mejor.uh)}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${r2(m - vx)} ${r2(m - vy)})">${d.svg}</g></g>${marcas}` +
+      `<text x="${m}" y="${r2(mejor.h - m - 1.5)}" font-family="IBM Plex Sans,sans-serif" font-size="3.2" font-weight="600">${nombre}</text>` +
+      `<text x="${m + 9}" y="${r2(mejor.h - m - 1.5)}" font-family="IBM Plex Sans,sans-serif" font-size="2.2" fill="#444">de ${mejor.rows} × ${mejor.cols} · la franja gris se cubre con la hoja siguiente · ${esc(leyenda)}</text>` +
+      (r === 0 && c2 === 0 ? reglaSvg(m, mejor.h - m - 6) : '') + '</svg>';
+    paginas.push({ cap: `Hoja ${nombre}`, svg });
+  }
+  return { pw: mejor.w, ph: mejor.h, paginas, resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en <b>${paginas.length}</b> hojas (${mejor.rows} × ${mejor.cols}) con 10 mm de solape` };
+}
+
+/* Carta de color: muestras de las tintas y papeles de marca con su Pantone, CMYK y HEX */
+function cartaColor(W, H) {
+  const m = 10, g = 5, ks = ['verde', 'dorado', 'tinta', 'crema', 'kraft'], n = ks.length;
+  const sw = (W - 2 * m - (n - 1) * g) / n, sh = H * 0.42, sy = 26;
+  const sans = 'IBM Plex Sans,sans-serif';
+  let o = `<text x="${m}" y="13" font-family="${SER}" font-size="7" fill="#192010">Colores de marca · Legado Bonsái</text>`;
+  o += `<text x="${m}" y="19.5" font-family="${sans}" font-size="2.6" fill="#555">Pantone para imprenta (tinta directa) · CMYK aproximado para impresión digital · HEX para pantalla</text>`;
+  ks.forEach((k, i) => {
+    const c = MARCA[k], x = m + i * (sw + g);
+    o += `<rect x="${r2(x)}" y="${sy}" width="${r2(sw)}" height="${r2(sh)}" fill="${c.hex}" stroke="#999" stroke-width="0.15"/>`;
+    const t = [[c.nombre, 3.2, 600], [c.pantone, 2.5, 400], [c.cmyk, 2.4, 400], [c.hex, 2.4, 400]];
+    t.forEach(([txt, fz, fw], j) => {
+      o += `<text x="${r2(x)}" y="${r2(sy + sh + 6 + j * 4.2)}" font-family="${sans}" font-size="${fz}" font-weight="${fw}" fill="#192010" data-max="${r2(sw)}">${esc(txt)}</text>`;
+    });
+  });
+  o += `<text x="${m}" y="${r2(H - 8)}" font-family="${sans}" font-size="2.4" fill="#555">Compara con la guía Pantone Formula Guide (Coated) bajo luz de día. Dorado metálico (871 C) solo en imprenta o hot stamping.</text>`;
+  return o;
+}
+
+function sello(D, s) {
+  const R = D / 2, ink = s.tinta, fondo = s.fondo;
+  const fg = s.sInv ? fondo : ink;
+  let out = '';
+  if (s.sInv) out += `<circle cx="${R}" cy="${R}" r="${R}" fill="${ink}"/>`;
+  out += `<circle cx="${R}" cy="${R}" r="${r2(R - D * 0.05)}" fill="none" stroke="${fg}" stroke-width="${r2(D * 0.012)}"/>`;
+  out += `<circle cx="${R}" cy="${R}" r="${r2(R - D * 0.075)}" fill="none" stroke="${fg}" stroke-width="${r2(D * 0.004)}"/>`;
+  const k = s.sLema ? 'lema' : 'vertical', a = ART[k];
+  let bw = D * (s.sLema ? 0.56 : 0.6), bh = bw * a.h / a.w;
+  const maxH = D * 0.66;
+  if (bh > maxH) { bh = maxH; bw = bh * a.w / a.h; }
+  out += `<g fill="${fg}">${use(k, R - bw / 2, R - bh / 2 - D * 0.01, bw, bh)}</g>`;
+  return out;
+}
+
+/* ----------------------- Imposición en hoja ---------------------- */
+function rejilla(pw, ph, w, h, m, gap, pie) {
+  const uw = pw - 2 * m, uh = ph - 2 * m - pie;
+  const cols = Math.max(0, Math.floor((uw + gap) / (w + gap))), rows = Math.max(0, Math.floor((uh + gap) / (h + gap)));
+  return { cols, rows, n: cols * rows };
+}
+function plan(s, W, H) {
+  const bleed = s.impFondo || PIEZAS[s.pieza].fondoDe ? 2 : 0;
+  const w = W + 2 * bleed, h = H + 2 * bleed;
+  const gap = Math.max(s.sep, 2 * bleed);
+  const pie = s.regla ? 8 : 4;
+  let [pw, ph] = s.papel === 'custom' ? [s.pw, s.ph] : PAPELES[s.papel];
+  if (pw > ph) [pw, ph] = [ph, pw];
+  const ops = [];
+  for (const o of (s.orient === 'auto' ? ['v', 'h'] : [s.orient])) {
+    const [a, b] = o === 'v' ? [pw, ph] : [ph, pw];
+    for (const rot of (s.rotar && W !== H ? [0, 1] : [0])) {
+      const [pw2, ph2] = rot ? [h, w] : [w, h];
+      const g = rejilla(a, b, pw2, ph2, s.margen, gap, pie);
+      ops.push({ o, rot, pw: a, ph: b, w: pw2, h: ph2, ...g });
+    }
+  }
+  ops.sort((x, y) => y.n - x.n || (x.rot - y.rot) || (x.o === 'v' ? -1 : 1));
+  return { ...ops[0], bleed, gap, pie };
+}
+
+function hoja(p, s, pieza, cara, chunk, idx, total, espejo) {
+  const { pw, ph, w, h, cols, rows, gap, bleed, rot } = p;
+  const W = s.W, H = s.H, m = s.margen;
+  const usedW = cols * w + (cols - 1) * gap, usedH = rows * h + (rows - 1) * gap;
+  const x0 = (pw - usedW) / 2, y0 = m + (ph - 2 * m - p.pie - usedH) / 2;
+  let body = '';
+  const xs = new Set(), ys = new Set();
+  chunk.forEach((item, i) => {
+    const r = Math.floor(i / cols); let c = i % cols;
+    if (espejo) c = cols - 1 - c;
+    const x = x0 + c * (w + gap), y = y0 + r * (h + gap);
+    // bordes reales de corte (sin sangrado)
+    if (rot) { xs.add(r2(x + bleed)); xs.add(r2(x + bleed + H)); ys.add(r2(y + bleed)); ys.add(r2(y + bleed + W)); }
+    else { xs.add(r2(x + bleed)); xs.add(r2(x + bleed + W)); ys.add(r2(y + bleed)); ys.add(r2(y + bleed + H)); }
+    const ang = rot ? (espejo ? -90 : 90) : 0;
+    // la pieza se dibuja en su propio sistema (0..W, 0..H) y se gira alrededor del centro de su celda
+    const cx = x + w / 2, cy = y + h / 2;
+    const t = `translate(${r2(cx)} ${r2(cy)}) rotate(${ang}) translate(${r2(-W / 2)} ${r2(-H / 2)})`;
+    let pz = '';
+    const forma = pieza.forma ? pieza.forma(W, H) : null;
+    if (pieza.fondoDe) {
+      const fd = pieza.fondoDe(item, s, cara);
+      pz += `<rect${fd.imprime ? '' : ' class="prev"'} x="${-bleed}" y="${-bleed}" width="${W + 2 * bleed}" height="${H + 2 * bleed}" fill="${fd.color}"/>`;
+    } else if (s.impFondo && !(pieza === PIEZAS.sello && s.sInv)) pz += `<rect x="${-bleed}" y="${-bleed}" width="${W + 2 * bleed}" height="${H + 2 * bleed}" fill="${s.fondo}"/>`;
+    pz += `<g fill="${s.tinta}">${pieza.draw(cara, W, H, item, s)}</g>`;
+    if (s.contorno && forma) pz += `<path d="${forma}" fill="none" stroke="#8A8F8B" stroke-width="0.15" stroke-dasharray="${s.impFondo ? '1 0.8' : 'none'}"/>`;
+    body += `<g transform="${t}">${pz}</g>`;
+  });
+  // fondo de vista previa: muestra el color del papel en pantalla (no se imprime)
+  const prev = s.impFondo ? '' : `<rect class="prev" width="${pw}" height="${ph}" fill="${s.fondo}"/>`;
+  let marcas = '';
+  if (s.marcas && chunk.length) {
+    const L = Math.min(m - 1.5, 5), st = 'stroke="#000" stroke-width="0.12"';
+    xs.forEach(x => { marcas += `<path ${st} d="M${x} ${r2(y0 - 1.5 - L)}v${r2(L)}M${x} ${r2(y0 + usedH + 1.5)}v${r2(L)}"/>`; });
+    ys.forEach(y => { marcas += `<path ${st} d="M${r2(x0 - 1.5 - L)} ${y}h${r2(L)}M${r2(x0 + usedW + 1.5)} ${y}h${r2(L)}"/>`; });
+  }
+  let pie = '';
+  const fy = ph - m * 0.55;
+  const info = `Legado Bonsái · ${pieza.nombre} ${fmt(W)} × ${fmt(H)} mm · ${cara}${total > 1 ? ' · hoja ' + idx + '/' + total : ''}${espejo ? ' · dorso espejado' : ''} · imprimir al 100 %`;
+  if (s.regla) {
+    const rx = x0, ry = ph - m - 5.5;
+    pie += `<g stroke="#000" stroke-width="0.2" fill="none"><path d="M${r2(rx)} ${r2(ry)}h50M${r2(rx)} ${r2(ry - 2)}v4M${r2(rx + 50)} ${r2(ry - 2)}v4M${r2(rx + 10)} ${r2(ry - 1)}v2M${r2(rx + 20)} ${r2(ry - 1)}v2M${r2(rx + 30)} ${r2(ry - 1)}v2M${r2(rx + 40)} ${r2(ry - 1)}v2"/></g>` +
+      `<text x="${r2(rx + 52)}" y="${r2(ry + 0.9)}" font-family="IBM Plex Sans,sans-serif" font-size="2.3" fill="#000">50 mm — si la regla no mide 50 mm, revisa la escala de impresión</text>`;
+  }
+  pie += `<text x="${r2(x0)}" y="${r2(fy)}" font-family="IBM Plex Sans,sans-serif" font-size="2.1" fill="#666">${esc(info)}</text>`;
+  // tira de control: una muestra de cada tinta Pantone usada en la hoja, para comparar con la guía física
+  const tintas = pieza.tintas ? pieza.tintas(chunk, s) : (s.combo && COMBOS[s.combo] ? COMBOS[s.combo].tintas : []);
+  tintas.forEach((k, i) => {
+    const c = MARCA[k], bx = pw - m - (tintas.length - i) * 32, by = ph - m - 7.5;
+    pie += `<rect x="${r2(bx)}" y="${r2(by)}" width="5" height="5" fill="${c.hex}" stroke="#999" stroke-width="0.1"/>` +
+      `<text x="${r2(bx + 6)}" y="${r2(by + 2.2)}" font-family="IBM Plex Sans,sans-serif" font-size="1.9" fill="#333">${esc(c.pantone.split(' · ')[0])}</text>` +
+      `<text x="${r2(bx + 6)}" y="${r2(by + 4.6)}" font-family="IBM Plex Sans,sans-serif" font-size="1.7" fill="#777">${esc(c.cmyk)}</text>`;
+  });
+  return `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}">${prev}${body}${marcas}${pie}</svg>`;
+}
+const fmt = v => String(r2(v)).replace('.', ',');
+
+/* ----------------------------- Estado ---------------------------- */
+const KEY = 'legadoImprimibles';
+const DEF = {
+  pieza: 'etiqueta', medidas: {}, campos: 'Especie, Estilo, Edad aprox., Origen, Código', filas: '', blancas: 10,
+  qr: true, ilus: true, ojal: true,
+  tNombre: 'Legado Bonsái', tCargo: 'Bonsáis de junípero', tTel: '', tIg: '', tWeb: '', tMail: '', tN: 10,
+  sInv: false, sLema: false, sN: 12, lVar: 'vertical', lN: 4,
+  gTitulo: GUIA_TEXTOS.titulo, gSub: GUIA_TEXTOS.sub, gFilas: GUIA_TEXTOS.filas, gCta: GUIA_TEXTOS.cta, gCta2: GUIA_TEXTOS.cta2, gQr: CFG.WHATSAPP_NUMBER ? 'https://wa.me/' + CFG.WHATSAPP_NUMBER : '', gColor: 'original', gN: 4,
+  fFilas: FERT_FILAS, fDorso: true, fUso: FERT_USO, fLote: '', fFecha: '', combo: '',
+  cFrente: 'verde', cDorso: 'crema', cTitulo: 'Guía de cuidados', cTitulo2: 'Cuidados esenciales', cFilas: CUID_FILAS, cCta: 'Ante cualquier duda, escríbenos.', cN: 4,
+  iColor: 'crema', iTitulo: 'Cuidados rápidos', iFilas: INST_FILAS, iN: 8,
+  kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
+  bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
+  papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 8, sep: 3, rotar: true,
+  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, regla: true, zoom: 'fit'
+};
+let S = { ...DEF };
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
+// enlace directo a una pieza: imprimibles.html?pieza=guia
+{ const q = new URLSearchParams(location.search).get('pieza'); if (q && PIEZAS[q]) S.pieza = q; }
+if (!S.tTel && CFG.WHATSAPP_NUMBER) S.tTel = '+' + String(CFG.WHATSAPP_NUMBER).replace(/^(\d{3})(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3 $4');
+if (!S.tWeb && CFG.SITE_URL) S.tWeb = String(CFG.SITE_URL).replace(/^https?:\/\//, '').replace(/\/$/, '');
+const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* nada */ } };
+
+const CAMPOS = {
+  campos: 'v', filas: 'v', blancas: 'n', qr: 'c', ilus: 'c', ojal: 'c',
+  't-nombre': ['tNombre', 'v'], 't-cargo': ['tCargo', 'v'], 't-tel': ['tTel', 'v'], 't-ig': ['tIg', 'v'], 't-web': ['tWeb', 'v'], 't-mail': ['tMail', 'v'], 't-n': ['tN', 'n'],
+  'g-titulo': ['gTitulo', 'v'], 'g-sub': ['gSub', 'v'], 'g-filas': ['gFilas', 'v'], 'g-cta': ['gCta', 'v'], 'g-cta2': ['gCta2', 'v'], 'g-qr': ['gQr', 'v'], 'g-color': ['gColor', 'v'], 'g-n': ['gN', 'n'],
+  'c-frente': ['cFrente', 'v'], 'c-dorso': ['cDorso', 'v'], 'c-titulo': ['cTitulo', 'v'], 'c-titulo2': ['cTitulo2', 'v'], 'c-filas': ['cFilas', 'v'], 'c-cta': ['cCta', 'v'], 'c-n': ['cN', 'n'],
+  'b-w': ['bW', 'n'], 'b-g': ['bG', 'n'], 'b-h': ['bH', 'n'], 'b-ti': ['bTi', 'n'], 'b-color': ['bColor', 'v'], 'b-lema': ['bLema', 'v'], 'b-troquel': ['bTroquel', 'c'], 'b-modo': ['bModo', 'v'],
+  'k-l': ['kL', 'n'], 'k-a': ['kA', 'n'], 'k-h': ['kH', 'n'], 'k-t': ['kT', 'n'], 'k-g': ['kG', 'n'], 'k-color': ['kColor', 'v'], 'k-lema': ['kLema', 'v'], 'k-avisos': ['kAvisos', 'c'], 'k-troquel': ['kTroquel', 'c'], 'k-modo': ['kModo', 'v'],
+  'i-color': ['iColor', 'v'], 'i-titulo': ['iTitulo', 'v'], 'i-filas': ['iFilas', 'v'], 'i-n': ['iN', 'n'],
+  'f-filas': ['fFilas', 'v'], 'f-dorso': ['fDorso', 'c'], 'f-uso': ['fUso', 'v'], 'f-lote': ['fLote', 'v'], 'f-fecha': ['fFecha', 'v'],
+  's-inv': ['sInv', 'c'], 's-lema': ['sLema', 'c'], 's-n': ['sN', 'n'], 'l-var': ['lVar', 'v'], 'l-n': ['lN', 'n'],
+  papel: 'v', orient: 'v', pw: 'n', ph: 'n', margen: 'n', sep: 'n', rotar: 'c',
+  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', duplex: 'c', regla: 'c', zoom: 'v'
+};
+const campo = id => Array.isArray(CAMPOS[id]) ? CAMPOS[id] : [id, CAMPOS[id]];
+function aFormulario() {
+  document.querySelector(`input[name=pieza][value="${S.pieza}"]`).checked = true;
+  for (const id in CAMPOS) {
+    const [k, t] = campo(id), el = $(id);
+    if (t === 'c') el.checked = !!S[k]; else el.value = S[k];
+  }
+  $('combo').value = S.combo || '';
+  presets();
+}
+function medidaActual() {
+  const pz = PIEZAS[S.pieza], m = S.medidas[S.pieza];
+  return m || { w: pz.presets[0][0], h: pz.presets[0][1] };
+}
+function presets() {
+  const pz = PIEZAS[S.pieza], m = medidaActual();
+  const sel = $('preset');
+  sel.innerHTML = pz.presets.map(([w, h, t], i) => `<option value="${i}">${t}</option>`).join('') + '<option value="c">Personalizada</option>';
+  const i = pz.presets.findIndex(([w, h]) => w === m.w && (pz.altoAuto || h === m.h));
+  sel.value = i >= 0 ? String(i) : 'c';
+  $('w').value = m.w; $('h').value = pz.altoAuto ? r2(m.w * ART[S.lVar].h / ART[S.lVar].w) : m.h;
+  $('h').disabled = !!pz.altoAuto || !!pz.cuadrada;
+  $('w').min = pz.min[0]; $('h').min = pz.min[1];
+}
+
+function estado() {
+  const pz = PIEZAS[S.pieza], m = medidaActual();
+  const W = Math.max(pz.min[0], +m.w || pz.presets[0][0]);
+  let H = pz.altoAuto ? W * ART[S.lVar].h / ART[S.lVar].w : pz.cuadrada ? W : Math.max(pz.min[1], +m.h || pz.presets[0][1]);
+  return {
+    ...S, W, H,
+    campos: S.campos.split(',').map(t => t.trim()).filter(Boolean),
+    blancas: clamp(Math.round(+S.blancas || 0), 0, 500),
+    bW: clamp(+S.bW || 250, 80, 600), bG: clamp(+S.bG || 100, 30, 300), bH: clamp(+S.bH || 300, 80, 700), bTi: clamp(+S.bTi || 40, 20, 80),
+    kL: clamp(+S.kL || 300, 80, 1000), kA: clamp(+S.kA || 200, 60, 800), kH: clamp(+S.kH || 150, 40, 800), kT: clamp(+S.kT || 0, 0, 8), kG: clamp(+S.kG || 35, 20, 60),
+    gN: clamp(Math.round(+S.gN || 1), 1, 500), cN: clamp(Math.round(+S.cN || 1), 1, 500), iN: clamp(Math.round(+S.iN || 1), 1, 500), tN: clamp(Math.round(+S.tN || 1), 1, 500), sN: clamp(Math.round(+S.sN || 1), 1, 500), lN: clamp(Math.round(+S.lN || 1), 1, 500),
+    margen: clamp(+S.margen || 8, 3, 30), sep: clamp(+S.sep || 0, 0, 20), pw: clamp(+S.pw || 210, 50, 1200), ph: clamp(+S.ph || 297, 50, 1200)
+  };
+}
+
+/* ----------------------------- Render ---------------------------- */
+function render() {
+  clipN = 0;
+  const s = estado(), pz = PIEZAS[s.pieza];
+  document.querySelectorAll('[data-pieza]').forEach(el => { el.hidden = el.dataset.pieza !== s.pieza; });
+  $('papel-custom').hidden = s.papel !== 'custom';
+  $('qr-url').textContent = SITE + '/arbol.html?id=…';
+  $('medida-hint').textContent = s.pieza === 'etiqueta'
+    ? `Ojal Ø ${fmt(r2(geoEtiqueta(s.W).holeR * 2))} mm a ${fmt(r2(geoEtiqueta(s.W).holeY))} mm del borde superior.`
+    : s.pieza === 'logo' ? `Alto resultante: ${fmt(r2(s.H))} mm.` : '';
+  $('sec-medida').hidden = !!pz.sinMedida;
+
+  // piezas que arman sus propias páginas (troqueles grandes)
+  if (pz.paginas) {
+    const r = pz.paginas(s);
+    $('aviso').hidden = true;
+    $('hojas').innerHTML = r.paginas.map(h => `<div class="hoja"><div class="cap">${esc(h.cap)}</div>${h.svg}</div>`).join('');
+    document.documentElement.style.setProperty('--pw', r.pw + 'mm');
+    document.documentElement.style.setProperty('--ph', r.ph + 'mm');
+    $('page-size').textContent = `@page{size:${r.pw}mm ${r.ph}mm;margin:0}`;
+    $('resumen').innerHTML = r.resumen;
+    if (s.pieza === 'bolsa') { const k = bolsaGeo(s); $('b-info').textContent = `Caras de ${fmt(k.W)} × ${fmt(k.H)} mm, fuelles de ${fmt(k.G)} mm, fondo de ${fmt(r2(k.bd))} mm. Desplegado ${fmt(r2(k.FW))} × ${fmt(r2(k.FH))} mm.`; }
+    if (s.pieza === 'caja') { const k = cajaGeo(s); $('k-info').textContent = `Paneles: largo ${fmt(r2(k.a))} · ancho ${fmt(r2(k.b))} · alto ${fmt(r2(k.hb))} mm; solapas de ${fmt(r2(k.f))} mm. Desplegado ${fmt(r2(k.FW))} × ${fmt(r2(k.FH))} mm.`; }
+    zoom(); ajustarTextos(); return;
+  }
+
+  const items = pz.items(s);
+  const p = plan(s, s.W, s.H);
+  const aviso = $('aviso');
+  if (!p.n) {
+    aviso.hidden = false;
+    aviso.textContent = `La pieza (${fmt(s.W)} × ${fmt(s.H)} mm) no cabe en la hoja con márgenes de ${fmt(s.margen)} mm. Elige un papel más grande o reduce la medida.`;
+    $('hojas').innerHTML = ''; $('resumen').textContent = ''; return;
+  }
+  aviso.hidden = !items.length ? false : true;
+  if (!items.length) aviso.textContent = 'No hay piezas: escribe filas de datos o indica cuántas en blanco.';
+
+  const hojas = [];
+  const totalHojas = Math.ceil(items.length / p.n);
+  const caras = typeof pz.caras === 'function' ? pz.caras(s) : pz.caras;
+  for (let i = 0; i < totalHojas; i++) {
+    const chunk = items.slice(i * p.n, (i + 1) * p.n);
+    caras.forEach((cara, ci) => {
+      const espejo = ci > 0 && s.duplex;
+      hojas.push({ cap: `Hoja ${i + 1}${caras.length > 1 ? ' · ' + cara : ''}`, svg: hoja(p, s, pz, cara, chunk, i + 1, totalHojas, espejo) });
+    });
+  }
+  $('hojas').innerHTML = hojas.map(h => `<div class="hoja"><div class="cap">${esc(h.cap)}</div>${h.svg}</div>`).join('');
+  document.documentElement.style.setProperty('--pw', p.pw + 'mm');
+  document.documentElement.style.setProperty('--ph', p.ph + 'mm');
+  $('page-size').textContent = `@page{size:${p.pw}mm ${p.ph}mm;margin:0}`;
+  $('resumen').innerHTML = `<b>${items.length}</b> ${items.length === 1 ? 'pieza' : 'piezas'} de <b>${fmt(s.W)} × ${fmt(s.H)}</b> mm · <b>${p.n}</b> por hoja (${p.cols} × ${p.rows}${p.rot ? ', giradas' : ''}) · <b>${hojas.length}</b> ${hojas.length === 1 ? 'página' : 'páginas'} ${p.pw > p.ph ? 'horizontales' : 'verticales'}`;
+  zoom();
+  ajustarTextos();
+}
+// Textos con ancho máximo: primero baja la letra hasta el 70 % y, si aún no cabe, la comprime.
+function ajustarTextos() {
+  $('hojas').querySelectorAll('text[data-max]').forEach(t => {
+    // conserva el tamaño propio del texto (atributo) o, si no tiene, el heredado del grupo
+    const orig = t.dataset.fs ?? (t.getAttribute('font-size') || '');
+    t.dataset.fs = orig;
+    t.removeAttribute('textLength');
+    if (orig) t.setAttribute('font-size', orig); else t.removeAttribute('font-size');
+    const max = +t.dataset.max, base = parseFloat(getComputedStyle(t).fontSize) || 0;
+    const L = t.getComputedTextLength();
+    if (!L || L <= max) return;
+    const f = Math.max(0.7, max / L);
+    t.setAttribute('font-size', r2(base * f));
+    if (t.getComputedTextLength() > max) { t.setAttribute('textLength', max); t.setAttribute('lengthAdjust', 'spacingAndGlyphs'); }
+  });
+}
+document.fonts?.ready.then(() => { if (Object.keys(ART).length) S.pieza === 'guia' ? render() : ajustarTextos(); });
+function zoom() {
+  const z = S.zoom, cont = $('hojas');
+  cont.querySelectorAll('svg.sheet').forEach(svg => {
+    const pw = +svg.dataset.pw, vb = svg.viewBox.baseVal;
+    if (z === 'fit') { const px = Math.min(cont.clientWidth - 4, 900); svg.style.width = px + 'px'; svg.style.height = (px * vb.height / vb.width) + 'px'; }
+    else { svg.style.width = (pw * +z) + 'mm'; svg.style.height = (vb.height * +z) + 'mm'; }
+  });
+}
+
+/* ---------------------------- Eventos ---------------------------- */
+document.querySelectorAll('input[name=pieza]').forEach(r => r.addEventListener('change', () => { S.pieza = r.value; presets(); guardar(); render(); }));
+$('preset').addEventListener('change', () => {
+  const pz = PIEZAS[S.pieza], v = $('preset').value;
+  if (v !== 'c') { const [w, h] = pz.presets[+v]; S.medidas[S.pieza] = { w, h }; }
+  presets(); guardar(); render();
+});
+['w', 'h'].forEach(id => $(id).addEventListener('input', () => {
+  const pz = PIEZAS[S.pieza];
+  S.medidas[S.pieza] = { w: +$('w').value, h: pz.cuadrada ? +$('w').value : +$('h').value };
+  const i = pz.presets.findIndex(([w, h]) => w === S.medidas[S.pieza].w && (pz.altoAuto || h === S.medidas[S.pieza].h));
+  $('preset').value = i >= 0 ? String(i) : 'c';
+  if (pz.cuadrada) $('h').value = $('w').value;
+  if (pz.altoAuto) $('h').value = r2(+$('w').value * ART[S.lVar].h / ART[S.lVar].w);
+  guardar(); render();
+}));
+for (const id in CAMPOS) {
+  const [k, t] = campo(id), el = $(id);
+  el.addEventListener(t === 'c' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
+    S[k] = t === 'c' ? el.checked : t === 'n' ? +el.value : el.value;
+    if (id === 'l-var') presets();
+    // elegir tinta o papel a mano deja de usar una combinación de marca
+    if ((id === 'tinta' || id === 'fondo' || id === 'imp-fondo') && S.combo) { S.combo = ''; $('combo').value = ''; }
+    guardar(); id === 'zoom' ? zoom() : render();
+  });
+}
+// Colores de marca: fija tinta, papel e impresión del fondo según la combinación del tablero
+$('combo').addEventListener('change', () => {
+  S.combo = $('combo').value;
+  const c = COMBOS[S.combo];
+  if (c) { S.tinta = c.principal; S.fondo = c.fondo; S.impFondo = c.tintaFondo; }
+  aFormulario(); guardar(); render();
+});
+window.addEventListener('resize', () => { if (S.zoom === 'fit') zoom(); });
+$('imprimir').addEventListener('click', async () => { try { await document.fonts.ready; } catch { /* nada */ } window.print(); });
+
+$('g-reset').addEventListener('click', () => {
+  Object.assign(S, { gTitulo: GUIA_TEXTOS.titulo, gSub: GUIA_TEXTOS.sub, gFilas: GUIA_TEXTOS.filas, gCta: GUIA_TEXTOS.cta, gCta2: GUIA_TEXTOS.cta2 });
+  aFormulario(); guardar(); render();
+});
+
+$('traer').addEventListener('click', async () => {
+  const est = $('traer-estado'), api = CFG.API_URL;
+  if (!api) { est.textContent = 'Configura API_URL en config.js.'; return; }
+  est.textContent = 'Cargando…';
+  try {
+    const res = await fetch(api + (api.includes('?') ? '&' : '?') + 'action=catalogo', { redirect: 'follow' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
+    const prods = data.productos || [];
+    const campos = estado().campos.map(c => c.toLowerCase());
+    const valor = (p, c) => /especie/.test(c) ? p.Especie : /estilo/.test(c) ? p.Estilo : /edad/.test(c) ? String(p.Edad || '').replace(/ años$/, '') + (p.Edad ? ' años' : '')
+      : /origen/.test(c) ? 'Ecuador' : /c[oó]digo|id/.test(c) ? p.ID : /altura/.test(c) ? p.Altura : /nombre/.test(c) ? p.Nombre : '';
+    S.filas = prods.map(p => campos.map(c => (valor(p, c) || '').toString().replace(/;/g, ',')).join('; ')).join('\n');
+    $('filas').value = S.filas; S.blancas = 0; $('blancas').value = 0;
+    est.textContent = `${prods.length} ejemplares disponibles o en formación.`;
+    guardar(); render();
+  } catch (err) { est.textContent = 'No se pudo leer el catálogo: ' + err.message; }
+});
+
+/* ------------------------------ Arte ----------------------------- */
+async function cargarArte() {
+  const defs = $('arte-defs');
+  await Promise.all(Object.entries(ARTE).map(async ([k, f]) => {
+    const txt = await fetch('../assets/img/' + f).then(r => { if (!r.ok) throw new Error(f + ': HTTP ' + r.status); return r.text(); });
+    const svg = new DOMParser().parseFromString(txt, 'image/svg+xml').documentElement;
+    const vb = svg.getAttribute('viewBox').trim().split(/[\s,]+/).map(Number);
+    svg.querySelectorAll('title').forEach(t => t.remove());
+    svg.querySelectorAll('[fill]').forEach(e => e.removeAttribute('fill'));
+    ART[k] = { w: vb[2], h: vb[3] };
+    const sym = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+    sym.id = 'a-' + k; sym.setAttribute('viewBox', vb.join(' ')); sym.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    sym.innerHTML = svg.innerHTML;
+    defs.appendChild(sym);
+  }));
+}
+function listaArchivos() {
+  const vers = [['Vertical', 'legado-logo-vertical'], ['Vertical con lema', 'legado-logo-lema'], ['Horizontal', 'legado-logo-horizontal'], ['Emblema', 'legado-emblema'], ['Nombre', 'legado-wordmark']];
+  $('archivos').innerHTML = vers.map(([t, f]) => `<div><span>${t}</span><span>` +
+    ['tinta', 'blanco'].map(c => `<a href="../assets/img/logo/${f}-${c}.svg" download>${c} SVG</a> · <a href="../assets/img/logo/png/${f}-${c}.png" download>PNG</a>`).join(' · ') +
+    '</span></div>').join('');
+}
+
+(async () => {
+  listaArchivos();
+  try { await cargarArte(); }
+  catch (err) {
+    const a = $('aviso'); a.hidden = false;
+    a.textContent = 'No se pudo cargar el arte (' + err.message + '). Abre esta página desde el servidor (GitHub Pages o el servidor local), no como archivo.';
+    return;
+  }
+  // las medidas de los textos de la guía necesitan sus fuentes cargadas
+  await Promise.race([Promise.all(["600 20px 'EB Garamond'", "400 20px 'EB Garamond'", '400 20px Lora'].map(f => document.fonts.load(f))).catch(() => {}), new Promise(r => setTimeout(r, 2500))]);
+  aFormulario();
+  render();
+})();
+</script>
+</body>
+</html>

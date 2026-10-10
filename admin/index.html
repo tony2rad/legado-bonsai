@@ -7,7 +7,8 @@
 <title>Legado Bonsai — Registro</title>
 <meta name="theme-color" content="#1B241F">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="../assets/img/logo-negro.png">
+<link rel="icon" href="../assets/img/logo/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/img/logo/png/icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +18,7 @@
 <body>
 
 <header class="topbar">
-  <a href="#/inicio" class="brand"><img src="../assets/img/logo-negro.png" alt="Legado Bonsai"><span>Registro <em>家族の木</em></span></a>
+  <a href="#/inicio" class="brand"><img src="../assets/img/logo/legado-emblema-tinta.svg" alt="Legado Bonsái"><span>Registro <em>家族の木</em></span></a>
   <div class="topbar-actions">
     <span id="estado-conexion" class="dot" title="Estado de conexión"></span>
     <button id="btn-refrescar" class="icon-btn" aria-label="Actualizar datos" title="Actualizar">
@@ -65,11 +66,88 @@
       <a href="#/nuevo" class="btn solid big">＋ Nuevo ejemplar</a>
       <a href="#/venta" class="btn big">Registrar venta</a>
       <a href="#/cuidado" class="btn big">Registrar cuidado</a>
-      <a href="#/macetas" class="btn big">Producción macetas</a>
-      <a href="#/maquina" class="btn big">Máquina de macetas</a>
     </div>
+    <div class="quick grid2">
+      <a href="#/recordatorios" class="btn" id="btn-recordatorios">Recordatorios <span class="pill" id="pill-recordatorios" hidden></span></a>
+      <a href="#/cotizaciones" class="btn">Cotizaciones <span class="pill" id="pill-cotizaciones" hidden></span></a>
+      <a href="#/tablero" class="btn">Tablero de ventas</a>
+      <a href="#/materiales" class="btn">Materiales</a>
+      <a href="#/macetas" class="btn">Producción macetas</a>
+      <a href="#/maquina" class="btn">Máquina de macetas</a>
+      <a href="#/diseno" class="btn">Guías de diseño</a>
+      <a href="#/imprimibles" class="btn">Imprimibles de marca</a>
+      <a href="reel.html" class="btn" style="grid-column:1/-1">Generador de reels 360°</a>
+    </div>
+    <p class="hint" id="fase-hoy"></p>
     <h2>Últimos movimientos</h2>
     <ul class="timeline" id="timeline"></ul>
+  </section>
+
+  <!-- ============ RECORDATORIOS ============ -->
+  <section class="view" data-view="recordatorios" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Recordatorios</h1>
+    <p class="lead">Se generan solos cada mañana (fase lunar, revisiones, renovaciones, bienvenidas). Toca <b>WhatsApp</b> para abrir el mensaje listo y luego márcalo como enviado.</p>
+    <div class="row">
+      <button type="button" class="btn" id="btn-generar-recordatorios">Generar ahora (prueba)</button>
+    </div>
+    <p class="count" id="recordatorios-count"></p>
+    <div class="list" id="lista-recordatorios"></div>
+  </section>
+
+  <!-- ============ CLIENTES ============ -->
+  <section class="view" data-view="clientes" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Clientes</h1>
+    <div class="filters">
+      <input type="search" id="buscar-cliente" placeholder="Buscar por nombre, WhatsApp, código…">
+      <select id="filtro-cliente">
+        <option value="">Todos</option>
+        <option value="plan">Con plan activo</option>
+        <option value="creditos">Con créditos</option>
+        <option value="recordatorios">Con recordatorios</option>
+      </select>
+    </div>
+    <p class="count" id="clientes-count"></p>
+    <div class="list" id="lista-clientes"></div>
+    <h2>Nuevo cliente (sin venta)</h2>
+    <form id="form-cliente" class="form">
+      <input type="hidden" name="id">
+      <div class="grid2">
+        <label>Nombre *<input name="nombre" required></label>
+        <label>WhatsApp<input name="whatsapp" inputmode="tel" placeholder="0990000000"></label>
+      </div>
+      <div class="grid2">
+        <label>Correo<input name="correo" type="email"></label>
+        <label>Ciudad<input name="ciudad"></label>
+      </div>
+      <div class="grid2">
+        <label>Origen<select name="origen"><option value="">—</option><option>Web</option><option>WhatsApp</option><option>Instagram</option><option>Taller</option><option>Referido</option><option>Corporativo</option><option>Feria</option><option>Otro</option></select></label>
+        <label>Recordatorios<select name="recordatorios"><option>Sí</option><option>No</option></select></label>
+      </div>
+      <label>Notas<textarea name="notas" rows="2"></textarea></label>
+      <button type="submit" class="btn solid big">Guardar cliente</button>
+      <p class="msg" id="cliente-msg"></p>
+    </form>
+  </section>
+
+  <!-- ============ COTIZACIONES ============ -->
+  <section class="view" data-view="cotizaciones" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Cotizaciones corporativas</h1>
+    <p class="lead">Llegan desde <code>regalos.html</code>. Cambia el estado al contactar, cerrar o perder.</p>
+    <div class="list" id="lista-cotizaciones"></div>
+  </section>
+
+  <!-- ============ TABLERO ============ -->
+  <section class="view" data-view="tablero" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
+    <h1>Tablero de ventas</h1>
+    <div class="row">
+      <select id="tablero-dias"><option value="7">Últimos 7 días</option><option value="30" selected>Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="365">Último año</option></select>
+    </div>
+    <div id="tablero"></div>
+    <p class="hint">Los mismos datos están en la pestaña EMBUDO del sheet (por mes) y se pueden conectar a Power BI: ver <code>docs/powerbi/</code>.</p>
   </section>
 
   <!-- ============ EJEMPLARES ============ -->
@@ -79,6 +157,8 @@
       <a href="#/ejemplares" class="active">Inventario</a>
       <a href="#/macetas">Producción macetas</a>
       <a href="#/maquina">Máquina</a>
+      <a href="#/diseno">Guías de diseño</a>
+      <a href="#/imprimibles">Imprimibles</a>
     </nav>
     <div class="filters">
       <input type="search" id="buscar" placeholder="Buscar por ID, nombre, especie…">
@@ -98,6 +178,8 @@
       <a href="#/ejemplares">Inventario</a>
       <a href="#/macetas" class="active">Producción macetas</a>
       <a href="#/maquina">Máquina</a>
+      <a href="#/diseno">Guías de diseño</a>
+      <a href="#/imprimibles">Imprimibles</a>
     </nav>
     <p class="lead">Plantillas de corte en arcilla y plato-guía con perfiles para cemento, a escala 1:1. Para imprimir, ábrela en pantalla completa.</p>
     <div class="row"><a href="macetas.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a></div>
@@ -111,10 +193,42 @@
       <a href="#/ejemplares">Inventario</a>
       <a href="#/macetas">Producción macetas</a>
       <a href="#/maquina" class="active">Máquina</a>
+      <a href="#/diseno">Guías de diseño</a>
+      <a href="#/imprimibles">Imprimibles</a>
     </nav>
     <p class="lead">Cómo construir la máquina que hace las macetas de cemento: materiales, costos, pasos, calibración y uso.</p>
     <div class="row"><a href="maquina.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a></div>
     <iframe class="embed" id="embed-maquina" data-src="maquina.html" title="Instrucciones de la máquina" loading="lazy"></iframe>
+  </section>
+
+  <!-- ============ GUÍAS DE DISEÑO ============ -->
+  <section class="view" data-view="diseno" hidden>
+    <h1>Guías de diseño</h1>
+    <nav class="subtabs" aria-label="Inventario">
+      <a href="#/ejemplares">Inventario</a>
+      <a href="#/macetas">Producción macetas</a>
+      <a href="#/maquina">Máquina</a>
+      <a href="#/diseno" class="active">Guías de diseño</a>
+      <a href="#/imprimibles">Imprimibles</a>
+    </nav>
+    <p class="lead">Proyección de crecimiento y plan de poda, jin y shari de cada ejemplar, sobre su propia foto. Para imprimir o guardar en PDF, ábrela en pantalla completa.</p>
+    <div class="row"><a href="diseno.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a> <a href="diseno.html?cargar=disenos/25a.json" target="_blank" rel="noopener" class="btn">Ver ejemplo (25a)</a></div>
+    <iframe class="embed" id="embed-diseno" data-src="diseno.html" title="Guías de diseño" loading="lazy"></iframe>
+  </section>
+
+  <!-- ============ IMPRIMIBLES DE MARCA ============ -->
+  <section class="view" data-view="imprimibles" hidden>
+    <h1>Imprimibles de marca</h1>
+    <nav class="subtabs" aria-label="Inventario">
+      <a href="#/ejemplares">Inventario</a>
+      <a href="#/macetas">Producción macetas</a>
+      <a href="#/maquina">Máquina</a>
+      <a href="#/diseno">Guías de diseño</a>
+      <a href="#/imprimibles" class="active">Imprimibles</a>
+    </nav>
+    <p class="lead">Etiquetas colgantes (con QR al pasaporte), tarjetas, sellos y logotipos en vectores, a escala real y repartidos en la hoja. Para imprimir, ábrela en pantalla completa.</p>
+    <div class="row"><a href="imprimibles.html" target="_blank" rel="noopener" class="btn solid">Abrir en pantalla completa</a></div>
+    <iframe class="embed" id="embed-imprimibles" data-src="imprimibles.html" title="Imprimibles de marca" loading="lazy"></iframe>
   </section>
 
   <!-- ============ DETALLE ============ -->
@@ -226,22 +340,47 @@
     <a href="#/inicio" class="back">← Inicio</a>
     <h1>Registrar venta</h1>
     <form id="form-venta" class="form">
-      <label>Ejemplar *<select name="id" id="venta-ejemplar" required></select></label>
-      <label>Cliente *<input name="cliente" required></label>
-      <label>Contacto (WhatsApp / correo)<input name="contacto"></label>
-      <div class="grid2">
-        <label>Precio final ($) *<input name="precioFinal" type="number" inputmode="decimal" min="0" step="0.01" required></label>
-        <label>Fecha<input name="fecha" type="date"></label>
-      </div>
-      <div class="grid2">
-        <label>Plan de acompañamiento<select name="plan"><option value="">Sin acompañamiento</option><option>Primeros Brotes</option><option>Cultivo Guiado</option><option>Legado Completo</option></select></label>
-        <label>Estado<select name="estado"><option>Pagado</option><option>Pendiente</option></select></label>
-      </div>
+      <fieldset>
+        <legend>Ejemplar y precio</legend>
+        <label>Ejemplar *<select name="id" id="venta-ejemplar" required></select></label>
+        <div class="grid2">
+          <label>Precio final ($) *<input name="precioFinal" type="number" inputmode="decimal" min="0" step="0.01" required></label>
+          <label>Fecha<input name="fecha" type="date"></label>
+        </div>
+        <div class="grid2">
+          <label>Plan de acompañamiento<select name="plan" id="venta-plan"><option value="">Sin acompañamiento</option></select></label>
+          <label>Estado<select name="estado"><option>Pagado</option><option>Pendiente</option></select></label>
+        </div>
+        <div class="grid2">
+          <label>Anticipo recibido ($) <small>(preventa)</small><input name="anticipo" type="number" inputmode="decimal" min="0" step="0.01"></label>
+          <label>Canal<select name="canal"><option>WhatsApp</option><option>Web</option><option>Instagram</option><option>Taller</option><option>Referido</option><option>Corporativo</option><option>Feria</option><option>Otro</option></select></label>
+        </div>
+        <div class="grid2">
+          <label>Código usado (referido / promo)<input name="codigoUsado" placeholder="LEG-ANA7K3" style="text-transform:uppercase"></label>
+          <label>Descuento aplicado ($)<input name="descuento" type="number" inputmode="decimal" min="0" step="0.01"></label>
+        </div>
+        <label>Extras vendidos (kits, alambre, placa…)<input name="extras" placeholder="Kit de inicio, Placa grabada"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Cliente</legend>
+        <label>Nombre *<input name="cliente" required list="dl-clientes"></label>
+        <div class="grid2">
+          <label>WhatsApp<input name="contacto" inputmode="tel" placeholder="0990000000"></label>
+          <label>Correo<input name="correo" type="email"></label>
+        </div>
+        <div class="grid2">
+          <label>Ciudad<input name="ciudad"></label>
+          <label>Recordatorios lunares<select name="recordatorios"><option>Sí</option><option>No</option></select></label>
+        </div>
+        <label>Nombre en el pasaporte <small>(se muestra públicamente en el certificado; vacío = no mostrar)</small><input name="nombrePasaporte" placeholder="Familia Andrade"></label>
+      </fieldset>
       <label>Notas<textarea name="notas" rows="2"></textarea></label>
-      <p class="hint">Al guardar, el ejemplar pasa a <b>Vendido</b> (o <b>Reservado</b> si el pago está pendiente) y desaparece de la tienda.</p>
+      <p class="hint">Al guardar: el ejemplar pasa a <b>Vendido</b> (o <b>Reservado</b> si está pendiente), el cliente se crea o actualiza en CLIENTES con su código de referido, y si usó un código de otro cliente se le acredita el bono.</p>
       <button type="submit" class="btn solid big">Guardar venta</button>
       <p class="msg" id="venta-msg"></p>
+      <div id="venta-post" class="progress" hidden></div>
     </form>
+    <datalist id="dl-clientes"></datalist>
   </section>
 
   <!-- ============ CUIDADO ============ -->
@@ -270,6 +409,7 @@
 
   <!-- ============ MATERIALES ============ -->
   <section class="view" data-view="materiales" hidden>
+    <a href="#/inicio" class="back">← Inicio</a>
     <h1>Materiales</h1>
     <p class="count" id="materiales-total"></p>
     <div class="table-wrap"><table class="table" id="tabla-materiales"></table></div>
@@ -297,7 +437,7 @@
   <a href="#/inicio" data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</a>
   <a href="#/ejemplares" data-tab="ejemplares"><svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zM4 11h16v4H4zM4 17h16v3H4z"/></svg>Ejemplares</a>
   <a href="#/nuevo" data-tab="formulario" class="tab-add"><span>＋</span>Nuevo</a>
-  <a href="#/materiales" data-tab="materiales"><svg viewBox="0 0 24 24"><path d="M4 7h16l-1.5 13h-13zM9 7V4h6v3"/></svg>Materiales</a>
+  <a href="#/clientes" data-tab="clientes"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Clientes</a>
   <a href="#/config" data-tab="config"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8 4-2 .6a6.6 6.6 0 0 1-.7 1.6l1 1.8-2 2-1.8-1a6.6 6.6 0 0 1-1.6.7L12.6 20h-1.2l-.6-2.3a6.6 6.6 0 0 1-1.6-.7l-1.8 1-2-2 1-1.8a6.6 6.6 0 0 1-.7-1.6L4 12v-1.2l2.3-.6c.2-.6.4-1.1.7-1.6L6 6.8l2-2 1.8 1c.5-.3 1-.5 1.6-.7L12 3h1.2l.6 2.3c.6.2 1.1.4 1.6.7l1.8-1 2 2-1 1.8c.3.5.5 1 .7 1.6L20 10.8z"/></svg>Ajustes</a>
 </nav>
 

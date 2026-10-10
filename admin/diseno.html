@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#16241F">
+<title>Guías de diseño — Legado Bonsai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style id="paper-style">@page{size:A3 portrait;margin:0}</style>
+<style>
+  :root{
+    --bg:#EFEBE3; --panel:#FFFFFF; --ink:#1B241F; --muted:#5F6B64; --line:#D6CFC3;
+    --jade:#2F5D50; --jade-deep:#16241F; --kohaku:#9B2C2C; --accent:#2F5D50; --accent-ink:#FFFFFF; --field:#FAF8F4;
+    --sans:"Zen Kaku Gothic New",system-ui,sans-serif; --serif:"Shippori Mincho",Georgia,serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121815; --panel:#1B2420; --ink:#EDEAE3; --muted:#9AA79F; --line:#2E3934; --accent:#7FB09F; --accent-ink:#0F1915; --field:#151D19; }
+  }
+  :root[data-theme="dark"]{ --bg:#121815; --panel:#1B2420; --ink:#EDEAE3; --muted:#9AA79F; --line:#2E3934; --accent:#7FB09F; --accent-ink:#0F1915; --field:#151D19; }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);padding:0 16px 32px}
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:16px 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .topbar h1{font:700 26px/1.1 var(--serif);margin:0}
+  .topbar .sub{color:var(--muted);font-size:13px;margin:4px 0 0;max-width:72ch}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{font:700 13px var(--sans);border:0;border-radius:6px;padding:9px 14px;cursor:pointer;background:var(--accent);color:var(--accent-ink);white-space:nowrap}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.danger{background:transparent;color:var(--kohaku);border:1px solid var(--line)}
+  .btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  select,input,textarea{font:13px var(--sans);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%}
+  textarea{resize:vertical;min-height:64px;line-height:1.45}
+  .app{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:start}
+  .side{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px;position:sticky;top:10px;max-height:calc(100vh - 20px);overflow-y:auto}
+  .side h2{font:700 15px var(--serif);margin:0 0 6px;letter-spacing:.02em}
+  .side fieldset{border:0;border-top:1px solid var(--line);padding:12px 0 0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .side fieldset:first-of-type{border-top:0;padding-top:0}
+  .side label{display:grid;gap:3px;color:var(--muted);font-size:12px}
+  .side label.w{grid-column:1/-1}
+  .side .hint{grid-column:1/-1;color:var(--muted);font-size:11.5px;margin:0}
+  .etapa{grid-column:1/-1;display:grid;gap:4px;border-left:3px solid var(--line);padding-left:8px}
+  main{min-width:0}
+  .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .tabs button{font:700 13px var(--sans);padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+  .tabs button.on{background:var(--jade-deep);color:#fff;border-color:var(--jade-deep)}
+  .tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .tools button{font:600 12.5px var(--sans);padding:7px 11px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .tools button .sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+  .tools button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
+  .tools .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
+  .ed-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;align-items:start}
+  .stage{position:relative;background:#1a1f1c;border-radius:10px;overflow:auto;max-height:calc(100vh - 150px);border:1px solid var(--line)}
+  .stage svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+  .stage.drawing svg{cursor:crosshair}
+  .empty{padding:60px 20px;text-align:center;color:#cfd6d1;display:grid;gap:10px;justify-items:center}
+  .empty strong{font:700 18px var(--serif)}
+  .status{font-size:12px;color:var(--muted);margin:6px 0 0;min-height:18px}
+  .marks{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px;max-height:calc(100vh - 150px);overflow-y:auto}
+  .marks h3{font:700 14px var(--serif);margin:0}
+  .mk{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:6px;cursor:pointer}
+  .mk.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .mk header{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+  .mk header b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--jade-deep);color:#fff;font-size:12px}
+  .mk header button{margin-left:auto;font:600 11.5px var(--sans);background:none;border:0;color:var(--kohaku);cursor:pointer;padding:2px 4px}
+  .mk textarea{min-height:48px}
+  .sheetwrap{position:relative;overflow:hidden}
+  #sheet{transform-origin:0 0;box-shadow:0 18px 40px -20px rgba(0,0,0,.45)}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--jade-deep);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+  @media (max-width:1100px){ .ed-grid{grid-template-columns:1fr} .marks{max-height:none} }
+  @media (max-width:860px){ .app{grid-template-columns:1fr} .side{position:static;max-height:none} }
+
+  /* ------------------------------------------------------------------ */
+  /*  Lámina (siempre clara: es papel)                                    */
+  /* ------------------------------------------------------------------ */
+  #sheet{width:1123px;height:1587px;background:#F2EEE6;color:#1B241F;font:11.5px/1.45 "Zen Kaku Gothic New",sans-serif;display:grid;
+    grid-template-rows:116px 700px 230px 244px 253px 44px;-webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
+  #sheet .s-head{display:flex;align-items:center;justify-content:space-between;padding:14px 30px 10px;border-bottom:1px solid #D9D0C2;background:#F7F4EE}
+  #sheet .s-kick{font:600 12px "Shippori Mincho",serif;letter-spacing:.22em;color:#5F6B64;text-transform:uppercase}
+  #sheet .s-title{font:700 52px/1 "Shippori Mincho",serif;letter-spacing:.04em;color:#16241F;margin:2px 0 3px}
+  #sheet .s-title small{font-size:22px;color:#9B2C2C;margin-left:14px;letter-spacing:.1em}
+  #sheet .s-style{font:600 15px "Shippori Mincho",serif;letter-spacing:.08em;color:#2F5D50;text-transform:uppercase}
+  #sheet .s-brand{text-align:right;display:grid;justify-items:end;gap:2px;color:#5F6B64;font-size:11px}
+  #sheet .s-brand img{height:46px;width:auto}
+  #sheet .s-brand b{font:700 13px "Shippori Mincho",serif;color:#16241F;letter-spacing:.06em}
+  #sheet .s-keys{display:grid;grid-template-columns:auto auto;gap:2px 18px;font-size:11px;margin:0 24px;padding:8px 16px;border-left:1px solid #D9D0C2;border-right:1px solid #D9D0C2;align-self:center}
+  #sheet .s-keys div{display:flex;gap:5px}
+  #sheet .s-keys dt{font-weight:700;color:#2F5D50}
+  #sheet .s-row4 ul.bul{font-size:10.6px;line-height:1.38}
+  #sheet .s-row1{display:grid;grid-template-columns:540px 583px;min-height:0}
+  #sheet .s-photo{position:relative;overflow:hidden;background:#2a2f2b}
+  #sheet .s-photo svg{position:absolute;inset:0;width:100%;height:100%}
+  #sheet .s-concept{position:absolute;left:0;right:0;bottom:0;padding:34px 22px 16px;background:linear-gradient(to top,rgba(14,24,20,.92) 62%,rgba(14,24,20,0));color:#EDEAE3;font-size:12px;line-height:1.5}
+  #sheet .s-concept b{display:block;font:700 12px "Shippori Mincho",serif;letter-spacing:.18em;color:#D9C9A3;margin-bottom:3px}
+  #sheet .s-proj{display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:16px 18px 10px;background:#F7F4EE;border-left:1px solid #D9D0C2}
+  #sheet h4{font:700 14px "Shippori Mincho",serif;letter-spacing:.14em;text-transform:uppercase;color:#16241F;margin:0 0 8px;display:flex;align-items:baseline;gap:10px}
+  #sheet h4 span{font-size:11px;letter-spacing:.06em;color:#9B2C2C;font-weight:600}
+  #sheet .s-proj svg{width:100%;height:100%}
+  #sheet .s-note{font-size:10px;color:#7A857E;text-align:right}
+  #sheet .s-row2{border-top:1px solid #D9D0C2}
+  #sheet .s-box{padding:16px 22px;min-height:0;overflow:hidden}
+  #sheet .s-box + .s-box{border-left:1px solid #D9D0C2}
+  #sheet .plan{columns:3;column-gap:24px;font-size:10.8px;line-height:1.4;margin:0;padding:0;list-style:none}
+  #sheet .plan li{break-inside:avoid;display:grid;grid-template-columns:22px 1fr;gap:8px;margin-bottom:7px}
+  #sheet .plan .n{width:20px;height:20px;border-radius:50%;background:#16241F;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
+  #sheet .plan b{font-weight:700;color:#16241F}
+  #sheet ul.bul{margin:0;padding:0 0 0 14px}
+  #sheet ul.bul li{margin-bottom:4px}
+  #sheet ul.bul li::marker{color:#2F5D50}
+  #sheet .s-row3{border-top:1px solid #D9D0C2;padding:12px 22px 10px;display:grid;grid-template-rows:auto minmax(0,1fr)}
+  #sheet .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;min-height:0}
+  #sheet .stage-c{display:grid;grid-template-rows:minmax(0,1fr) auto;background:#FBFAF7;border:1px solid #DDD5C8;min-height:0}
+  #sheet .stage-c svg{width:100%;height:100%;display:block}
+  #sheet .stage-c p{margin:0;padding:6px 9px 8px;font-size:10.5px;line-height:1.4;border-top:1px solid #E6DFD3;min-height:56px}
+  #sheet .stage-c p b{display:block;font:700 11px "Shippori Mincho",serif;letter-spacing:.12em;text-transform:uppercase;color:#16241F}
+  #sheet .s-row4{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;border-top:1px solid #D9D0C2}
+  #sheet .s-row4 .s-box{padding:14px 18px}
+  #sheet dl{margin:0;display:grid;gap:4px}
+  #sheet dl div{display:grid;grid-template-columns:auto 1fr;gap:6px}
+  #sheet dt{font-weight:700}
+  #sheet dd{margin:0}
+  #sheet .s-foot{background:#16241F;color:#EDEAE3;display:flex;align-items:center;justify-content:center;gap:16px;font:600 14px "Shippori Mincho",serif;letter-spacing:.22em;text-transform:uppercase}
+  #sheet .s-foot span{color:#D9C9A3;letter-spacing:.1em}
+
+  @media print{
+    body{padding:0;background:#fff}
+    .topbar,.side,.tabs,#tab-foto,.toast{display:none!important}
+    .app{display:block}
+    #tab-lamina,#tab-lamina[hidden]{display:block!important}
+    .sheetwrap{width:auto!important;height:auto!important;overflow:visible}
+    #sheet{transform:none!important;box-shadow:none}
+    body.a4 #sheet{zoom:.7071}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Guías de diseño</h1>
+    <p class="sub">Marca sobre la foto del ejemplar el tronco, las ramas que se quedan, los jin y shari, los cortes y lo que hay que bajar. La lámina dibuja con esas marcas la proyección de crecimiento y arma el plan de trabajo. Se imprime en A3/A4 o se guarda como PDF.</p>
+  </div>
+  <div class="actions">
+    <select id="guardadas" aria-label="Guías guardadas" style="width:auto;min-width:170px"></select>
+    <button class="btn ghost" id="b-nuevo">Nueva</button>
+    <button class="btn ghost" id="b-importar">Importar</button>
+    <button class="btn ghost" id="b-exportar">Exportar</button>
+    <select id="papel" aria-label="Papel" style="width:auto"><option value="a3">A3</option><option value="a4">A4</option></select>
+    <button class="btn" id="b-imprimir">Imprimir / PDF</button>
+    <input type="file" id="f-json" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="side">
+    <fieldset>
+      <h2 class="w" style="grid-column:1/-1">Ejemplar</h2>
+      <label class="w">Foto del árbol
+        <input type="file" id="f-foto" accept="image/*">
+      </label>
+      <label class="w">…o enlace de la foto
+        <input type="url" id="foto-url" placeholder="https://…">
+      </label>
+      <label>Código / ID <input data-k="id" placeholder="LB-0001 o 25a"></label>
+      <label>Especie <input data-k="especie" placeholder="Junípero"></label>
+      <label class="w">Nombre científico <input data-k="cientifico" placeholder="Juniperus chinensis"></label>
+      <label class="w">Estilo propuesto <select data-k="estilo" id="estilo"></select></label>
+      <label>Altura actual (cm) <input data-k="altActual" type="number" min="0" inputmode="decimal"></label>
+      <label>Grosor en la base (cm) <input data-k="grosor" type="number" min="0" inputmode="decimal"></label>
+      <label>Altura final mín. (cm) <input data-k="altMin" type="number" min="0" inputmode="decimal"></label>
+      <label>Altura final máx. (cm) <input data-k="altMax" type="number" min="0" inputmode="decimal"></label>
+      <label>Tiempo de desarrollo <input data-k="tiempo" placeholder="5 – 8 años"></label>
+      <label>Está hoy en
+        <select data-k="potActual">
+          <option value="vivero">Maceta de vivero</option>
+          <option value="caja">Caja de entrenamiento</option>
+          <option value="bonsai">Maceta de bonsái</option>
+        </select>
+      </label>
+      <label class="w">Maceta final
+        <select data-k="potForma">
+          <option value="auto">Según el estilo</option>
+          <option value="rect">Rectangular</option>
+          <option value="oval">Ovalada</option>
+          <option value="round">Redonda baja</option>
+          <option value="square">Cuadrada profunda</option>
+          <option value="cascade">Cascada alta</option>
+        </select>
+      </label>
+      <p class="hint" id="pot-hint"></p>
+    </fieldset>
+    <fieldset>
+      <h2 style="grid-column:1/-1">Textos de la lámina</h2>
+      <label class="w">Concepto <textarea data-k="concepto" rows="4"></textarea></label>
+      <div class="etapa"><label>Etapa 1 <input data-k="etapas.0.t"></label><textarea data-k="etapas.0.x" rows="2"></textarea></div>
+      <div class="etapa"><label>Etapa 2 <input data-k="etapas.1.t"></label><textarea data-k="etapas.1.x" rows="2"></textarea></div>
+      <div class="etapa"><label>Etapa 3 <input data-k="etapas.2.t"></label><textarea data-k="etapas.2.x" rows="2"></textarea></div>
+      <div class="etapa"><label>Etapa 4 <input data-k="etapas.3.t"></label><textarea data-k="etapas.3.x" rows="2"></textarea></div>
+      <label class="w">Pauta de poda (una por línea) <textarea data-k="pauta" rows="6"></textarea></label>
+      <label class="w">Jin y shari (una por línea) <textarea data-k="madera" rows="5"></textarea></label>
+      <label class="w">Cuidados (una por línea, «Tema: texto») <textarea data-k="cuidados" rows="5"></textarea></label>
+      <label class="w">Materiales (una por línea, «Tema: texto») <textarea data-k="materiales" rows="5"></textarea></label>
+      <button class="btn ghost" id="b-textos" style="grid-column:1/-1">Restablecer textos del estilo</button>
+    </fieldset>
+  </aside>
+
+  <main>
+    <nav class="tabs" role="tablist">
+      <button data-tab="foto" class="on" role="tab">1 · Marcar la foto</button>
+      <button data-tab="lamina" role="tab">2 · Lámina</button>
+    </nav>
+
+    <section id="tab-foto">
+      <div class="tools" id="tools"></div>
+      <div class="ed-grid">
+        <div>
+          <div class="stage" id="stage">
+            <div class="empty" id="empty"><strong>Carga una foto del ejemplar</strong><span>Mejor de frente, con el árbol entero y fondo despejado.</span><button class="btn" id="b-foto">Elegir foto</button></div>
+            <svg id="ed" hidden></svg>
+          </div>
+          <p class="status" id="status"></p>
+        </div>
+        <div class="marks" id="marks"></div>
+      </div>
+    </section>
+
+    <section id="tab-lamina" hidden>
+      <div class="sheetwrap" id="sheetwrap"><div id="sheet"></div></div>
+    </section>
+  </main>
+</div>
+
+<script>
+'use strict';
+/* ==================================================================== */
+/*  Datos de referencia                                                   */
+/* ==================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const f1 = (n) => (Math.round(n * 10) / 10);
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) && n > 0 ? n : 0; };
+const LS = 'legadoDisenos', LS_ACT = 'legadoDisenoActual';
+
+const ESTILOS = {
+  chokkan:     { n: 'Chokkan', es: 'vertical formal', kanji: '直幹', pot: 'rect',
+    concepto: 'Tronco recto con conicidad marcada y ramas alternas en niveles que se acortan hacia el ápice. Transmite calma y fuerza.' },
+  moyogi:      { n: 'Moyogi', es: 'vertical informal', kanji: '模様木', pot: 'oval',
+    concepto: 'Tronco con curvas que se cierran hacia el ápice; cada rama principal nace en el exterior de una curva, creando ritmo y profundidad.' },
+  shakan:      { n: 'Shakan', es: 'inclinado', kanji: '斜幹', pot: 'rect',
+    concepto: 'Tronco inclinado con raíces fuertes del lado contrario a la inclinación; la copa vuelve sobre la base para equilibrar el movimiento y la madera muerta cuenta la edad del árbol.' },
+  hankengai:   { n: 'Han-kengai', es: 'semicascada', kanji: '半懸崖', pot: 'square',
+    concepto: 'El tronco o la rama principal cae por debajo del borde de la maceta sin pasar de su base; la copa queda baja y compensa la caída.' },
+  kengai:      { n: 'Kengai', es: 'cascada', kanji: '懸崖', pot: 'cascade',
+    concepto: 'El tronco desciende por debajo de la base de la maceta, como un árbol que crece en un acantilado; el ápice queda corto sobre el borde.' },
+  bunjin:      { n: 'Bunjin', es: 'literati', kanji: '文人木', pot: 'round',
+    concepto: 'Tronco largo y esbelto con poco follaje concentrado arriba: elegancia, austeridad y mucho espacio vacío.' },
+  sokan:       { n: 'Sōkan', es: 'doble tronco', kanji: '双幹', pot: 'oval',
+    concepto: 'Dos troncos que nacen de la misma base: el principal más alto y grueso, el secundario lo acompaña; las dos copas forman una sola silueta.' },
+  fukinagashi: { n: 'Fukinagashi', es: 'azotado por el viento', kanji: '吹流し', pot: 'oval',
+    concepto: 'Todas las ramas se dirigen hacia un mismo lado como si el viento las hubiera peinado; jin y shari refuerzan la dureza del lugar.' },
+};
+
+const POT_NAME = { rect: 'Rectangular', oval: 'Ovalada', round: 'Redonda baja', square: 'Cuadrada profunda', cascade: 'Cascada alta' };
+
+const TIPOS = {
+  tronco: { n: 'Tronco', lab: 'Tronco principal', min: 2, col: '#ffffff', ayuda: 'Toca desde la base hasta el ápice que quieres.',
+    txt: 'Línea principal del diseño: fijar la inclinación con alambre y conservar la conicidad hacia el nuevo ápice.' },
+  rama:   { n: 'Rama', lab: 'Rama', min: 2, col: '#a8dc7e', ayuda: 'Toca desde el tronco hasta la punta, en la posición final deseada.',
+    txt: 'Conservar: alambrar, abrir en abanico y bajar ligeramente; mantener follaje en la punta.' },
+  jin:    { n: 'Jin', lab: 'Jin', min: 2, col: '#f3e7c6', ayuda: 'Toca desde el tronco hasta la punta de la madera muerta.',
+    txt: 'Pelar la corteza, tallar siguiendo la forma natural y proteger con caldo sulfocálcico.' },
+  shari:  { n: 'Shari', lab: 'Shari', min: 2, col: '#f3e7c6', ayuda: 'Toca a lo largo del tronco por donde irá la franja de madera muerta.',
+    txt: 'Abrir una franja estrecha siguiendo la vena muerta; máximo 1/3 del perímetro y ampliar por etapas.' },
+  cortar: { n: 'Cortar', lab: 'Cortar', min: 1, col: '#ff5a4e', ayuda: 'Un toque marca un corte; varios toques marcan una rama entera a eliminar (desde la base).',
+    txt: 'Eliminar. Si es grueso, dejar un tocón largo para convertirlo en jin más adelante.' },
+  mover:  { n: 'Bajar / mover', lab: 'Bajar / mover', min: 2, max: 2, col: '#ffb547', ayuda: 'Toca el punto actual y luego hacia dónde debe ir.',
+    txt: 'Alambrar y llevar en la dirección de la flecha, en una o dos sesiones.' },
+  nota:   { n: 'Nota', lab: 'Nota', min: 1, max: 1, col: '#ffffff', ayuda: 'Toca dónde va la nota.', txt: '' },
+};
+
+const TEXTOS = {
+  etapas: [
+    { t: 'Hoy · primer trabajo', x: 'Limpieza, cortes estructurales, jin y shari iniciales y alambrado de la línea principal.' },
+    { t: 'Año 1 – 2', x: 'Recuperación: dejar crecer libres las puntas para engrosar ramas, retirar el alambre a tiempo y refinar la madera muerta.' },
+    { t: 'Año 3 – 4', x: 'Trasplante a maceta de entrenamiento, segundo alambrado y formación de almohadillas.' },
+    { t: 'Meta · año 5 – 8', x: 'Almohadillas compactas y definidas, ápice redondeado y maceta definitiva.' },
+  ],
+  pauta: [
+    'Quitar brotes enteros con tijera desde su base; nunca despuntar con los dedos ni cortar a mitad del follaje.',
+    'Toda rama que se quede debe conservar follaje en la punta: el junípero no rebrota de madera desnuda.',
+    'Aclarar el interior y lo que cuelga bajo cada almohadilla para que entren luz y aire.',
+    'Quitar los brotes verticales que rompen la silueta y los que nacen en los codos.',
+    'Un alambrado fuerte por año; revisar cada mes y retirarlo antes de que marque.',
+    'No trasplantar el mismo año de una poda fuerte (más del 30 %) ni de un shari grande.',
+  ].join('\n'),
+  madera: [
+    'Jin: pelar la corteza con savia activa y tallar siguiendo la forma natural.',
+    'Shari: seguir las venas; nunca más de 1/3 del perímetro por sesión.',
+    'Cada rama viva debe quedar unida a una vena viva.',
+    'Caldo sulfocálcico a las 2–3 semanas y una vez al año.',
+  ].join('\n'),
+  cuidados: [
+    'Luz: pleno sol, 6 horas o más.',
+    'Riego: al secarse la superficie; más seguido de julio a septiembre.',
+    'Abono: orgánico cada 4–6 semanas; pausa de 3 tras un trabajo fuerte.',
+    'Plagas: vigilar araña roja en época seca.',
+  ].join('\n'),
+  materiales: [
+    'Sustrato: akadama, pómez y grava volcánica 1:1:1.',
+    'Alambre: aluminio en ramas finas, cobre en las gruesas (1/3 del grosor).',
+    'Herramientas: cortadora cóncava, alicate de jin, gubias, rafia.',
+    'Madera muerta: caldo sulfocálcico y pincel.',
+  ].join('\n'),
+};
+
+function hoy() { return new Date().toISOString().slice(0, 10); }
+function nueva() {
+  return { v: 1, id: '', especie: 'Junípero', cientifico: '', estilo: 'moyogi', altActual: '', altMin: '', altMax: '', grosor: '',
+    tiempo: '5 – 8 años', potActual: 'vivero', potForma: 'auto', concepto: ESTILOS.moyogi.concepto,
+    etapas: TEXTOS.etapas.map(e => ({ ...e })), pauta: TEXTOS.pauta, madera: TEXTOS.madera, cuidados: TEXTOS.cuidados, materiales: TEXTOS.materiales,
+    foto: '', fotoW: 0, fotoH: 0, trazos: [], fecha: hoy() };
+}
+
+/* ==================================================================== */
+/*  Estado, guardado                                                     */
+/* ==================================================================== */
+let D = nueva();
+let clave = '';                 // clave en localStorage
+let tool = 'sel', drawing = null, sel = -1, drag = null, cursor = null;
+const historial = [];
+
+function leerTodas() { try { return JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch { return {}; } }
+function claveDe(d) { return (d.id || 'sin-codigo').trim(); }
+let tGuardar = 0;
+function guardar() {
+  clearTimeout(tGuardar);
+  tGuardar = setTimeout(() => {
+    const todas = leerTodas();
+    const k = claveDe(D);
+    if (clave && clave !== k) delete todas[clave];
+    todas[k] = D; clave = k;
+    try { localStorage.setItem(LS, JSON.stringify(todas)); localStorage.setItem(LS_ACT, k); }
+    catch { toast('No cabe en el almacenamiento del navegador: usa «Exportar» para guardar el archivo.'); }
+    listarGuardadas();
+  }, 400);
+}
+function listarGuardadas() {
+  const todas = leerTodas(), sel = $('#guardadas');
+  const ks = Object.keys(todas).sort();
+  sel.innerHTML = '<option value="">Guías guardadas…</option>' + ks.map(k =>
+    `<option value="${esc(k)}"${k === clave ? ' selected' : ''}>${esc(k)} · ${esc(ESTILOS[todas[k].estilo]?.n || '')}</option>`).join('');
+}
+function abrir(d, k) {
+  D = Object.assign(nueva(), d);
+  if (!Array.isArray(D.etapas) || D.etapas.length < 4) D.etapas = TEXTOS.etapas.map(e => ({ ...e }));
+  // Archivos de ejemplo pueden venir en píxeles de la foto: se normalizan a 0–1
+  if (d.unidad === 'px' && D.fotoW) { D.trazos.forEach(t => { t.pts = t.pts.map(p => [p[0] / D.fotoW, p[1] / D.fotoH]); }); delete D.unidad; }
+  clave = k ?? claveDe(D); sel = -1; drawing = null; historial.length = 0;
+  llenarCampos(); medirFoto().then(todo);
+}
+let toastT = 0;
+function toast(msg) {
+  let t = $('.toast'); if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); }
+  t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3800);
+}
+function snapshot() { historial.push(JSON.stringify(D.trazos)); if (historial.length > 60) historial.shift(); }
+
+/* ==================================================================== */
+/*  Campos del panel                                                     */
+/* ==================================================================== */
+$('#estilo').innerHTML = Object.entries(ESTILOS).map(([k, e]) => `<option value="${k}">${e.n} · ${e.es}</option>`).join('');
+function getK(k) { return k.split('.').reduce((o, p) => o?.[p], D); }
+function setK(k, v) { const ps = k.split('.'); const last = ps.pop(); const o = ps.reduce((o, p) => o[p], D); o[last] = v; }
+function llenarCampos() { $$('[data-k]').forEach(el => { el.value = getK(el.dataset.k) ?? ''; }); $('#foto-url').value = /^https?:/.test(D.foto) ? D.foto : ''; potHint(); }
+$$('[data-k]').forEach(el => el.addEventListener('input', () => {
+  const k = el.dataset.k;
+  if (k === 'estilo') { const prev = ESTILOS[D.estilo]; if (!D.concepto.trim() || D.concepto === prev?.concepto) { D.concepto = ESTILOS[el.value].concepto; $('[data-k="concepto"]').value = D.concepto; } }
+  setK(k, el.value);
+  potHint(); guardar(); pintarLamina(true);
+  if (k === 'id') listarGuardadas();
+}));
+$('#b-textos').addEventListener('click', () => {
+  Object.assign(D, { concepto: ESTILOS[D.estilo].concepto, etapas: TEXTOS.etapas.map(e => ({ ...e })), pauta: TEXTOS.pauta, madera: TEXTOS.madera, cuidados: TEXTOS.cuidados, materiales: TEXTOS.materiales });
+  llenarCampos(); guardar(); pintarLamina();
+});
+
+/* Maceta final recomendada (cm) según estilo, altura final y grosor */
+function altMeta() { const a = num(D.altMin), b = num(D.altMax); return a && b ? (a + b) / 2 : (a || b || num(D.altActual)); }
+function potFinal() {
+  const forma = D.potForma !== 'auto' ? D.potForma : (ESTILOS[D.estilo]?.pot || 'rect');
+  const H = altMeta(), g = num(D.grosor);
+  if (!H) return { forma, nombre: POT_NAME[forma] };
+  let L, W, P;
+  if (forma === 'rect' || forma === 'oval') { L = H * 2 / 3; W = L * 0.72; P = clamp(g || L * 0.2, L * 0.12, L * 0.3); }
+  else if (forma === 'round') { L = H * 0.32; W = L; P = clamp((g || L * 0.3) * 0.8, L * 0.15, L * 0.35); }
+  else if (forma === 'square') { L = H * 0.42; W = L; P = L * 0.85; }
+  else { L = H * 0.34; W = L; P = L * 1.45; }
+  return { forma, nombre: POT_NAME[forma], L: Math.round(L), W: Math.round(W), P: Math.round(P) };
+}
+function potTexto() { const p = potFinal(); return p.L ? (p.forma === 'round' || p.forma === 'square' || p.forma === 'cascade' ? `${p.nombre} · ≈ ${p.L} cm de lado, ${p.P} cm de alto` : `${p.nombre} · ≈ ${p.L} × ${p.W} × ${p.P} cm`) : p.nombre; }
+function potHint() { $('#pot-hint').textContent = 'Maceta recomendada: ' + potTexto() + (altMeta() ? '' : ' (indica la altura final para calcular medidas)') + '. Para junípero, sin esmalte y en tono tierra.'; }
+
+/* ==================================================================== */
+/*  Foto                                                                 */
+/* ==================================================================== */
+function medirFoto() {
+  return new Promise(res => {
+    if (!D.foto) return res();
+    const im = new Image();
+    im.onload = () => {
+      if (D.fotoW && (D.fotoW !== im.naturalWidth || D.fotoH !== im.naturalHeight)) { /* misma proporción: coordenadas normalizadas siguen valiendo */ }
+      D.fotoW = im.naturalWidth; D.fotoH = im.naturalHeight; res();
+    };
+    im.onerror = () => { toast('No se pudo cargar la foto.'); res(); };
+    im.src = D.foto;
+  });
+}
+function cargarArchivo(file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const max = 1600, k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      D.foto = c.toDataURL('image/jpeg', 0.85); D.fotoW = c.width; D.fotoH = c.height;
+      guardar(); todo();
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+$('#f-foto').addEventListener('change', e => { const f = e.target.files[0]; if (f) cargarArchivo(f); e.target.value = ''; });
+$('#b-foto').addEventListener('click', () => $('#f-foto').click());
+$('#foto-url').addEventListener('change', e => { const u = e.target.value.trim(); if (!u) return; D.foto = u; medirFoto().then(() => { guardar(); todo(); }); });
+
+/* ==================================================================== */
+/*  Geometría                                                            */
+/* ==================================================================== */
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function smooth(pts, per = 10) {
+  if (pts.length < 3) {
+    if (pts.length < 2) return pts.slice();
+    const out = []; for (let k = 0; k <= per; k++) { const t = k / per; out.push([pts[0][0] + (pts[1][0] - pts[0][0]) * t, pts[0][1] + (pts[1][1] - pts[0][1]) * t]); } return out;
+  }
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    for (let k = 0; k < per; k++) {
+      const t = k / per, t2 = t * t, t3 = t2 * t;
+      const c = (a, b, c2, d) => 0.5 * (2 * b + (-a + c2) * t + (2 * a - 5 * b + 4 * c2 - d) * t2 + (-a + 3 * b - 3 * c2 + d) * t3);
+      out.push([c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+function cumLen(S) { const c = [0]; for (let i = 1; i < S.length; i++) c.push(c[i - 1] + Math.hypot(S[i][0] - S[i - 1][0], S[i][1] - S[i - 1][1])); return c; }
+function plen(P) { const c = cumLen(P); return c[c.length - 1]; }
+function at(P, f) { const c = cumLen(P), L = c[c.length - 1] * f; for (let i = 1; i < P.length; i++) if (c[i] >= L) { const t = (L - c[i - 1]) / ((c[i] - c[i - 1]) || 1); return [P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t]; } return P[P.length - 1]; }
+const P2 = (p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+const dpath = (S) => 'M' + S.map(P2).join('L');
+
+/* Polígono de ancho variable a lo largo de S; wf(t, i) da el ancho total */
+function ribbon(S, wf) {
+  if (S.length < 2) return '';
+  const c = cumLen(S), Lt = c[c.length - 1] || 1, L = [], R = [];
+  for (let i = 0; i < S.length; i++) {
+    const a = S[Math.max(0, i - 1)], b = S[Math.min(S.length - 1, i + 1)];
+    let tx = b[0] - a[0], ty = b[1] - a[1]; const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+    const w = Math.max(0, wf(c[i] / Lt, i)) / 2;
+    L.push([S[i][0] - ty * w, S[i][1] + tx * w]); R.push([S[i][0] + ty * w, S[i][1] - tx * w]);
+  }
+  return 'M' + L.map(P2).join('L') + 'L' + R.reverse().map(P2).join('L') + 'Z';
+}
+function offsetLine(S, wf, k) {
+  const c = cumLen(S), Lt = c[c.length - 1] || 1;
+  return 'M' + S.map((p, i) => {
+    const a = S[Math.max(0, i - 1)], b = S[Math.min(S.length - 1, i + 1)];
+    let tx = b[0] - a[0], ty = b[1] - a[1]; const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+    const w = wf(c[i] / Lt, i) / 2 * k; return P2([p[0] - ty * w, p[1] + tx * w]);
+  }).join('L');
+}
+
+/* ==================================================================== */
+/*  Marcas sobre la foto (editor y lámina)                               */
+/* ==================================================================== */
+function numerar() { let r = 0; const k = {}; return D.trazos.map(t => { k[t.tipo] = (k[t.tipo] || 0) + 1; return { n: ++r, k: k[t.tipo] }; }); }
+function etiqueta(t, i, nums) {
+  if (t.lab) return t.lab;
+  if (t.tipo === 'rama') return 'Rama ' + nums[i].k;
+  if (t.tipo === 'tronco') return nums[i].k === 1 ? 'Tronco principal' : 'Tronco secundario';
+  if (t.tipo === 'cortar' && t.pts.length > 1) return 'Eliminar';
+  return TIPOS[t.tipo].lab;
+}
+function anclaPx(t, px) {
+  const P = t.pts.map(px);
+  if (t.tipo === 'tronco') return at(P, 0.5);
+  if (t.tipo === 'shari') return at(P, 0.5);
+  if (t.tipo === 'cortar' || t.tipo === 'nota') return P[0];
+  if (t.tipo === 'cortar') return P[0];
+  return P[P.length - 1];
+}
+function labOffset(t, a, W, H) {
+  const M = Math.max(W, H);
+  if (t.off) return [t.off[0] * M, t.off[1] * M];
+  return [(a[0] < W / 2 ? -1 : 1) * 0.07 * M, -0.025 * M];
+}
+function pillW(text, F) { return F * 1.7 + text.length * F * 0.56 + F * 0.8; }
+
+/* Devuelve el SVG (sin <svg>) de todas las marcas. F = cuerpo de letra en px de foto. */
+function marcasSVG(F, o = {}) {
+  const W = D.fotoW, H = D.fotoH, px = p => [p[0] * W, p[1] * H];
+  const nums = numerar();
+  const lw = F * 0.24, ow = F * 0.5;
+  let lines = '', pills = '', handles = ''; const labs = [];
+  D.trazos.forEach((t, i) => {
+    const P = t.pts.map(px), S = smooth(P), d = dpath(S), col = TIPOS[t.tipo].col, act = o.editor && i === sel;
+    const hit = o.editor ? ` data-i="${i}"` : '';
+    const out = `<path d="${d}" fill="none" stroke="rgba(10,16,13,.55)" stroke-width="${ow}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (t.tipo === 'tronco') lines += out + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${lw}" stroke-dasharray="${F * 0.7} ${F * 0.45}" stroke-linecap="round"${hit}/>`;
+    else if (t.tipo === 'rama') lines += out + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${lw * 1.1}" stroke-linecap="round"${hit}/><circle cx="${P[P.length - 1][0]}" cy="${P[P.length - 1][1]}" r="${F * 0.32}" fill="${col}" stroke="rgba(10,16,13,.6)" stroke-width="${F * 0.08}"/>`;
+    else if (t.tipo === 'jin') lines += out + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${lw}" stroke-dasharray="${F * 0.25} ${F * 0.35}" stroke-linecap="round"${hit}/>`;
+    else if (t.tipo === 'shari') lines += `<path d="${d}" fill="none" stroke="rgba(243,231,198,.42)" stroke-width="${F * 1.1}" stroke-linecap="round" stroke-linejoin="round"${hit}/><path d="${d}" fill="none" stroke="${col}" stroke-width="${lw * 0.8}" stroke-dasharray="${F * 0.25} ${F * 0.3}"/>`;
+    else if (t.tipo === 'cortar') {
+      if (P.length > 1) lines += `<path d="${d}" fill="none" stroke="rgba(10,16,13,.5)" stroke-width="${ow}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${lw}" stroke-dasharray="${F * 0.5} ${F * 0.4}" stroke-linecap="round"${hit}/>`;
+      const [x, y] = P[0], r = F * 0.62;
+      lines += `<g${hit}><circle cx="${x}" cy="${y}" r="${r}" fill="#c0392b" stroke="#fff" stroke-width="${F * 0.12}"/><path d="M${x - r * 0.45} ${y - r * 0.45}L${x + r * 0.45} ${y + r * 0.45}M${x + r * 0.45} ${y - r * 0.45}L${x - r * 0.45} ${y + r * 0.45}" stroke="#fff" stroke-width="${F * 0.16}" stroke-linecap="round"/></g>`;
+    } else if (t.tipo === 'mover' && P.length > 1) {
+      const a = P[0], b = P[P.length - 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]), h = F * 0.9;
+      const head = `M${b[0]} ${b[1]}L${b[0] - h * Math.cos(ang - 0.45)} ${b[1] - h * Math.sin(ang - 0.45)}L${b[0] - h * Math.cos(ang + 0.45)} ${b[1] - h * Math.sin(ang + 0.45)}Z`;
+      lines += out + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${lw * 1.2}" stroke-linecap="round"${hit}/><path d="${head}" fill="${col}" stroke="rgba(10,16,13,.55)" stroke-width="${F * 0.08}"/>`;
+    } else if (t.tipo === 'nota') lines += `<circle cx="${P[0][0]}" cy="${P[0][1]}" r="${F * 0.3}" fill="#fff" stroke="rgba(10,16,13,.6)" stroke-width="${F * 0.1}"${hit}/>`;
+    if (o.editor) lines += `<path d="${d}" fill="none" stroke="transparent" stroke-width="${F * 1.6}" data-i="${i}" style="cursor:pointer"/>`;
+
+    // etiqueta numerada (se coloca después, evitando solapes)
+    const a = anclaPx(t, px), off = labOffset(t, a, W, H), txt = etiqueta(t, i, nums);
+    const pw = pillW(txt, F), ph = F * 1.75;
+    labs.push({ i, a, txt, pw, ph, x: a[0] + off[0] - (off[0] < 0 ? pw : 0), y: a[1] + off[1], act, n: nums[i].n, corte: t.tipo === 'cortar' });
+
+    if (act) P.forEach((p, j) => { handles += `<circle cx="${p[0]}" cy="${p[1]}" r="${F * 0.5}" fill="#fff" stroke="#2F5D50" stroke-width="${F * 0.16}" data-i="${i}" data-j="${j}" style="cursor:grab"/>`; });
+  });
+  // Ápice automático al final del primer tronco
+  const tr = D.trazos.find(t => t.tipo === 'tronco');
+  if (tr && o.apice !== false) {
+    const a = px(tr.pts[tr.pts.length - 1]), txt = 'Ápice';
+    labs.push({ a, txt, pw: txt.length * F * 0.56 + F * 1.2, ph: F * 1.6, x: a[0] + F * 1.2, y: a[1] - F * 1.4, apice: true });
+  }
+  // colocación: dentro del marco y sin solaparse (se empujan hacia abajo, o hacia arriba si no caben)
+  const cl = o.clamp || [0, 0, W, H], gap = F * 0.3;
+  const fit = (L) => { L.x = clamp(L.x, cl[0] + F * 0.4, cl[0] + cl[2] - L.pw - F * 0.4); L.y = clamp(L.y, cl[1] + F * 0.4 + L.ph / 2, cl[1] + cl[3] - L.ph / 2 - F * 0.4); };
+  labs.forEach(fit);
+  const choca = (A, B) => A.x < B.x + B.pw + gap && B.x < A.x + A.pw + gap && Math.abs(A.y - B.y) < (A.ph + B.ph) / 2 + gap;
+  const orden = [...labs].sort((A, B) => A.y - B.y), puestos = [];
+  orden.forEach(L => {
+    for (let k = 0; k < 40; k++) { const c = puestos.find(P => choca(L, P)); if (!c) break; L.y = c.y + (c.ph + L.ph) / 2 + gap; if (L.y > cl[1] + cl[3] - L.ph) { L.y = c.y - (c.ph + L.ph) / 2 - gap; } }
+    fit(L); puestos.push(L);
+  });
+  labs.forEach(L => {
+    const { a, x, y, pw, ph } = L;
+    const ex = x + pw / 2 < a[0] ? x + pw : x, lx = Math.abs(ex - a[0]) > pw * 0.2 ? ex : clamp(a[0], x, x + pw);
+    pills += `<path d="M${a[0]} ${a[1]}L${lx} ${y}" stroke="rgba(255,255,255,.85)" stroke-width="${F * 0.09}" fill="none"/>`;
+    if (L.apice) { pills += `<circle cx="${a[0]}" cy="${a[1]}" r="${F * 0.22}" fill="#fff"/><rect x="${x}" y="${y - ph / 2}" width="${pw}" height="${ph}" rx="${F * 0.25}" fill="#16241F" fill-opacity=".92"/><text x="${x + F * 0.6}" y="${y + F * 0.35}" font-size="${F}" fill="#fff" font-family="Zen Kaku Gothic New,sans-serif">${L.txt}</text>`; return; }
+    pills += `<g${o.editor ? ` data-lab="${L.i}" style="cursor:move"` : ''}><rect x="${x}" y="${y - ph / 2}" width="${pw}" height="${ph}" rx="${F * 0.25}" fill="${L.act ? '#2F5D50' : '#16241F'}" fill-opacity=".92" stroke="${L.act ? '#a8dc7e' : 'rgba(255,255,255,.35)'}" stroke-width="${F * 0.07}"/>`
+      + `<circle cx="${x + F * 0.95}" cy="${y}" r="${F * 0.62}" fill="${L.corte ? '#c0392b' : '#F2EEE6'}"/>`
+      + `<text x="${x + F * 0.95}" y="${y + F * 0.36}" text-anchor="middle" font-size="${F * 0.92}" font-weight="700" fill="${L.corte ? '#fff' : '#16241F'}" font-family="Zen Kaku Gothic New,sans-serif">${L.n}</text>`
+      + `<text x="${x + F * 1.85}" y="${y + F * 0.36}" font-size="${F}" fill="#fff" font-family="Zen Kaku Gothic New,sans-serif" font-weight="500">${esc(L.txt)}</text></g>`;
+  });
+  return lines + pills + handles;
+}
+
+/* ==================================================================== */
+/*  Editor                                                               */
+/* ==================================================================== */
+const TOOLBAR = [['sel', 'Seleccionar', ''], ...Object.entries(TIPOS).map(([k, t]) => [k, t.n, t.col])];
+function pintarTools() {
+  $('#tools').innerHTML = TOOLBAR.map(([k, n, c]) => `<button data-tool="${k}" class="${tool === k ? 'on' : ''}">${c ? `<span class="sw" style="background:${c}"></span>` : ''}${n}</button>`).join('')
+    + `<span class="sep"></span><button id="b-fin"${drawing ? '' : ' hidden'}>✓ Terminar</button><button id="b-undo">Deshacer</button><button id="b-del"${sel >= 0 ? '' : ' disabled'}>Borrar marca</button>`;
+  $('#stage').classList.toggle('drawing', tool !== 'sel');
+}
+$('#tools').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.tool) { terminar(); tool = b.dataset.tool; sel = -1; estado(); pintarTools(); pintarEditor(); return; }
+  if (b.id === 'b-fin') terminar();
+  if (b.id === 'b-undo') deshacer();
+  if (b.id === 'b-del') borrar();
+});
+function estado() {
+  const s = drawing ? `Dibujando ${TIPOS[drawing.tipo].n.toLowerCase()}: ${drawing.pts.length} punto(s). Doble clic, Enter o «Terminar» para cerrar; Esc cancela.`
+    : tool !== 'sel' ? TIPOS[tool].ayuda : sel >= 0 ? 'Arrastra los puntos blancos para ajustar; arrastra la etiqueta para moverla. Supr borra.' : 'Elige una herramienta y toca sobre la foto. Con «Seleccionar» puedes mover puntos y etiquetas.';
+  $('#status').textContent = s;
+}
+function F_ed() { return Math.max(D.fotoW, D.fotoH) * 0.0125; }
+function pintarEditor() {
+  const svg = $('#ed'), has = !!D.foto && D.fotoW;
+  $('#empty').hidden = has; svg.toggleAttribute('hidden', !has);
+  if (!has) return;
+  const W = D.fotoW, H = D.fotoH, F = F_ed();
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let extra = '';
+  if (drawing) {
+    const P = drawing.pts.map(p => [p[0] * W, p[1] * H]);
+    const Q = cursor ? [...P, cursor] : P;
+    extra = `<path d="${dpath(Q)}" fill="none" stroke="${TIPOS[drawing.tipo].col}" stroke-width="${F * 0.25}" stroke-dasharray="${F * 0.5} ${F * 0.3}"/>` + P.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="${F * 0.35}" fill="${TIPOS[drawing.tipo].col}" stroke="#16241F" stroke-width="${F * 0.1}"/>`).join('');
+  }
+  svg.innerHTML = `<image href="${esc(D.foto)}" width="${W}" height="${H}"/>` + marcasSVG(F, { editor: true }) + extra;
+}
+function pt(e) { const svg = $('#ed'), p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; }
+function norm(p) { return [clamp(p[0] / D.fotoW, 0, 1), clamp(p[1] / D.fotoH, 0, 1)]; }
+
+$('#ed').addEventListener('pointerdown', e => {
+  if (e.button === 2) return;
+  const p = pt(e), tg = e.target;
+  if (tool === 'sel') {
+    const h = tg.closest('[data-j]'), lb = tg.closest('[data-lab]'), ln = tg.closest('[data-i]');
+    if (h) { snapshot(); drag = { kind: 'pt', i: +h.dataset.i, j: +h.dataset.j }; }
+    else if (lb) { snapshot(); const i = +lb.dataset.lab; sel = i; const t = D.trazos[i], a = anclaPx(t, q => [q[0] * D.fotoW, q[1] * D.fotoH]); drag = { kind: 'lab', i, a, start: p, off0: labOffset(t, a, D.fotoW, D.fotoH) }; }
+    else if (ln) { sel = +ln.dataset.i; }
+    else sel = -1;
+    if (drag) $('#ed').setPointerCapture(e.pointerId);
+    pintarTools(); pintarEditor(); pintarLista(); estado();
+    return;
+  }
+  // herramientas de dibujo
+  if (!drawing) { drawing = { tipo: tool, pts: [] }; }
+  const n = norm(p), last = drawing.pts[drawing.pts.length - 1];
+  if (!last || Math.hypot((n[0] - last[0]) * D.fotoW, (n[1] - last[1]) * D.fotoH) > F_ed() * 0.6) drawing.pts.push(n);
+  const mx = TIPOS[tool].max;
+  if (mx && drawing.pts.length >= mx) terminar();
+  pintarTools(); pintarEditor(); estado();
+});
+$('#ed').addEventListener('pointermove', e => {
+  const p = pt(e);
+  if (drag) {
+    const t = D.trazos[drag.i];
+    if (drag.kind === 'pt') t.pts[drag.j] = norm(p);
+    else { const M = Math.max(D.fotoW, D.fotoH); const o = [drag.off0[0] + p[0] - drag.start[0], drag.off0[1] + p[1] - drag.start[1]]; t.off = [o[0] / M, o[1] / M]; }
+    pintarEditor(); return;
+  }
+  if (drawing) { cursor = p; pintarEditor(); }
+});
+$('#ed').addEventListener('pointerup', () => { if (drag) { drag = null; guardar(); pintarLamina(true); } });
+$('#ed').addEventListener('dblclick', e => { e.preventDefault(); terminar(); });
+$('#ed').addEventListener('contextmenu', e => { if (drawing) { e.preventDefault(); terminar(); } });
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,select')) return;
+  if (e.key === 'Enter' && drawing) terminar();
+  else if (e.key === 'Escape') { drawing = null; cursor = null; tool = 'sel'; pintarTools(); pintarEditor(); estado(); }
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && sel >= 0) { e.preventDefault(); borrar(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); deshacer(); }
+});
+function terminar() {
+  if (!drawing) return;
+  const d = drawing; drawing = null; cursor = null;
+  if (d.pts.length >= TIPOS[d.tipo].min) { snapshot(); D.trazos.push({ tipo: d.tipo, pts: d.pts, lab: '', texto: TIPOS[d.tipo].txt }); sel = D.trazos.length - 1; guardar(); }
+  else toast(`${TIPOS[d.tipo].n}: hacen falta al menos ${TIPOS[d.tipo].min} puntos.`);
+  tool = 'sel'; pintarTools(); pintarEditor(); pintarLista(); estado(); pintarLamina(true);
+}
+function borrar() { if (sel < 0) return; snapshot(); D.trazos.splice(sel, 1); sel = -1; guardar(); pintarTools(); pintarEditor(); pintarLista(); estado(); pintarLamina(true); }
+function deshacer() { const s = historial.pop(); if (!s) return; D.trazos = JSON.parse(s); sel = -1; guardar(); pintarTools(); pintarEditor(); pintarLista(); pintarLamina(true); }
+
+function pintarLista() {
+  const nums = numerar();
+  $('#marks').innerHTML = `<h3>Plan de trabajo</h3>` + (D.trazos.length ? '' : '<p class="status">Las marcas que hagas aparecen aquí con su texto para la lámina.</p>')
+    + D.trazos.map((t, i) => `<div class="mk${i === sel ? ' sel' : ''}" data-mk="${i}">
+      <header><b>${nums[i].n}</b>${esc(TIPOS[t.tipo].n)}<button data-delmk="${i}" aria-label="Borrar marca ${nums[i].n}">Borrar</button></header>
+      <input data-lab-in="${i}" value="${esc(t.lab)}" placeholder="${esc(etiqueta({ ...t, lab: '' }, i, nums))}" aria-label="Etiqueta">
+      <textarea data-txt-in="${i}" rows="2" aria-label="Qué hacer">${esc(t.texto)}</textarea></div>`).join('');
+}
+$('#marks').addEventListener('input', e => {
+  const l = e.target.dataset.labIn, x = e.target.dataset.txtIn;
+  if (l != null) D.trazos[l].lab = e.target.value;
+  if (x != null) D.trazos[x].texto = e.target.value;
+  guardar(); pintarEditor(); pintarLamina(true);
+});
+$('#marks').addEventListener('click', e => {
+  const d = e.target.closest('[data-delmk]'); if (d) { sel = +d.dataset.delmk; borrar(); return; }
+  const m = e.target.closest('[data-mk]'); if (m && +m.dataset.mk !== sel) { sel = +m.dataset.mk; pintarTools(); pintarEditor(); $$('.mk').forEach(x => x.classList.toggle('sel', +x.dataset.mk === sel)); estado(); }
+});
+
+/* ==================================================================== */
+/*  Proyección dibujada                                                  */
+/* ==================================================================== */
+const BARK = ['#4a2a1e', '#7b4a35', '#94604a', '#5a3326'];
+function defs(uid) {
+  return `<defs>
+    <linearGradient id="bark${uid}" x1="0" x2="1"><stop offset="0" stop-color="${BARK[0]}"/><stop offset=".45" stop-color="${BARK[2]}"/><stop offset=".7" stop-color="${BARK[1]}"/><stop offset="1" stop-color="${BARK[3]}"/></linearGradient>
+    <linearGradient id="pot${uid}" x1="0" x2="1"><stop offset="0" stop-color="#3a302a"/><stop offset=".35" stop-color="#6a584c"/><stop offset="1" stop-color="#352b25"/></linearGradient>
+    <linearGradient id="viv${uid}" x1="0" x2="1"><stop offset="0" stop-color="#101211"/><stop offset=".35" stop-color="#3a3e3c"/><stop offset="1" stop-color="#0d0f0e"/></linearGradient>
+    <linearGradient id="wood${uid}" x1="0" x2="0" y2="1"><stop offset="0" stop-color="#c49a66"/><stop offset="1" stop-color="#9c7447"/></linearGradient>
+    <linearGradient id="stand${uid}" x1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b4630"/><stop offset="1" stop-color="#3e2718"/></linearGradient>
+    <linearGradient id="bg${uid}" x1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBFAF7"/><stop offset="1" stop-color="#E9E5DC"/></linearGradient>
+  </defs>`;
+}
+
+/* Prepara la geometría del árbol en coordenadas de lámina (base del tronco en 0,0, y hacia abajo) */
+function geometria() {
+  const W = D.fotoW, H = D.fotoH;
+  const tr = D.trazos.filter(t => t.tipo === 'tronco' && t.pts.length > 1);
+  if (!tr.length || !W) return null;
+  const b = [tr[0].pts[0][0] * W, tr[0].pts[0][1] * H];
+  const T = p => [p[0] * W - b[0], p[1] * H - b[1]];
+  const g = {
+    troncos: tr.map(t => t.pts.map(T)),
+    ramas: D.trazos.filter(t => t.tipo === 'rama' && t.pts.length > 1).map(t => t.pts.map(T)),
+    jins: D.trazos.filter(t => t.tipo === 'jin' && t.pts.length > 1).map(t => t.pts.map(T)),
+    sharis: D.trazos.filter(t => t.tipo === 'shari' && t.pts.length > 1).map(t => t.pts.map(T)),
+  };
+  let top = 0, minX = 0, maxX = 0;
+  [...g.troncos, ...g.ramas, ...g.jins].flat().forEach(p => { top = Math.min(top, p[1]); minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); });
+  g.hD = Math.max(-top, 1); g.minX = minX; g.maxX = maxX;
+  // escala cm ↔ px de foto (la altura final incluye la copa sobre el ápice)
+  const Hm = altMeta();
+  g.cmpx = Hm ? Hm / (g.hD * 1.12) : 0;
+  const gros = num(D.grosor);
+  g.wb = clamp(gros && g.cmpx ? gros / g.cmpx : g.hD * 0.1, g.hD * 0.035, g.hD * 0.22);
+  return g;
+}
+
+function potKind(etapa) {
+  const fin = potFinal().forma;
+  if (D.potActual === 'bonsai') return fin;
+  if (D.potActual === 'caja') return etapa <= 1 ? 'caja' : fin;
+  return etapa <= 1 ? 'vivero' : etapa === 2 ? 'caja' : fin;
+}
+function potDims(g, kind) {
+  const p = potFinal();
+  if (kind === 'vivero') { const w = Math.max(g.hD * 0.42, g.wb * 3.6); return { L: w, P: w * 0.9 }; }
+  if (kind === 'caja') { const L = Math.max(g.hD * 0.62, g.wb * 4.5); return { L, P: Math.max(g.hD * 0.17, g.wb * 1.3) }; }
+  if (p.L && g.cmpx) return { L: p.L / g.cmpx, P: p.P / g.cmpx };
+  const Hm = g.hD * 1.12;
+  const r = { rect: [0.667, 0.13], oval: [0.667, 0.12], round: [0.32, 0.1], square: [0.42, 0.36], cascade: [0.34, 0.49] }[kind] || [0.667, 0.13];
+  return { L: Hm * r[0], P: Math.max(Hm * r[1], g.wb * 0.9) };
+}
+/* Maceta (borde en y=0) + mesa; devuelve svg y caja ocupada */
+function potSVG(kind, cx, L, P, uid, conMesa) {
+  let s = '', bottom = P;
+  const x0 = cx - L / 2, x1 = cx + L / 2;
+  if (kind === 'vivero') {
+    s += `<path d="M${x0} 0L${x1} 0L${cx + L * 0.4} ${P}L${cx - L * 0.4} ${P}Z" fill="url(#viv${uid})"/>`;
+    s += `<rect x="${x0 - L * 0.015}" y="${-P * 0.02}" width="${L * 1.03}" height="${P * 0.07}" rx="${P * 0.02}" fill="#232624"/>`;
+    for (let i = -2; i <= 2; i++) for (let j = 0; j < 4; j++) s += `<rect x="${cx + i * L * 0.12 - L * 0.012}" y="${P * (0.35 + j * 0.14)}" width="${L * 0.024}" height="${P * 0.08}" rx="${L * 0.008}" fill="#050606" opacity=".75"/>`;
+  } else if (kind === 'caja') {
+    s += `<rect x="${x0}" y="0" width="${L}" height="${P}" fill="url(#wood${uid})" stroke="#7d5a35" stroke-width="${P * 0.03}"/>`;
+    s += `<path d="M${x0} ${P * 0.5}H${x1}M${x0 + L * 0.06} 0V${P}M${x1 - L * 0.06} 0V${P}" stroke="#86613a" stroke-width="${P * 0.025}" fill="none"/>`;
+  } else {
+    const rim = P * (kind === 'cascade' ? 0.07 : 0.15), fh = P * (kind === 'cascade' ? 0.05 : 0.1), bodyB = P - fh;
+    const bw = kind === 'cascade' || kind === 'square' ? L * 0.92 : L * 0.94;
+    let body;
+    if (kind === 'oval') body = `M${x0} ${rim}L${x1} ${rim}L${cx + bw / 2} ${bodyB - P * 0.25}Q${cx + bw / 2} ${bodyB} ${cx + bw / 2 - P * 0.35} ${bodyB}L${cx - bw / 2 + P * 0.35} ${bodyB}Q${cx - bw / 2} ${bodyB} ${cx - bw / 2} ${bodyB - P * 0.25}Z`;
+    else if (kind === 'round') body = `M${x0} ${rim}L${x1} ${rim}Q${x1} ${bodyB} ${cx + L * 0.28} ${bodyB}L${cx - L * 0.28} ${bodyB}Q${x0} ${bodyB} ${x0} ${rim}Z`;
+    else body = `M${x0} ${rim}L${x1} ${rim}L${cx + bw / 2} ${bodyB}L${cx - bw / 2} ${bodyB}Z`;
+    const fw = L * 0.09;
+    s += `<rect x="${cx - bw / 2 + L * 0.04}" y="${bodyB - 1}" width="${fw}" height="${fh + 1}" fill="#2c241f"/><rect x="${cx + bw / 2 - L * 0.04 - fw}" y="${bodyB - 1}" width="${fw}" height="${fh + 1}" fill="#2c241f"/>`;
+    s += `<path d="${body}" fill="url(#pot${uid})"/>`;
+    s += `<rect x="${x0 - L * 0.012}" y="0" width="${L * 1.024}" height="${rim}" rx="${kind === 'oval' || kind === 'round' ? rim / 2 : rim * 0.12}" fill="#4a3d35"/><path d="M${x0} ${rim * 0.25}H${x1}" stroke="#8a7464" stroke-width="${rim * 0.14}" opacity=".7"/>`;
+    if (conMesa) {
+      if (kind === 'cascade') { const sw = L * 1.0, sh = P * 1.15; s += `<rect x="${cx - sw / 2}" y="${P}" width="${sw}" height="${P * 0.06}" fill="url(#stand${uid})"/><rect x="${cx - sw * 0.38}" y="${P * 1.06}" width="${sw * 0.76}" height="${sh}" fill="url(#stand${uid})" opacity=".92"/><rect x="${cx - sw / 2}" y="${P * 1.06 + sh}" width="${sw}" height="${P * 0.06}" fill="#3e2718"/>`; bottom = P * 1.12 + sh; }
+      else { const sw = L * 1.14, st = Math.max(P * 0.16, L * 0.035), lg = st * 1.3; s += `<rect x="${cx - sw / 2}" y="${P}" width="${sw}" height="${st}" fill="url(#stand${uid})"/><rect x="${cx - sw / 2 + sw * 0.04}" y="${P + st}" width="${sw * 0.1}" height="${lg}" fill="#3e2718"/><rect x="${cx + sw / 2 - sw * 0.14}" y="${P + st}" width="${sw * 0.1}" height="${lg}" fill="#3e2718"/>`; bottom = P + st + lg; }
+    }
+  }
+  // sustrato
+  s += `<path d="M${x0 + L * 0.03} 0Q${cx} ${-P * 0.12 - L * 0.02} ${x1 - L * 0.03} 0Z" fill="#3a2e26"/>`;
+  const w = kind === 'cascade' && conMesa ? L : (conMesa && kind !== 'vivero' && kind !== 'caja' ? L * 1.14 : L * 1.03);
+  return { s, box: [cx - w / 2, -P * 0.1, cx + w / 2, bottom] };
+}
+
+/* Almohadilla de follaje (nube de junípero) */
+function padSVG(cx, cy, w, h, seed, dens) {
+  const r = mulberry(seed), rx = w / 2, ry = h / 2, cr = Math.max(h * 0.24, w * 0.045);
+  const n = Math.round(clamp((rx * ry) / (cr * cr) * 3.2 * dens, 8, 110)), C = [];
+  for (let i = 0; i < n; i++) {
+    const a = r() * Math.PI * 2, d = Math.sqrt(r());
+    let x = cx + Math.cos(a) * d * (rx - cr * 0.55), y = cy + Math.sin(a) * d * (ry - cr * 0.35);
+    if (y > cy + ry * 0.35) y = cy + ry * 0.35 - r() * cr * 0.25;
+    C.push([x, y, cr * (0.7 + r() * 0.55)]);
+  }
+  C.sort((a, b) => b[1] - a[1]);
+  let s = `<ellipse cx="${cx}" cy="${cy + ry * 0.62}" rx="${rx * 0.86}" ry="${Math.max(ry * 0.22, 1)}" fill="#1c2a19" opacity=".28"/>`;
+  s += C.map(c => `<circle cx="${c[0].toFixed(1)}" cy="${(c[1] + c[2] * 0.2).toFixed(1)}" r="${c[2].toFixed(1)}" fill="#22361f"/>`).join('');
+  s += C.map(c => `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(c[2] * 0.84).toFixed(1)}" fill="#3a5c33"/>`).join('');
+  s += C.filter(c => c[1] < cy + ry * 0.1).map(c => `<circle cx="${(c[0] - c[2] * 0.15).toFixed(1)}" cy="${(c[1] - c[2] * 0.22).toFixed(1)}" r="${(c[2] * 0.5).toFixed(1)}" fill="#5d8343"/>`).join('');
+  s += C.filter((c, i) => i % 3 === 0 && c[1] < cy).map(c => `<circle cx="${(c[0] - c[2] * 0.3).toFixed(1)}" cy="${(c[1] - c[2] * 0.42).toFixed(1)}" r="${(c[2] * 0.2).toFixed(1)}" fill="#8aae68"/>`).join('');
+  return s;
+}
+
+/* Árbol completo para una etapa: devuelve svg, caja y puntos de referencia */
+function arbolSVG(g, etapa, uid) {
+  const G = [0.42, 0.66, 0.86, 1][etapa], tf = [1, 1.04, 1.08, 1.12][etapa], dens = [0.55, 0.8, 0.95, 1.05][etapa];
+  const wb = g.wb * tf, hD = g.hD;
+  const tS = [];   // muestras de troncos con su ancho
+  let back = '', s = '', front = '', pads = [];
+  const box = [Infinity, Infinity, -Infinity, -Infinity];
+  const ext = (x, y, m = 0) => { box[0] = Math.min(box[0], x - m); box[1] = Math.min(box[1], y - m); box[2] = Math.max(box[2], x + m); box[3] = Math.max(box[3], y + m); };
+  const anchoEn = (p) => { let best = { d: Infinity, w: wb * 0.5 }; tS.forEach(o => o.S.forEach((q, i) => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < best.d) best = { d, w: o.f(o.c[i] / o.L) }; })); return best.w; };
+
+  // raíces (nebari)
+  const rr = mulberry(7);
+  [-1, -0.55, 0.5, 1].forEach(dx => {
+    const len = wb * (1.05 + rr() * 0.6) * Math.abs(dx) + wb * 0.3;
+    const R = smooth([[dx * wb * 0.15, -wb * 0.25], [dx * (wb * 0.25 + len * 0.45), -wb * 0.07], [dx * (wb * 0.3 + len), wb * 0.02]], 8);
+    s += `<path d="${ribbon(R, t => wb * 0.34 * (1 - t) + wb * 0.02)}" fill="url(#bark${uid})"/>`;
+    ext(dx * (wb * 0.3 + len), 0);
+  });
+  // troncos
+  g.troncos.forEach((pts, k) => {
+    const S = smooth(pts, 12), c = cumLen(S), L = c[c.length - 1] || 1;
+    const w0 = k === 0 ? wb : Math.max(anchoEn(pts[0]) * 0.75, wb * 0.45);
+    const f = t => w0 * (1 - 0.7 * t) * (1 + (k === 0 ? 0.75 * Math.pow(Math.max(0, 1 - t / 0.1), 2) : 0));
+    s += `<path d="${ribbon(S, f)}" fill="url(#bark${uid})"/>`;
+    s += `<path d="${offsetLine(S, f, -0.45)}" stroke="#3a2016" stroke-width="${wb * 0.035}" fill="none" opacity=".45"/><path d="${offsetLine(S, f, 0.1)}" stroke="#3a2016" stroke-width="${wb * 0.025}" fill="none" opacity=".3"/><path d="${offsetLine(S, f, -0.2)}" stroke="#b07d63" stroke-width="${wb * 0.04}" fill="none" opacity=".35"/>`;
+    tS.push({ S, c, L, f });
+    S.forEach(p => ext(p[0], p[1], w0 / 2));
+  });
+  // shari: franja clara sobre el tronco
+  g.sharis.forEach(pts => {
+    const S = smooth(pts, 10);
+    const ws = S.map(p => anchoEn(p) * 0.3);
+    const f = (t, i) => ws[i] * Math.pow(Math.sin(Math.PI * clamp(t, 0.02, 0.98)), 0.35);
+    s += `<path d="${ribbon(S, f)}" fill="#e6dcc6" stroke="#a8977a" stroke-width="${wb * 0.025}"/><path d="${offsetLine(S, f, 0.3)}" stroke="#b9aa8b" stroke-width="${wb * 0.02}" fill="none"/><path d="${offsetLine(S, f, -0.35)}" stroke="#c9bb9d" stroke-width="${wb * 0.018}" fill="none"/>`;
+  });
+  // ramas y jin: si el primer punto quedó fuera del tronco, se une al eje más cercano
+  const alTronco = (pts) => { let best = null, bd = Infinity; tS.forEach(o => o.S.forEach(q => { const d = Math.hypot(q[0] - pts[0][0], q[1] - pts[0][1]); if (d < bd) { bd = d; best = q; } })); return best && bd > wb * 0.15 && bd < g.hD * 0.25 ? [best, ...pts] : pts; };
+  g.ramas = g.ramas.map(alTronco); g.jins = g.jins.map(alTronco);
+  // ramas
+  g.ramas.forEach((pts, i) => {
+    const S = smooth(pts, 10), w0 = clamp(anchoEn(pts[0]) * 0.5, wb * 0.08, wb * 0.42) * tf;
+    s += `<path d="${ribbon(S, t => w0 * (1 - 0.78 * t) + wb * 0.02)}" fill="url(#bark${uid})"/>`;
+    S.forEach(p => ext(p[0], p[1]));
+    const E = pts[pts.length - 1], Pp = pts[pts.length - 2], dl = Math.hypot(E[0] - Pp[0], E[1] - Pp[1]) || 1, dir = [(E[0] - Pp[0]) / dl, (E[1] - Pp[1]) / dl];
+    const len = plen(pts);
+    // la almohadilla cubre el último tramo de la rama y se abre hacia fuera
+    const w = clamp(len * 1.0, hD * 0.28, hD * 0.55) * G, h = w * 0.34;
+    pads.push({ x: E[0] - dir[0] * w * 0.08, y: E[1] - h * 0.22, w, h, seed: 11 + i * 7, rama: i });
+    if (len > hD * 0.28) { const m = at(pts, 0.5); pads.push({ x: m[0], y: m[1] - h * 0.42, w: w * 0.62, h: h * 0.7, seed: 91 + i * 5 }); }
+  });
+  // ápices: cúpula central con dos hombros
+  g.troncos.forEach((pts, k) => {
+    const A = pts[pts.length - 1], w = hD * (k === 0 ? 0.46 : 0.3) * G, h = w * 0.48;
+    if (k === 0) [-1, 1].forEach((sd, j) => pads.push({ x: A[0] + sd * w * 0.42, y: A[1] + h * 0.55, w: w * 0.7, h: h * 0.62, seed: 601 + j }));
+    pads.push({ x: A[0], y: A[1] - h * 0.2, w, h, seed: 501 + k, apice: k === 0 });
+  });
+  // sin ramas marcadas: almohadillas repartidas en el tronco principal
+  if (!g.ramas.length && g.troncos[0]) [0.42, 0.58, 0.74].forEach((f, i) => { const p = at(g.troncos[0], f), w = hD * 0.28 * G; pads.push({ x: p[0] + (i % 2 ? -1 : 1) * w * 0.45, y: p[1], w, h: w * 0.36, seed: 300 + i }); });
+  // jin: madera muerta clara, en punta
+  g.jins.forEach(pts => {
+    const S = smooth(pts, 10), w0 = clamp(anchoEn(pts[0]) * 0.22, wb * 0.06, wb * 0.24), Lj = plen(pts), rj = mulberry(Math.round(Lj));
+    const f = t => w0 * Math.pow(1 - t, 0.9) + wb * 0.008;
+    const jinPath = (P, ff) => `<path d="${ribbon(P, ff)}" fill="#e4dfd3" stroke="#8f897c" stroke-width="${wb * 0.022}" stroke-linejoin="round"/>`;
+    front += jinPath(S, f) + `<path d="${offsetLine(S, f, 0.2)}" stroke="#a9a395" stroke-width="${wb * 0.016}" fill="none"/>`;
+    [0.45, 0.7].forEach((fr, k) => { // horquillas secas
+      const p = at(S, fr), q = at(S, Math.min(1, fr + 0.05)), ang = Math.atan2(q[1] - p[1], q[0] - p[0]) + (k ? -0.6 : 0.55) * (rj() > 0.5 ? 1 : -1), l = Lj * (0.16 + rj() * 0.1);
+      const F2 = smooth([p, [p[0] + Math.cos(ang) * l * 0.5, p[1] + Math.sin(ang) * l * 0.5 - l * 0.06], [p[0] + Math.cos(ang) * l, p[1] + Math.sin(ang) * l]], 6);
+      front += jinPath(F2, t => f(fr) * 0.6 * (1 - t) + wb * 0.006);
+    });
+    S.forEach(p => ext(p[0], p[1]));
+  });
+  // follaje: de arriba hacia abajo para que las almohadillas bajas queden delante
+  pads.sort((a, b) => a.y - b.y);
+  const padS = pads.map(p => { ext(p.x - p.w / 2, p.y - p.h / 2); ext(p.x + p.w / 2, p.y + p.h / 2); return padSVG(p.x, p.y, p.w, p.h, p.seed, dens); }).join('');
+  const ap = pads.find(p => p.apice), r0 = pads.find(p => p.rama === 0);
+  const ref = {
+    copa: ap ? [ap.x, ap.y - ap.h * 0.35] : null,
+    rama: r0 ? [r0.x, r0.y] : null,
+    jin: g.jins[0] ? at(g.jins[0], 0.6) : null,
+    shari: g.sharis[0] ? at(g.sharis[0], 0.5) : null,
+    nebari: [wb * 0.85, -wb * 0.15],
+    top: box[1],
+  };
+  return { s: back + s + front + padS, box, ref };
+}
+
+/* SVG completo de una proyección. o: {w,h} en px de lámina, etapa, callouts, dims */
+function proyeccion(etapa, o) {
+  const g = geometria();
+  if (!g) return `<svg viewBox="0 0 ${o.w} ${o.h}"><rect width="100%" height="100%" fill="#FBFAF7"/><text x="50%" y="50%" text-anchor="middle" font-size="12" fill="#7A857E" font-family="Zen Kaku Gothic New,sans-serif">Marca el tronco en la foto para dibujar la proyección</text></svg>`;
+  const uid = 'u' + etapa + (o.callouts ? 'c' : '');
+  const tree = arbolSVG(g, etapa, uid);
+  // caja común a todas las etapas (misma escala para ver el crecimiento)
+  const meta = arbolSVG(g, 3, uid);
+  const kinds = [0, 1, 2, 3].map(potKind);
+  const baseX = 0, cxOf = (L) => clamp(((meta.box[0] + meta.box[2]) / 2 - baseX) * 0.45, -L * 0.17, L * 0.17);
+  let bb = [...meta.box];
+  const potOf = (kind, final) => { const d = potDims(g, kind); return potSVG(kind, cxOf(d.L), d.L, d.P, uid, final); };
+  const etapasCaja = o.callouts ? [3] : [0, 1, 2, 3];
+  etapasCaja.forEach(e => { const pb = potOf(kinds[e], kinds[e] !== 'vivero' && kinds[e] !== 'caja').box; bb = [Math.min(bb[0], pb[0]), Math.min(bb[1], pb[1]), Math.max(bb[2], pb[2]), Math.max(bb[3], pb[3])]; });
+  [0, 1, 2].forEach(e => { if (!o.callouts) { const b = arbolSVG(g, e, uid).box; bb = [Math.min(bb[0], b[0]), Math.min(bb[1], b[1]), Math.max(bb[2], b[2]), Math.max(bb[3], b[3])]; } });
+  const kind = kinds[etapa], pot = potOf(kind, kind !== 'vivero' && kind !== 'caja');
+  let w = bb[2] - bb[0], h = bb[3] - bb[1];
+  const m = Math.max(w, h) * 0.06;
+  let x0 = bb[0] - m, y0 = bb[1] - m, x1 = bb[2] + m, y1 = bb[3] + m;
+  // espacio para etiquetas y cota
+  const sideL = o.callouts ? (x1 - x0) * 0.2 : 0, sideR = o.callouts ? (x1 - x0) * 0.32 : 0;
+  x0 -= sideL; x1 += sideR;
+  w = x1 - x0; h = y1 - y0;
+  const asp = o.w / o.h;
+  if (w / h < asp) { const nw = h * asp; x0 -= (nw - w) / 2; w = nw; } else { const nh = w / asp; y0 -= (nh - h); h = nh; }
+  const k = o.w / w, F = 11 / k;   // F = 11 px de lámina en unidades del dibujo
+  let s = `<svg viewBox="${x0} ${y0} ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${defs(uid)}<rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="url(#bg${uid})"/>`;
+  s += `<ellipse cx="${(pot.box[0] + pot.box[2]) / 2}" cy="${pot.box[3]}" rx="${(pot.box[2] - pot.box[0]) * 0.62}" ry="${F * 0.7}" fill="#1b241f" opacity=".14"/>`;
+  s += pot.s + tree.s;
+  if (o.callouts) {
+    const items = [
+      ['Copa', tree.ref.copa], ['Ramas en almohadilla', tree.ref.rama], ['Jin', tree.ref.jin], ['Shari', tree.ref.shari], ['Nebari', tree.ref.nebari],
+      [potFinal().nombre ? 'Maceta ' + potFinal().nombre.toLowerCase() : 'Maceta', [(pot.box[0] + pot.box[2]) / 2 + (pot.box[2] - pot.box[0]) * 0.3, potDims(g, kind).P * 0.55]],
+    ].filter(x => x[1]);
+    const cx = (bb[0] + bb[2]) / 2, ph = F * 1.9, gap = ph * 1.35;
+    const lados = { L: [], R: [] };
+    items.forEach(it => lados[it[1][0] < cx ? 'L' : 'R'].push(it));
+    const fitR = bb[2] + m + F * 1.5;
+    Object.entries(lados).forEach(([lado, arr]) => {
+      arr.sort((a, b) => a[1][1] - b[1][1]);
+      let lastY = -Infinity;
+      arr.forEach(([txt, p]) => {
+        const pw = txt.length * F * 0.56 + F * 1.4;
+        let y = Math.max(p[1], lastY + gap); y = Math.min(y, y1 - ph); lastY = y;
+        const x = lado === 'L' ? x0 + F * 0.8 : Math.min(fitR, x1 - F * 2.6 - pw);
+        const ex = lado === 'L' ? x + pw : x;
+        s += `<path d="M${p[0]} ${p[1]}L${ex} ${y}" stroke="#16241F" stroke-width="${F * 0.09}" fill="none"/><circle cx="${p[0]}" cy="${p[1]}" r="${F * 0.25}" fill="#16241F"/>`;
+        s += `<rect x="${x}" y="${y - ph / 2}" width="${pw}" height="${ph}" rx="${F * 0.2}" fill="#16241F"/><text x="${x + F * 0.7}" y="${y + F * 0.36}" font-size="${F}" fill="#fff" font-family="Zen Kaku Gothic New,sans-serif">${esc(txt)}</text>`;
+      });
+    });
+  }
+  if (o.dims && (num(D.altMin) || num(D.altMax))) {
+    const xd = x1 - F * 1.2, yt = tree.box[1], yb = 0;
+    const txt = [num(D.altMin), num(D.altMax)].filter(Boolean).join(' – ') + ' cm';
+    s += `<path d="M${xd} ${yt}V${yb}M${xd - F * 0.6} ${yt}H${xd + F * 0.6}M${xd - F * 0.6} ${yb}H${xd + F * 0.6}" stroke="#16241F" stroke-width="${F * 0.09}" fill="none"/>`;
+    s += `<text transform="translate(${xd - F * 0.5} ${(yt + yb) / 2}) rotate(-90)" text-anchor="middle" font-family="Shippori Mincho,serif" font-weight="700" fill="#16241F" font-size="${F * 0.95}" letter-spacing="${F * 0.06}" stroke="#F3F0E9" stroke-width="${F * 0.35}" paint-order="stroke">ALTURA FINAL ${esc(txt)}</text>`;
+  }
+  return s + '</svg>';
+}
+
+/* ==================================================================== */
+/*  Lámina                                                               */
+/* ==================================================================== */
+function lineas(t) { return String(t || '').split('\n').map(x => x.trim()).filter(Boolean); }
+function temaTexto(l) { const m = l.match(/^([^:]{2,28}):\s*(.+)$/); return m ? `<b>${esc(m[1])}:</b> ${esc(m[2])}` : esc(l); }
+
+function fotoPanel(PW, PH) {
+  if (!D.foto || !D.fotoW) return `<div style="display:grid;place-items:center;height:100%;color:#cfd6d1">Sin foto</div>`;
+  const W = D.fotoW, H = D.fotoH, M = Math.max(W, H);
+  const pts = D.trazos.flatMap(t => t.pts.map(p => [p[0] * W, p[1] * H]));
+  let bx0 = 0, by0 = 0, bx1 = W, by1 = H;
+  if (pts.length) {
+    bx0 = Math.min(...pts.map(p => p[0])); bx1 = Math.max(...pts.map(p => p[0]));
+    by0 = Math.min(...pts.map(p => p[1])); by1 = Math.max(...pts.map(p => p[1]));
+    const pad = M * 0.07; bx0 -= pad * 1.6; bx1 += pad * 1.6; by0 -= pad; by1 += pad + (by1 - by0) * 0.22;  // abajo: sitio para el concepto
+  }
+  let w = bx1 - bx0, h = by1 - by0; const asp = PW / PH;
+  if (w / h < asp) { const nw = h * asp; bx0 -= (nw - w) / 2; w = nw; } else { const nh = w / asp; by0 -= (nh - h) / 2; h = nh; }
+  // mantener dentro de la foto cuando sea posible
+  if (w <= W) bx0 = clamp(bx0, 0, W - w); if (h <= H) by0 = clamp(by0, 0, H - h);
+  const F = 11.5 * h / PH;
+  let s = `<svg viewBox="${bx0} ${by0} ${w} ${h}" preserveAspectRatio="xMidYMid slice"><image href="${esc(D.foto)}" width="${W}" height="${H}"/>`;
+  s += marcasSVG(F, { clamp: [bx0, by0, w, h * 0.84] });
+  const tr = D.trazos.find(t => t.tipo === 'tronco');
+  if (tr && num(D.altActual)) {
+    const yb = tr.pts[0][1] * H, yt = Math.min(...D.trazos.filter(t => t.tipo !== 'nota').flatMap(t => t.pts.map(p => p[1] * H)));
+    const xd = bx0 + w - F * 1.6;
+    s += `<path d="M${xd} ${yt}V${yb}M${xd - F * 0.6} ${yt}H${xd + F * 0.6}M${xd - F * 0.6} ${yb}H${xd + F * 0.6}" stroke="#fff" stroke-width="${F * 0.1}" stroke-dasharray="${F * 0.4} ${F * 0.3}"/>`;
+    s += `<text transform="translate(${xd + F * 1.05} ${(yt + yb) / 2}) rotate(-90)" text-anchor="middle" font-family="Shippori Mincho,serif" font-weight="700" font-size="${F * 0.95}" letter-spacing="${F * 0.06}" fill="#fff" stroke="rgba(14,24,20,.75)" stroke-width="${F * 0.3}" paint-order="stroke">ALTURA ACTUAL ≈ ${esc(num(D.altActual))} cm</text>`;
+  }
+  return s + '</svg>';
+}
+
+let tLam = 0;
+function pintarLamina(diferido) {
+  if (diferido) { clearTimeout(tLam); tLam = setTimeout(() => pintarLamina(false), 250); return; }
+  if ($('#tab-lamina').hidden && !imprimiendo) return;
+  const e = ESTILOS[D.estilo] || ESTILOS.moyogi, nums = numerar();
+  const alt = [num(D.altMin), num(D.altMax)].filter(Boolean).join(' – ');
+  const plan = D.trazos.map((t, i) => `<li><span class="n">${nums[i].n}</span><span><b>${esc(etiqueta(t, i, nums))}.</b> ${esc(t.texto)}</span></li>`).join('');
+  const etapaSVG = (i) => proyeccion(i, { w: 252, h: 190 });
+  $('#sheet').innerHTML = `
+  <header class="s-head">
+    <div>
+      <div class="s-kick">Propuesta de diseño${D.id ? ' · ejemplar ' + esc(D.id) : ''}</div>
+      <div class="s-title">${esc((D.especie || 'Junípero').toUpperCase())}<small>${e.kanji}</small></div>
+      <div class="s-style">Estilo ${esc(e.n)} · ${esc(e.es)}${D.cientifico ? ` <i style="text-transform:none;letter-spacing:0;color:#5F6B64">· ${esc(D.cientifico)}</i>` : ''}</div>
+    </div>
+    <dl class="s-keys">
+      ${num(D.altActual) ? `<div><dt>Altura actual</dt><dd>≈ ${esc(num(D.altActual))} cm</dd></div>` : ''}
+      ${alt ? `<div><dt>Altura final</dt><dd>${esc(alt)} cm</dd></div>` : ''}
+      ${num(D.grosor) ? `<div><dt>Tronco en la base</dt><dd>${esc(num(D.grosor))} cm</dd></div>` : ''}
+      ${D.tiempo ? `<div><dt>Desarrollo</dt><dd>${esc(D.tiempo)}</dd></div>` : ''}
+      <div style="grid-column:1/-1"><dt>Maceta final</dt><dd>${esc(potTexto())}, sin esmalte</dd></div>
+    </dl>
+    <div class="s-brand"><img src="../assets/img/logo/legado-emblema-tinta.svg" alt="" onerror="this.remove()"><b>LEGADO BONSAI · 家族の木</b><span>${esc(new Date((D.fecha || hoy()) + 'T12:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' }))}</span></div>
+  </header>
+  <div class="s-row1">
+    <div class="s-photo">${fotoPanel(540, 700)}
+      <div class="s-concept"><b>CONCEPTO</b>${esc(D.concepto)}</div></div>
+    <div class="s-proj">
+      <h4>Diseño propuesto <span>meta · ${esc(D.tiempo || '')}</span></h4>
+      ${proyeccion(3, { w: 547, h: 610, callouts: true, dims: true })}
+      <div class="s-note">Proyección orientativa dibujada a partir de las marcas sobre la foto.</div>
+    </div>
+  </div>
+  <div class="s-row2">
+    <div class="s-box"><h4>Plan de trabajo <span>números de la foto</span></h4><ol class="plan">${plan || '<li><span></span><span>Marca el tronco, las ramas y los cortes sobre la foto.</span></li>'}</ol></div>
+  </div>
+  <div class="s-row3">
+    <h4>Proyección de crecimiento</h4>
+    <div class="stages">${D.etapas.map((et, i) => `<div class="stage-c">${etapaSVG(i)}<p><b>${esc(et.t)}</b>${esc(et.x)}</p></div>`).join('')}</div>
+  </div>
+  <div class="s-row4">
+    <div class="s-box"><h4>Pauta de poda y trabajo</h4><ul class="bul">${lineas(D.pauta).map(l => `<li>${temaTexto(l)}</li>`).join('')}</ul></div>
+    <div class="s-box"><h4>Jin y shari</h4><ul class="bul">${lineas(D.madera).map(l => `<li>${temaTexto(l)}</li>`).join('')}</ul></div>
+    <div class="s-box"><h4>Cuidados</h4><ul class="bul">${lineas(D.cuidados).map(l => `<li>${temaTexto(l)}</li>`).join('')}</ul></div>
+    <div class="s-box"><h4>Materiales</h4><ul class="bul">${lineas(D.materiales).map(l => `<li>${temaTexto(l)}</li>`).join('')}</ul></div>
+  </div>
+  <footer class="s-foot">Menos es más · Paciencia · Observación · Armonía <span>家族の木</span></footer>`;
+  escalar();
+}
+function escalar() {
+  const wrap = $('#sheetwrap'), k = Math.min(1, wrap.parentElement.clientWidth / 1123);
+  $('#sheet').style.transform = `scale(${k})`; wrap.style.width = 1123 * k + 'px'; wrap.style.height = 1587 * k + 'px';
+}
+window.addEventListener('resize', () => { if (!$('#tab-lamina').hidden) escalar(); });
+
+/* ==================================================================== */
+/*  Pestañas, acciones                                                   */
+/* ==================================================================== */
+$$('.tabs button').forEach(b => b.addEventListener('click', () => {
+  $$('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#tab-foto').hidden = b.dataset.tab !== 'foto'; $('#tab-lamina').hidden = b.dataset.tab !== 'lamina';
+  if (b.dataset.tab === 'lamina') pintarLamina(); else pintarEditor();
+}));
+let imprimiendo = false;
+$('#b-imprimir').addEventListener('click', () => { imprimiendo = true; pintarLamina(); imprimiendo = false; setTimeout(() => window.print(), 60); });
+window.addEventListener('beforeprint', () => { imprimiendo = true; pintarLamina(); imprimiendo = false; });
+$('#papel').addEventListener('change', e => {
+  const a4 = e.target.value === 'a4';
+  document.body.classList.toggle('a4', a4);
+  $('#paper-style').textContent = `@page{size:${a4 ? 'A4' : 'A3'} portrait;margin:0}`;
+});
+$('#b-nuevo').addEventListener('click', () => { abrir(nueva(), ''); toast('Guía nueva: carga la foto del ejemplar.'); });
+$('#guardadas').addEventListener('change', e => { const k = e.target.value; if (!k) return; const d = leerTodas()[k]; if (d) abrir(d, k); });
+$('#b-exportar').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(D)], { type: 'application/json' }));
+  a.download = `guia-diseno-${claveDe(D)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+$('#b-importar').addEventListener('click', () => $('#f-json').click());
+$('#f-json').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { const d = JSON.parse(await f.text()); abrir(d); guardar(); toast('Guía importada.'); } catch { toast('El archivo no es una guía válida.'); }
+});
+
+function todo() { pintarTools(); pintarEditor(); pintarLista(); estado(); listarGuardadas(); pintarLamina(); }
+
+/* Arranque: ?cargar=archivo.json (p. ej. disenos/25a.json), o la última guía abierta */
+(async () => {
+  const q = new URLSearchParams(location.search), src = q.get('cargar');
+  if (src) {
+    try {
+      const url = new URL(src, location.href), d = await (await fetch(url)).json();
+      if (d.foto && !/^(data:|https?:)/.test(d.foto)) d.foto = new URL(d.foto, url).href;
+      abrir(d); guardar();
+      if (q.get('vista') === 'lamina') $('[data-tab="lamina"]').click();
+      return;
+    } catch { toast('No se pudo cargar ' + src); }
+  }
+  const todas = leerTodas(), k = localStorage.getItem(LS_ACT);
+  if (k && todas[k]) abrir(todas[k], k); else { llenarCampos(); todo(); }
+})();
+</script>
+</body>
+</html>

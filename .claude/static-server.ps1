@@ -1,6 +1,6 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [int]$Port = 5500
+  [int]$Port = $(if ($env:PORT) { [int]$env:PORT } else { 5500 })
 )
 
 # Servidor estático mínimo (la máquina no tiene Node ni Python).

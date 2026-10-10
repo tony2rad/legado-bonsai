@@ -20,11 +20,23 @@ Tiempo estimado: 15 minutos. Todo se hace dentro de tu cuenta de Google, sin ser
 | VENTAS | Renombra `SKU / ID vendido` → `ID Ejemplar`. Lista de estados: Pagado / Pendiente / Anulado. |
 | MATERIALES | Conserva todo y agrega `Última actualización`. |
 | CALENDARIO_LUNAR | Renombra tu calendario mensual; si estuviera vacío, lo rellena. |
-| CATALOGO | **Nueva.** Fórmula que muestra solo los ejemplares `Disponible`. Es lo que ve la tienda. No se edita a mano. |
-| RESUMEN | Se regenera con fórmulas en vivo (conteos, valor disponible, ingresos, cuidados, mes lunar). |
-| CONFIG | **Nueva.** Contiene el token de la app y el enlace a la carpeta de fotos en Drive. |
+| CATALOGO | **Nueva.** Fórmula que muestra los ejemplares `Disponible` y `En formación` (preventa). Es lo que ve la tienda. No se edita a mano. |
+| RESUMEN | Se regenera con fórmulas en vivo (conteos, valor disponible, ingresos, planes, clientes, créditos, cuidados, mes lunar). |
+| CONFIG | **Nueva.** Contiene el token de la app, el correo que recibe el resumen diario y el estado del disparador. |
+| CLIENTES | **v1.1.** Un cliente por fila (`CL-0001`): WhatsApp, plan activo y vencimiento, código de referido, créditos, ejemplares. La app la llena al registrar ventas. |
+| RECORDATORIOS | **v1.1.** Mensajes generados cada mañana (fase lunar, revisión, renovación, bienvenida) con enlace de WhatsApp y estado. |
+| COTIZACIONES | **v1.1.** Solicitudes del cotizador corporativo (`regalos.html`). |
+| EVENTOS | **v1.1.** Eventos anónimos de la tienda (vista, ficha, carrito, WhatsApp…). Base del embudo. |
+| EMBUDO | **v1.1.** Fórmulas: conversión mensual sesiones → fichas → carrito → WhatsApp → ventas. |
+| CALENDARIO_EDITORIAL | **v1.1.** 41 publicaciones del 14/09 al 12/12/2026 (solo se siembra si está vacía). |
 
 También crea en tu Drive la carpeta **Legado Bonsai — Fotos 360**, donde la app guardará una subcarpeta por ejemplar (`LB-0006/lb-0006_01.jpg`, …).
+
+### 1b. Instalar el disparador diario (v1.1)
+
+En el desplegable de funciones elige **`instalarDisparadores`** y pulsa Ejecutar (una sola vez). Desde entonces, cada día a las 8:00 (hora de Ecuador) `generarRecordatorios()` revisa clientes, cuidados y planes, escribe lo que toque en RECORDATORIOS y te envía un correo con los enlaces de WhatsApp listos. Para probar sin esperar: app → Inicio → Recordatorios → *Generar ahora (prueba)*.
+
+> Si ya tenías el script v1.0 instalado: pega el nuevo `Code.gs` completo, ejecuta `setup()` otra vez (agrega las pestañas y columnas nuevas sin tocar datos) y luego `instalarDisparadores()`. Después publica una **nueva versión** de la implementación (paso 2, nota final).
 
 ## 2. Publicar el Web App
 
@@ -35,7 +47,7 @@ También crea en tu Drive la carpeta **Legado Bonsai — Fotos 360**, donde la a
 5. **Quién tiene acceso: Cualquier persona**. Esto es necesario para que la tienda pública lea el catálogo; las escrituras siguen protegidas por el token.
 6. Implementar → copia la **URL de la aplicación web** (termina en `/exec`).
 
-Prueba en el navegador: `TU_URL/exec?action=ping` debe responder `{"ok":true,"version":"1.0.0",…}` y `TU_URL/exec?action=catalogo` la lista de disponibles.
+Prueba en el navegador: `TU_URL/exec?action=ping` debe responder `{"ok":true,"version":"1.1.0",…}`, `TU_URL/exec?action=catalogo` la lista de disponibles y en formación, `TU_URL/exec?action=arbol&id=LB-0001` el pasaporte de un árbol y `TU_URL/exec?action=codigo&c=LEGADO10` la validación de un código.
 
 > Cada vez que cambies `Code.gs` en el futuro: **Implementar → Administrar implementaciones → lápiz → Versión: Nueva → Implementar**. La URL no cambia.
 
@@ -61,8 +73,13 @@ El token se guarda solo en ese teléfono. Si lo pierdes o se filtra, ejecuta `re
 ## 5. Flujo de trabajo diario
 
 - **Nuevo ejemplar**: Nuevo → fotos (modo 360° automático con la base giratoria, o tomar/elegir) → datos → Guardar. El código `LB-00NN` se asigna solo. Las fotos van a Drive y el ejemplar aparece en la tienda en menos de 1 minuto.
-- **Venta**: desde el ejemplar o desde Inicio. El ejemplar pasa a Vendido (o Reservado si el pago está pendiente) y desaparece de la tienda.
-- **Cuidado**: poda, trasplante, alambrado… Actualiza las fechas de "último…" del ejemplar.
+- **Venta**: desde el ejemplar o desde Inicio. El ejemplar pasa a Vendido (o Reservado si el pago está pendiente) y desaparece de la tienda. El cliente queda en CLIENTES con su código de referido; la app te da el botón *Enviar bienvenida por WhatsApp* con el enlace del pasaporte y el código.
+- **Preventa**: un ejemplar *En formación* con *Entrega estimada* aparece en la tienda con anticipo del 30 %. Al reservarlo, registra la venta como Pendiente con el *Anticipo recibido*; al cobrar el saldo, cámbiala a Pagado en el sheet.
+- **Cuidado**: poda, trasplante, alambrado… Actualiza las fechas de "último…" del ejemplar y aparece en el pasaporte público del árbol.
+- **Recordatorios** (Inicio → Recordatorios): cada mañana llegan al correo y a la app; toca *WhatsApp*, envía, marca *Enviado*.
+- **Cotizaciones** (Inicio → Cotizaciones): solicitudes corporativas con estado y enlace al contacto.
+- **Tablero** (Inicio → Tablero de ventas): embudo web, ventas por plan y canal, fichas más vistas.
+- **Reels 360°** (Inicio → Generador de reels): video vertical con las fotos del ejemplar, sin apps externas.
 - **Materiales**: entradas y salidas con `+`/`−`.
 
 Todo sigue siendo editable a mano en el sheet: la app y el sheet son la misma base de datos.

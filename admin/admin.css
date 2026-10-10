@@ -202,3 +202,35 @@ input[type=range]{ min-height:0; padding:0; accent-color:var(--jade); }
 /* ---------- Toast ---------- */
 .toast{ position:fixed; left:50%; bottom:calc(var(--tab-h) + 1rem); transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:.6rem 1rem; border-radius:var(--radius); font-size:.9rem; z-index:60; max-width:92vw; box-shadow:0 12px 30px -12px rgba(0,0,0,.4); }
 .toast.bad{ background:var(--bad); color:#fff; }
+
+/* ---------- v1.1: clientes, recordatorios, cotizaciones, tablero ---------- */
+.quick.grid2{ grid-template-columns:1fr 1fr; }
+.pill{ display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 .4rem; border-radius:11px; background:var(--kohaku); color:#fff; font-size:.72rem; font-weight:700; margin-left:.3rem; }
+.rec{ display:grid; gap:.5rem; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:.7rem .8rem; }
+.rec .rec-head{ display:flex; justify-content:space-between; gap:.6rem; align-items:center; }
+.rec .rec-head b{ font-weight:600; }
+.rec .rec-msg{ font-size:.85rem; color:var(--ink-soft); white-space:pre-wrap; max-height:5.6em; overflow:hidden; }
+.rec .rec-actions{ display:flex; gap:.5rem; }
+.rec .rec-actions .btn{ flex:1; min-height:40px; }
+.btn.wa{ background:#25D366; color:#fff; border-color:#25D366; }
+.cliente{ display:grid; grid-template-columns:1fr auto; gap:.3rem .8rem; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:.65rem .8rem; }
+.cliente .nombre{ font-weight:600; }
+.cliente .sub{ font-size:.8rem; color:var(--ink-soft); grid-column:1/-1; }
+.cliente .code{ font-family:var(--serif); letter-spacing:.06em; font-size:.85rem; color:var(--jade); text-align:right; }
+.cliente .acts{ grid-column:1/-1; display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.3rem; }
+.cliente .acts .btn{ min-height:36px; padding:.3rem .7rem; font-size:.82rem; }
+.cot{ display:grid; gap:.4rem; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:.7rem .8rem; font-size:.9rem; }
+.cot .cot-head{ display:flex; justify-content:space-between; gap:.6rem; }
+.cot select{ min-height:36px; padding:.3rem .5rem; font-size:.85rem; }
+.funnel{ display:grid; gap:.4rem; margin:.8rem 0 1.2rem; }
+.funnel .bar{ display:grid; grid-template-columns:130px 1fr auto; gap:.6rem; align-items:center; font-size:.85rem; }
+.funnel .bar i{ display:block; height:14px; background:var(--jade); border-radius:2px; min-width:2px; }
+.funnel .bar b{ font-variant-numeric:tabular-nums; }
+.funnel .rate{ font-size:.75rem; color:var(--ink-faint); grid-column:2/-1; margin-top:-.3rem; }
+.mini-table{ width:100%; border-collapse:collapse; font-size:.85rem; margin:.4rem 0 1rem; }
+.mini-table td{ padding:.35rem 0; border-bottom:1px solid var(--line); }
+.mini-table td:last-child{ text-align:right; font-variant-numeric:tabular-nums; }
+.spark{ display:flex; align-items:flex-end; gap:2px; height:48px; margin:.4rem 0 1rem; }
+.spark i{ flex:1; background:var(--jade); opacity:.7; border-radius:1px 1px 0 0; min-height:1px; }
+.spark i.wa{ background:#25D366; }
+label small{ color:var(--ink-faint); font-weight:400; }

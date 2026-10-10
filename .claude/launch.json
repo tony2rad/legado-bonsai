@@ -9,7 +9,8 @@
         "-ExecutionPolicy", "Bypass",
         "-File", "C:/Users/Usuario/iCloudDrive/PROYECTO HTML BONSAI/.claude/static-server.ps1"
       ],
-      "port": 5500
+      "port": 5500,
+      "autoPort": true
     }
   ]
 }
