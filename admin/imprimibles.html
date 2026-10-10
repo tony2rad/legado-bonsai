@@ -118,6 +118,7 @@
         <label><input type="radio" name="pieza" value="carta"><b>Carta de color</b><span>Pantone de la marca</span></label>
         <label><input type="radio" name="pieza" value="registro"><b>Prueba de doble cara</b><span>Calibra frente y dorso</span></label>
         <label><input type="radio" name="pieza" value="fondo"><b>Fondo Pasochoa</b><span>Hoja completa para el dorso</span></label>
+        <label><input type="radio" name="pieza" value="pruebas"><b>Hoja de pruebas</b><span>Una de cada pieza</span></label>
       </div>
     </section>
 
@@ -252,6 +253,12 @@
         <option value="mosaico">Mosaico en hojas del papel elegido (prueba en casa)</option>
       </select></label>
       <p class="hint" id="b-info"></p>
+    </section>
+
+    <section class="stack" data-pieza="pruebas">
+      <h2>Hoja de pruebas</h2>
+      <p class="hint">Una unidad de cada pieza en el menor número de hojas, para probar impresión, colores y cortes de una sola vez. Las piezas de dos caras van plegables (frente y dorso juntos), así todo se imprime en una sola cara sin cuadrar dorsos. Usa los textos, medidas y colores que tengas elegidos en cada pieza. La caja y la bolsa no entran: son troqueles grandes con su propia pieza.</p>
+      <div class="files" id="pruebas-lista"></div>
     </section>
 
     <section class="stack" data-pieza="fondo">
@@ -548,6 +555,7 @@ const PIEZAS = {
     nombre: 'Tarjeta de cuidados',
     presets: [[90, 160, 'Alargada 9 × 16 cm'], [100, 156, 'Como la guía 10 × 15,6 cm'], [105, 148, 'A6 10,5 × 14,8 cm']],
     caras: ['Frente', 'Dorso'],
+    dModoDefecto: 'plegable',   // se dobla: frente y dorso juntos, sin cuadrar hojas
     min: [60, 100],
     items: s => Array(s.cN).fill(null),
     fondoDe: (item, s, cara) => { const c = COMBOS[cara === 'Dorso' ? s.cDorso : s.cFrente] || COMBOS.verde; return { color: c.fondo, imprime: c.tintaFondo || s.impFondo }; },
@@ -581,6 +589,14 @@ const PIEZAS = {
     min: [10, 10], sinMedida: true,
     items: () => [null],
     paginas: s => bolsaPaginas(s)
+  },
+  pruebas: {
+    nombre: 'Hoja de pruebas',
+    presets: [[210, 297, 'Pruebas']],
+    caras: ['Frente'],
+    min: [10, 10], sinMedida: true,
+    items: () => [null],
+    paginas: s => pruebasPaginas(s)
   },
   fondo: {
     nombre: 'Fondo Pasochoa',
@@ -1143,6 +1159,79 @@ function fondoPaginas(s) {
   return { pw, ph, paginas, resumen: `<b>${n}</b> ${n === 1 ? 'hoja' : 'hojas'} de fondo Pasochoa de <b>${fmt(pw)} × ${fmt(ph)}</b> mm, a hoja completa` };
 }
 
+/* ------------------------------ Hoja de pruebas ------------------------------
+   Una unidad de cada pieza (con los textos, medidas y colores elegidos en cada una), las de dos caras en
+   plegable, acomodadas por filas en el menor número de hojas. Todo va en una sola cara. */
+function pruebasLista(s) {
+  const L = [];
+  const medida = k => {
+    const pz = PIEZAS[k], m = S.medidas[k] || { w: pz.presets[0][0], h: pz.presets[0][1] };
+    const W = Math.max(pz.min[0], +m.w || pz.presets[0][0]);
+    const H = pz.altoAuto ? W * ART[s.lVar].h / ART[s.lVar].w : pz.cuadrada ? W : Math.max(pz.min[1], +m.h || pz.presets[0][1]);
+    return [W, H];
+  };
+  const add = (k, nombre, item) => {
+    let pz = PIEZAS[k], [W, H] = medida(k);
+    const caras = typeof pz.caras === 'function' ? pz.caras(s) : pz.caras;
+    if (caras.length > 1) { pz = plegable(pz, caras); W *= 2; }
+    L.push({ nombre, pz, W, H, item, cara: caras.length > 1 ? 'Plegable' : caras[0] });
+  };
+  add('etiqueta', 'Etiqueta colgante', PIEZAS.etiqueta.items(s)[0] || s.campos.map(() => ''));
+  add('cuidados', 'Tarjeta de cuidados', null);
+  add('guia', 'Guía de cuidados', null);
+  add('tarjeta', 'Tarjeta de presentación', null);
+  const fert = PIEZAS.fertilizante.items(s);
+  [...new Set(fert.map(f => f.combo))].forEach(c => { const it = fert.find(f => f.combo === c); add('fertilizante', 'Fertilizante · ' + it.nombre, it); });
+  if (!fert.length) add('fertilizante', 'Fertilizante', { combo: 'verde', nombre: 'Fertilizante orgánico', detalle: 'Para bonsáis', contenido: 'Contenido: 10 g' });
+  add('instructivo', 'Instructivo rápido', null);
+  add('sello', 'Sello circular', null);
+  add('logo', 'Logotipo', null);
+  return L;
+}
+function pruebasPaginas(s) {
+  let [pw, ph] = s.papel === 'custom' ? [s.pw, s.ph] : (PAPELES[s.papel] || PAPELES.A4);
+  if (pw > ph) [pw, ph] = [ph, pw];
+  const m = s.margen, pie = 8, g = 4, uw = pw - 2 * m, uh = ph - 2 * m - pie;
+  // acomodo por filas: las más altas primero; si una pieza no entra a lo ancho se gira
+  const lista = pruebasLista(s).map(it => (it.W > uw && it.H <= uw) ? { ...it, rot: true, w: it.H, h: it.W } : { ...it, rot: false, w: it.W, h: it.H })
+    .sort((a, b) => b.h - a.h);
+  // primer hueco libre: cada pieza entra en la primera fila (de cualquier hoja) donde quepa a lo ancho y alto,
+  // o abre una fila nueva si queda alto en esa hoja; solo si no cabe en ninguna se abre otra hoja
+  const hojas = [], filas = [];   // filas[n] = [{ y, h, x }]
+  lista.forEach(it => {
+    for (let n = 0; n < hojas.length; n++) {
+      const f = filas[n].find(r => it.h <= r.h && r.x + it.w <= uw);
+      if (f) { hojas[n].push({ ...it, x: f.x, y: f.y }); f.x += it.w + g; return; }
+      const ult = filas[n][filas[n].length - 1], y = ult.y + ult.h + g;
+      if (y + it.h <= uh) { filas[n].push({ y, h: it.h, x: it.w + g }); hojas[n].push({ ...it, x: 0, y }); return; }
+    }
+    hojas.push([{ ...it, x: 0, y: 0 }]); filas.push([{ y: 0, h: it.h, x: it.w + g }]);
+  });
+  const paginas = hojas.map((grupo, n) => {
+    let cuerpo = '';
+    grupo.forEach(it => {
+      const { pz, W, H } = it;
+      let p = '';
+      if (pz.fondoDe) { const fd = pz.fondoDe(it.item, s, it.cara); p += `<rect${fd.imprime ? '' : ' class="prev"'} x="-2" y="-2" width="${W + 4}" height="${H + 4}" fill="${fd.color}"/>`; }
+      else if (s.impFondo) p += `<rect x="-2" y="-2" width="${W + 4}" height="${H + 4}" fill="${s.fondo}"/>`;
+      p += `<g fill="${s.tinta}">${pz.draw(it.cara, W, H, it.item, s)}</g>`;
+      const forma = pz.forma ? pz.forma(W, H) : null;
+      if (forma) p += `<path d="${forma}" fill="none" stroke="#8A8F8B" stroke-width="0.15"/>`;
+      const cx = m + it.x + it.w / 2, cy = m + it.y + it.h / 2;
+      cuerpo += `<g transform="translate(${r2(cx)} ${r2(cy)}) rotate(${it.rot ? 90 : 0}) translate(${r2(-W / 2)} ${r2(-H / 2)})">${p}</g>`;
+    });
+    const nombres = grupo.map(it => it.nombre).join(' · ');
+    const ry = ph - m - 5.5;
+    const pieSvg = `<g stroke="#000" stroke-width="0.2" fill="none"><path d="M${m} ${r2(ry)}h50M${m} ${r2(ry - 2)}v4M${m + 50} ${r2(ry - 2)}v4"/></g>` +
+      `<text x="${m + 52}" y="${r2(ry + 0.9)}" font-family="IBM Plex Sans,sans-serif" font-size="2.3">50 mm</text>` +
+      `<text x="${m}" y="${r2(ph - m - 1)}" font-family="IBM Plex Sans,sans-serif" font-size="2.1" fill="#666">${esc('Legado Bonsái · Hoja de pruebas ' + (n + 1) + '/' + hojas.length + ' · ' + nombres + ' · imprimir al 100 %, una sola cara')}</text>`;
+    return { cap: `Pruebas · hoja ${n + 1}`, svg: `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}"><rect class="prev" width="${pw}" height="${ph}" fill="${s.fondo}"/>${cuerpo}${pieSvg}</svg>` };
+  });
+  const el = $('pruebas-lista');
+  if (el) el.innerHTML = lista.map(it => `<div><span>${esc(it.nombre)}</span><span>${fmt(r2(it.W))} × ${fmt(r2(it.H))} mm${it.cara === 'Plegable' ? ' · plegable' : ''}</span></div>`).join('');
+  return { pw, ph, lamina: true, paginas, resumen: `<b>${lista.length}</b> piezas de prueba en <b>${hojas.length}</b> ${hojas.length === 1 ? 'hoja' : 'hojas'} ${fmt(pw)} × ${fmt(ph)} mm · una sola cara` };
+}
+
 /* Prueba de doble cara: cruces en posiciones simétricas (coinciden al voltear como página de libro).
    El dorso lleva reglas en mm alrededor de cada cruz; el número donde cae la cruz del frente, visto a
    contraluz, es directamente el valor de «Ajuste del dorso» (en coordenadas del dorso). */
@@ -1307,14 +1396,14 @@ const DEF = {
   kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
   bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
   papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 4, sep: 1, rotar: true,
-  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dInv: false, dTipo: 'diseno', foInt: '0.55', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
+  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dModos: {}, dInv: false, dTipo: 'diseno', foInt: '0.55', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
 };
 let S = { ...DEF };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
 // márgenes por defecto actualizados (8/3 → 4/1): quien tenía los viejos sin tocar pasa a los nuevos
 if (S.margen === 8 && S.sep === 3) { S.margen = 4; S.sep = 1; }
 // enlace directo a una pieza: imprimibles.html?pieza=guia
-{ const qp = new URLSearchParams(location.search), q = qp.get('pieza'), d = qp.get('doble'); if (q && PIEZAS[q]) S.pieza = q; if (['auto', 'manual', 'plegable', 'una'].includes(d)) S.dModo = d; }
+{ const qp = new URLSearchParams(location.search), q = qp.get('pieza'), d = qp.get('doble'); if (q && PIEZAS[q]) S.pieza = q; if (['auto', 'manual', 'plegable', 'una'].includes(d)) S.dModos = { ...(S.dModos || {}), [S.pieza]: d }; }
 if (!S.tTel && CFG.WHATSAPP_NUMBER) S.tTel = '+' + String(CFG.WHATSAPP_NUMBER).replace(/^(\d{3})(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3 $4');
 // la web guardada antes del cambio de dirección se reemplaza por la actual
 if (S.tWeb === 'legadobonsai.github.io') S.tWeb = '';
@@ -1332,9 +1421,13 @@ const CAMPOS = {
   'f-filas': ['fFilas', 'v'], 'f-dorso': ['fDorso', 'c'], 'f-uso': ['fUso', 'v'], 'f-lote': ['fLote', 'v'], 'f-fecha': ['fFecha', 'v'],
   's-inv': ['sInv', 'c'], 's-lema': ['sLema', 'c'], 's-n': ['sN', 'n'], 'l-var': ['lVar', 'v'], 'l-n': ['lN', 'n'],
   papel: 'v', orient: 'v', pw: 'n', ph: 'n', margen: 'n', sep: 'n', rotar: 'c',
-  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', dmodo: ['dModo', 'v'], dinv: ['dInv', 'c'], dtipo: ['dTipo', 'v'], 'fo-int': ['foInt', 'v'], 'fo-n': ['foN', 'n'], ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
+  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', dinv: ['dInv', 'c'], dtipo: ['dTipo', 'v'], 'fo-int': ['foInt', 'v'], 'fo-n': ['foN', 'n'], ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
 };
 const campo = id => Array.isArray(CAMPOS[id]) ? CAMPOS[id] : [id, CAMPOS[id]];
+// Doble cara por pieza: lo elegido para esa pieza, si no el modo propio de la pieza (la tarjeta de cuidados
+// es plegable por defecto) y si no el modo general.
+const modoDe = S0 => (S0.dModos && S0.dModos[S0.pieza]) || PIEZAS[S0.pieza].dModoDefecto || S0.dModo || 'auto';
+
 function aFormulario() {
   document.querySelector(`input[name=pieza][value="${S.pieza}"]`).checked = true;
   for (const id in CAMPOS) {
@@ -1342,6 +1435,7 @@ function aFormulario() {
     if (t === 'c') el.checked = !!S[k]; else el.value = S[k];
   }
   $('combo').value = S.combo || '';
+  $('dmodo').value = modoDe(S);
   presets();
 }
 function medidaActual() {
@@ -1371,7 +1465,7 @@ function estado() {
     kL: clamp(+S.kL || 300, 80, 1000), kA: clamp(+S.kA || 200, 60, 800), kH: clamp(+S.kH || 150, 40, 800), kT: clamp(+S.kT || 0, 0, 8), kG: clamp(+S.kG || 35, 20, 60),
     gN: clamp(Math.round(+S.gN || 1), 1, 500), cN: clamp(Math.round(+S.cN || 1), 1, 500), iN: clamp(Math.round(+S.iN || 1), 1, 500), tN: clamp(Math.round(+S.tN || 1), 1, 500), sN: clamp(Math.round(+S.sN || 1), 1, 500), lN: clamp(Math.round(+S.lN || 1), 1, 500),
     // doble cara automática: siempre hojas verticales para que el volteo sea siempre por el borde largo
-    duplex: (S.dModo || 'auto') !== 'una', orient: S.dModo === 'auto' || !S.dModo ? 'v' : S.orient,
+    dModo: modoDe(S), duplex: modoDe(S) !== 'una', orient: modoDe(S) === 'auto' ? 'v' : S.orient,
     margen: clamp(+S.margen || 8, 3, 30), sep: clamp(+S.sep || 0, 0, 20), pw: clamp(+S.pw || 210, 50, 1200), ph: clamp(+S.ph || 297, 50, 1200)
   };
 }
@@ -1465,8 +1559,9 @@ function pintarHojas(hojas, pw, ph, s, dosCaras, sinReverso) {
   $('dinv-wrap').hidden = !manual;
   $('orient').disabled = s.dModo === 'auto';
   const nota = $('nota-duplex');
-  nota.hidden = s.dModo === 'una' && s.pieza !== 'fondo';
-  nota.textContent = s.pieza === 'fondo' ? 'Hoja de fondo: imprímela en una sola cara, en el reverso de hojas que ya imprimiste (o antes, sobre hojas en blanco). No necesita calzar con nada.'
+  nota.hidden = s.dModo === 'una' && s.pieza !== 'fondo' && s.pieza !== 'pruebas';
+  nota.textContent = s.pieza === 'pruebas' ? 'Hoja de pruebas: imprime en una sola cara (desmarca «Imprimir en ambos lados» si lo tienes activo). Las piezas de dos caras van plegables: corta el contorno y dobla por la línea punteada.'
+    : s.pieza === 'fondo' ? 'Hoja de fondo: imprímela en una sola cara, en el reverso de hojas que ya imprimiste (o antes, sobre hojas en blanco). No necesita calzar con nada.'
     : s.dModo === 'auto'
     ? (dosCaras
       ? 'Doble cara automática: en Imprimir, «Más ajustes» → marca «Imprimir en ambos lados» → «Voltear en el borde largo». Las hojas salen siempre verticales, así ese ajuste nunca cambia.'
@@ -1517,7 +1612,7 @@ function zoom() {
 }
 
 /* ---------------------------- Eventos ---------------------------- */
-document.querySelectorAll('input[name=pieza]').forEach(r => r.addEventListener('change', () => { S.pieza = r.value; presets(); guardar(); render(); }));
+document.querySelectorAll('input[name=pieza]').forEach(r => r.addEventListener('change', () => { S.pieza = r.value; presets(); $('dmodo').value = modoDe(S); guardar(); render(); }));
 $('preset').addEventListener('change', () => {
   const pz = PIEZAS[S.pieza], v = $('preset').value;
   if (v !== 'c') { const [w, h] = pz.presets[+v]; S.medidas[S.pieza] = { w, h }; }
@@ -1542,6 +1637,8 @@ for (const id in CAMPOS) {
     guardar(); id === 'zoom' ? zoom() : render();
   });
 }
+// El modo de doble cara se guarda para la pieza activa (cada pieza recuerda el suyo)
+$('dmodo').addEventListener('change', () => { S.dModos = { ...(S.dModos || {}), [S.pieza]: $('dmodo').value }; guardar(); render(); });
 // Colores de marca: fija tinta, papel e impresión del fondo según la combinación del tablero
 $('combo').addEventListener('change', () => {
   S.combo = $('combo').value;
