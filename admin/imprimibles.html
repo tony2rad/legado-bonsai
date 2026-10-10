@@ -256,7 +256,7 @@
 
     <section class="stack" data-pieza="fondo">
       <h2>Fondo Pasochoa</h2>
-      <p class="hint">Hoja completa cubierta con siluetas del Pasochoa, nubes y sol. Imprímela detrás de cualquier hoja ya impresa: como no tiene bordes que calzar, al recortar cada pieza queda con un fondo bonito aunque la impresora se corra.</p>
+      <p class="hint">Una sola ilustración del Pasochoa a toda la hoja, sin repeticiones ni uniones. Imprímela detrás de cualquier hoja ya impresa: como no tiene bordes que calzar, al recortar cada pieza queda con un fondo bonito aunque la impresora se corra.</p>
       <label class="field"><span>Cantidad de hojas</span><input type="number" id="fo-n" min="1" max="200" step="1"></label>
     </section>
 
@@ -376,9 +376,6 @@
       <div class="grid2">
         <label class="field"><span>Intensidad del fondo</span><select id="fo-int">
           <option value="0.35">Suave</option><option value="0.55">Media</option><option value="0.8">Fuerte</option>
-        </select></label>
-        <label class="field"><span>Tamaño de las montañas</span><select id="fo-tam">
-          <option value="0.34">Pequeñas</option><option value="0.5">Medianas</option><option value="1">Una por fila</option>
         </select></label>
       </div>
       <label class="check" id="dinv-wrap"><input type="checkbox" id="dinv"><span>Invertir el orden de los dorsos<small>Márcalo si al volver a meter el montón el primer dorso cae en la última hoja</small></span></label>
@@ -666,17 +663,7 @@ function etiquetaDorso(W, H, vals, s) {
   const last = first + (n - 1) * gap;
   const q = qr ? clamp(Math.min(0.3 * W, gap * 1.9), 9, 30) : 0;
   let out = '';
-  if (s.ilus) {
-    out += conClip(W, H, forma, use('montana', 0, H - ih, W, ih));
-    // cielo entre el último campo y las cumbres: sol a la derecha y dos nubes
-    const arriba = last + fs * 1.2, abajo = H - ih + 0.24 * ih, alto = abajo - arriba;
-    if (alto > 5) {
-      const cy = arriba + alto * 0.5, r = Math.min(0.07 * W, alto * 0.36), sw = Math.max(0.2, W * 0.0045);
-      out += sol(W * 0.74, cy, r, sw, s.tinta);
-      out += nube(W * 0.1, cy + r * 0.55, W * 0.3, sw, s.tinta, false);
-      out += nube(W * 0.42, cy - r * 0.35, W * 0.16, sw, s.tinta, true);
-    }
-  }
+  if (s.ilus) out += conClip(W, H, forma, use('montana', 0, H - ih, W, ih));
   out += `<g font-family="${SERIF}" font-size="${r2(fs)}" fill="${s.tinta}">`;
   vals.forEach((v, i) => {
     const ly = first + i * gap;
@@ -1100,50 +1087,15 @@ function troquelPaginas(s, o) {
   return { pw: mejor.w, ph: mejor.h, paginas, resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en <b>${paginas.length}</b> hojas (${mejor.rows} × ${mejor.cols}) con 10 mm de solape` };
 }
 
-/* ---------------------- Cielo: nubes y sol en estilo grabado ----------------------
-   Nube japonesa (kumo): lóbulos arriba, base con doble línea y un rizo en la punta. Sol: círculo con
-   rayado horizontal en la mitad baja, como en los grabados. Solo trazo (sin relleno) para no tapar nada. */
-function nube(x, y, w, sw, color, espejo) {
-  const pesos = [0.75, 1, 0.85, 0.6], tot = pesos.reduce((a, b) => a + b, 0), k = (w * 0.86) / (2 * tot);
-  let d = `M${r2(x)} ${r2(y)}`;
-  pesos.forEach(p => { const r = p * k; d += `a${r2(r)} ${r2(r)} 0 0 1 ${r2(2 * r)} 0`; });
-  const r0 = pesos[0] * k;
-  d += `M${r2(x - w * 0.04)} ${r2(y)}h${r2(w * 0.96)}a${r2(r0 * 0.45)} ${r2(r0 * 0.45)} 0 1 0 ${r2(-r0 * 0.6)} ${r2(-r0 * 0.55)}`;
-  d += `M${r2(x + w * 0.06)} ${r2(y + sw * 4)}h${r2(w * 0.62)}`;
-  const t = espejo ? ` transform="translate(${r2(2 * x + w * 0.86)} 0) scale(-1 1)"` : '';
-  return `<path${t} d="${d}" fill="none" stroke="${color}" stroke-width="${r2(sw)}" stroke-linecap="round" stroke-linejoin="round"/>`;
-}
-function sol(cx, cy, r, sw, color) {
-  let o = `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(r)}" fill="none" stroke="${color}" stroke-width="${r2(sw)}"/>`;
-  for (let i = 1; i <= 4; i++) {
-    const dy = r * (0.12 + i * 0.19), m = Math.sqrt(Math.max(0, r * r - dy * dy)) * 0.92;
-    o += `<path d="M${r2(cx - m)} ${r2(cy + dy)}h${r2(2 * m)}" stroke="${color}" stroke-width="${r2(sw * 0.8)}"/>`;
-  }
-  return o;
-}
-// azar con semilla: el mismo fondo cada vez que se imprime
-const azar = semilla => () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
-
-/* Fondo Pasochoa: la hoja entera cubierta por filas de la montaña principal (alternadas en espejo y
-   desfasadas como ladrillos), con nubes y a veces un sol en el cielo de cada vista. Va a sangre: no tiene
-   bordes, así que al recortar cualquier pieza queda con fondo aunque la impresora corra la hoja. */
-function fondoSvg(pw, ph, s, semilla = 7) {
-  const rnd = azar(semilla), op = +s.foInt || 0.55, ink = s.tinta;
-  const a = ART.montana, tw = pw * (+s.foTam || 0.5) + 0.01, th = tw * a.h / a.w, sw = Math.max(0.22, tw * 0.0035);
-  let o = '', fila = 0;
-  for (let y = -th * 0.12; y < ph; y += th * 0.98, fila++) {
-    const off = fila % 2 ? -tw / 2 : 0;
-    for (let x = off - (fila % 2 ? 0 : tw * 0.15), i = 0; x < pw; x += tw, i++) {
-      const esp = fila % 2 === 1;   // se espeja la fila entera: las vistas vecinas no forman reflejos
-      o += `<g transform="translate(${r2(esp ? x + tw : x)} ${r2(y)}) scale(${esp ? -1 : 1} 1)">${use('montana', 0, 0, tw, th)}</g>`;
-      // cielo de esta vista (≈ 22 % superior): una o dos nubes y, cada tanto, el sol
-      const cielo = th * 0.2;
-      if ((i + fila * 2) % 3 === 0) o += sol(x + tw * (0.62 + rnd() * 0.22), y + cielo * 0.5, Math.min(cielo * 0.38, tw * 0.05), sw, ink);
-      o += nube(x + tw * (0.06 + rnd() * 0.2), y + cielo * (0.55 + rnd() * 0.25), tw * (0.16 + rnd() * 0.08), sw, ink, rnd() > 0.5);
-      if (rnd() > 0.45) o += nube(x + tw * (0.38 + rnd() * 0.15), y + cielo * (0.3 + rnd() * 0.2), tw * (0.1 + rnd() * 0.06), sw, ink, rnd() > 0.5);
-    }
-  }
-  return `<g fill="${ink}" opacity="${op}">${o}</g>`;
+/* Fondo Pasochoa: UNA sola ilustración de la montaña principal ampliada hasta cubrir la hoja entera
+   (sin repetir ni unir imágenes). Se recorta el cielo del grabado (≈ 20 % superior) para que la cordillera
+   empiece arriba, y se alinea hacia la derecha para conservar el pino y las rocas. Al recortar cualquier
+   pieza queda con un trozo del mismo paisaje, sin bordes que calzar. */
+function fondoSvg(pw, ph, s) {
+  const a = ART.montana, cielo = 0.2, op = +s.foInt || 0.55;
+  const h = Math.max(ph / (1 - cielo), pw * a.h / a.w), w = h * a.w / a.h;
+  const x = clamp(pw - w * 0.78, pw - w, 0), y = -h * cielo;
+  return `<g fill="${s.tinta}" opacity="${op}">${use('montana', x, y, w, h)}</g>`;
 }
 function fondoHoja(pw, ph, s, semilla) {
   const id = 'fz' + semilla + Math.round(pw);
@@ -1324,7 +1276,7 @@ const DEF = {
   kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
   bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
   papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 8, sep: 3, rotar: true,
-  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dInv: false, dTipo: 'diseno', foInt: '0.55', foTam: '0.5', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
+  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dInv: false, dTipo: 'diseno', foInt: '0.55', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
 };
 let S = { ...DEF };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
@@ -1347,7 +1299,7 @@ const CAMPOS = {
   'f-filas': ['fFilas', 'v'], 'f-dorso': ['fDorso', 'c'], 'f-uso': ['fUso', 'v'], 'f-lote': ['fLote', 'v'], 'f-fecha': ['fFecha', 'v'],
   's-inv': ['sInv', 'c'], 's-lema': ['sLema', 'c'], 's-n': ['sN', 'n'], 'l-var': ['lVar', 'v'], 'l-n': ['lN', 'n'],
   papel: 'v', orient: 'v', pw: 'n', ph: 'n', margen: 'n', sep: 'n', rotar: 'c',
-  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', dmodo: ['dModo', 'v'], dinv: ['dInv', 'c'], dtipo: ['dTipo', 'v'], 'fo-int': ['foInt', 'v'], 'fo-tam': ['foTam', 'v'], 'fo-n': ['foN', 'n'], ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
+  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', dmodo: ['dModo', 'v'], dinv: ['dInv', 'c'], dtipo: ['dTipo', 'v'], 'fo-int': ['foInt', 'v'], 'fo-n': ['foN', 'n'], ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
 };
 const campo = id => Array.isArray(CAMPOS[id]) ? CAMPOS[id] : [id, CAMPOS[id]];
 function aFormulario() {
