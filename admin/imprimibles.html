@@ -1271,7 +1271,7 @@ function hoja(p, s, pieza, cara, chunk, idx, total, espejo) {
     ys.forEach(y => { marcas += `<path ${st} d="M${r2(x0 - 1.5 - L)} ${y}h${r2(L)}M${r2(x0 + usedW + 1.5)} ${y}h${r2(L)}"/>`; });
   }
   let pie = '';
-  const fy = ph - m * 0.55;
+  const fy = ph - m - 1;   // dentro del área imprimible aunque el margen sea chico
   const info = `Legado Bonsái · ${pieza.nombre} ${fmt(W)} × ${fmt(H)} mm · ${cara}${total > 1 ? ' · hoja ' + idx + '/' + total : ''}${espejo ? ' · dorso espejado' : ''} · imprimir al 100 %`;
   if (s.regla) {
     const rx = x0, ry = ph - m - 5.5;
@@ -1306,11 +1306,13 @@ const DEF = {
   iColor: 'crema', iTitulo: 'Cuidados rápidos', iFilas: INST_FILAS, iN: 8,
   kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
   bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
-  papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 8, sep: 3, rotar: true,
+  papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 4, sep: 1, rotar: true,
   tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dModo: 'auto', dInv: false, dTipo: 'diseno', foInt: '0.55', foN: 1, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
 };
 let S = { ...DEF };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
+// márgenes por defecto actualizados (8/3 → 4/1): quien tenía los viejos sin tocar pasa a los nuevos
+if (S.margen === 8 && S.sep === 3) { S.margen = 4; S.sep = 1; }
 // enlace directo a una pieza: imprimibles.html?pieza=guia
 { const qp = new URLSearchParams(location.search), q = qp.get('pieza'), d = qp.get('doble'); if (q && PIEZAS[q]) S.pieza = q; if (['auto', 'manual', 'plegable', 'una'].includes(d)) S.dModo = d; }
 if (!S.tTel && CFG.WHATSAPP_NUMBER) S.tTel = '+' + String(CFG.WHATSAPP_NUMBER).replace(/^(\d{3})(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3 $4');
