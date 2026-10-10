@@ -112,6 +112,7 @@
         <label><input type="radio" name="pieza" value="caja"><b>Caja de envío</b><span>Troquel a escala 1:1</span></label>
         <label><input type="radio" name="pieza" value="bolsa"><b>Bolsa de regalo</b><span>Troquel a escala 1:1</span></label>
         <label><input type="radio" name="pieza" value="carta"><b>Carta de color</b><span>Pantone de la marca</span></label>
+        <label><input type="radio" name="pieza" value="registro"><b>Prueba de doble cara</b><span>Calibra frente y dorso</span></label>
       </div>
     </section>
 
@@ -248,6 +249,16 @@
       <p class="hint" id="b-info"></p>
     </section>
 
+    <section class="stack" data-pieza="registro">
+      <h2>Prueba de doble cara</h2>
+      <ol class="hint" style="padding-left:18px;margin:0;display:grid;gap:4px">
+        <li>Deja el ajuste del dorso en 0 y usa el mismo papel y bandeja que usarás de verdad.</li>
+        <li>Imprime la página 1 (frente). Voltea la hoja de izquierda a derecha, como la página de un libro, y vuelve a meterla para imprimir la página 2 (dorso).</li>
+        <li>Mira la hoja a contraluz desde el dorso. En cada cruz, lee en las reglas el número donde cae la cruz del frente.</li>
+        <li>Escribe ese número en «Ajuste del dorso» (→ la regla horizontal, ↓ la vertical) y vuelve a imprimir la prueba: las cruces deben quedar encima.</li>
+      </ol>
+    </section>
+
     <section class="stack" data-pieza="carta">
       <h2>Carta de color</h2>
       <p class="hint">Imprímela en la misma impresora y papel que las piezas y compárala con la guía Pantone Formula Guide (Coated) bajo luz de día. Si no coincide, ajusta el perfil de color de la impresora, no el diseño.</p>
@@ -341,7 +352,12 @@
       <label class="check"><input type="checkbox" id="imp-fondo"><span>Imprimir el color del papel<small>Para simular kraft sobre papel blanco. Añade 2 mm de sangrado.</small></span></label>
       <label class="check"><input type="checkbox" id="contorno"><span>Contorno de corte<small>Línea fina con la forma de la pieza</small></span></label>
       <label class="check"><input type="checkbox" id="marcas"><span>Marcas de corte en los márgenes</span></label>
-      <label class="check"><input type="checkbox" id="duplex"><span>Doble cara (dorso espejado)<small>Para imprimir a doble cara volteando por el borde largo</small></span></label>
+      <label class="check"><input type="checkbox" id="duplex"><span>Doble cara (dorso espejado)<small>El dorso se coloca para voltear la hoja de izquierda a derecha, como la página de un libro</small></span></label>
+      <div class="grid2">
+        <label class="field"><span>Ajuste del dorso → (mm)</span><input type="number" id="ddx" min="-10" max="10" step="0.5"></label>
+        <label class="field"><span>Ajuste del dorso ↓ (mm)</span><input type="number" id="ddy" min="-10" max="10" step="0.5"></label>
+      </div>
+      <p class="hint">Mueve todo el dorso para corregir lo que se corre tu impresora. Calcúlalo con la pieza «Prueba de doble cara».</p>
       <label class="check"><input type="checkbox" id="regla"><span>Regla de control de 50 mm</span></label>
     </section>
 
@@ -536,6 +552,15 @@ const PIEZAS = {
     min: [10, 10], sinMedida: true,
     items: () => [null],
     paginas: s => bolsaPaginas(s)
+  },
+  registro: {
+    nombre: 'Prueba de doble cara',
+    presets: [[180, 250, 'A4 · 18 × 25 cm']],
+    caras: ['Frente', 'Dorso'],
+    min: [100, 100],
+    items: () => [null],
+    draw: (cara, W, H) => registro(cara, W, H),
+    forma: null
   },
   carta: {
     nombre: 'Carta de color',
@@ -1026,6 +1051,37 @@ function troquelPaginas(s, o) {
   return { pw: mejor.w, ph: mejor.h, paginas, resumen: `Desplegado de <b>${fmt(r2(d.FW))} × ${fmt(r2(d.FH))}</b> mm en <b>${paginas.length}</b> hojas (${mejor.rows} × ${mejor.cols}) con 10 mm de solape` };
 }
 
+/* Prueba de doble cara: cruces en posiciones simétricas (coinciden al voltear como página de libro).
+   El dorso lleva reglas en mm alrededor de cada cruz; el número donde cae la cruz del frente, visto a
+   contraluz, es directamente el valor de «Ajuste del dorso» (en coordenadas del dorso). */
+function registro(cara, W, H) {
+  const m = 22, pts = [[m, m], [W - m, m], [W / 2, H / 2], [m, H - m], [W - m, H - m]];
+  const sans = 'IBM Plex Sans,sans-serif';
+  let o = `<rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" fill="none" stroke="#bbb" stroke-width="0.2"/>`;
+  o += `<text x="${W / 2}" y="${H / 2 - 22}" text-anchor="middle" font-family="${sans}" font-size="5" font-weight="600" fill="#000">${cara.toUpperCase()}</text>`;
+  if (cara === 'Frente') {
+    o += `<text x="${W / 2}" y="${H / 2 + 26}" text-anchor="middle" font-family="${sans}" font-size="3" fill="#444">Imprime esta cara, voltea la hoja como la página de un libro y vuelve a meterla.</text>`;
+    pts.forEach(([x, y]) => { o += `<g stroke="#000" stroke-width="0.25" fill="none"><path d="M${x - 9} ${y}h18M${x} ${y - 9}v18"/><circle cx="${x}" cy="${y}" r="3"/></g>`; });
+  } else {
+    o += `<text x="${W / 2}" y="${H / 2 + 26}" text-anchor="middle" font-family="${sans}" font-size="3" fill="#444">A contraluz: el número donde cae la cruz del frente es el ajuste del dorso (→ arriba de la cruz, ↓ a su derecha).</text>`;
+    pts.forEach(([x, y]) => {
+      let g = `<g stroke="#C0185A" stroke-width="0.15"><path d="M${x - 7} ${y - 5}h14M${x + 5} ${y - 7}v14"/>`;
+      for (let i = -12; i <= 12; i++) {
+        const v = i / 2, l = i % 2 ? 0.8 : 1.6;
+        g += `<path d="M${r2(x + v)} ${y - 5}v${-l}M${x + 5} ${r2(y + v)}h${l}"/>`;
+      }
+      g += '</g>';
+      for (let v = -6; v <= 6; v += 2) {
+        const t = v > 0 ? '+' + v : String(v).replace('-', '−');
+        g += `<text x="${x + v}" y="${y - 7.6}" text-anchor="middle" font-family="${sans}" font-size="1.5" fill="#C0185A">${t}</text>`;
+        g += `<text x="${x + 7.4}" y="${r2(y + v + 0.5)}" font-family="${sans}" font-size="1.5" fill="#C0185A">${t}</text>`;
+      }
+      o += g + `<circle cx="${x}" cy="${y}" r="0.5" fill="#C0185A"/>`;
+    });
+  }
+  return o;
+}
+
 /* Carta de color: muestras de las tintas y papeles de marca con su Pantone, CMYK y HEX */
 function cartaColor(W, H) {
   const m = 10, g = 5, ks = ['verde', 'dorado', 'tinta', 'crema', 'kraft'], n = ks.length;
@@ -1139,7 +1195,9 @@ function hoja(p, s, pieza, cara, chunk, idx, total, espejo) {
       `<text x="${r2(bx + 6)}" y="${r2(by + 2.2)}" font-family="IBM Plex Sans,sans-serif" font-size="1.9" fill="#333">${esc(c.pantone.split(' · ')[0])}</text>` +
       `<text x="${r2(bx + 6)}" y="${r2(by + 4.6)}" font-family="IBM Plex Sans,sans-serif" font-size="1.7" fill="#777">${esc(c.cmyk)}</text>`;
   });
-  return `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}">${prev}${body}${marcas}${pie}</svg>`;
+  // ajuste del dorso: corrige el corrimiento de la impresora al imprimir la segunda cara
+  const dd = espejo && (s.dDx || s.dDy) ? `translate(${+s.dDx || 0} ${+s.dDy || 0})` : '';
+  return `<svg class="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}mm" height="${ph}mm" data-pw="${pw}">${prev}<g transform="${dd}">${body}${marcas}</g>${pie}</svg>`;
 }
 const fmt = v => String(r2(v)).replace('.', ',');
 
@@ -1157,13 +1215,15 @@ const DEF = {
   kL: 300, kA: 200, kH: 150, kT: 3, kG: 35, kColor: 'kraft', kLema: 'El arte de cultivar el tiempo.', kAvisos: true, kTroquel: true, kModo: 'lamina',
   bW: 250, bG: 100, bH: 300, bTi: 40, bColor: 'verde', bLema: '', bTroquel: true, bModo: 'lamina',
   papel: 'A4', orient: 'auto', pw: 210, ph: 297, margen: 8, sep: 3, rotar: true,
-  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, regla: true, zoom: 'fit'
+  tinta: '#192010', fondo: '#CDAE84', impFondo: false, contorno: true, marcas: true, duplex: true, dDx: 0, dDy: 0, regla: true, zoom: 'fit'
 };
 let S = { ...DEF };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { /* sin almacenamiento */ }
 // enlace directo a una pieza: imprimibles.html?pieza=guia
 { const q = new URLSearchParams(location.search).get('pieza'); if (q && PIEZAS[q]) S.pieza = q; }
 if (!S.tTel && CFG.WHATSAPP_NUMBER) S.tTel = '+' + String(CFG.WHATSAPP_NUMBER).replace(/^(\d{3})(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3 $4');
+// la web guardada antes del cambio de dirección se reemplaza por la actual
+if (S.tWeb === 'legadobonsai.github.io') S.tWeb = '';
 if (!S.tWeb && CFG.SITE_URL) S.tWeb = String(CFG.SITE_URL).replace(/^https?:\/\//, '').replace(/\/$/, '');
 const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* nada */ } };
 
@@ -1178,7 +1238,7 @@ const CAMPOS = {
   'f-filas': ['fFilas', 'v'], 'f-dorso': ['fDorso', 'c'], 'f-uso': ['fUso', 'v'], 'f-lote': ['fLote', 'v'], 'f-fecha': ['fFecha', 'v'],
   's-inv': ['sInv', 'c'], 's-lema': ['sLema', 'c'], 's-n': ['sN', 'n'], 'l-var': ['lVar', 'v'], 'l-n': ['lN', 'n'],
   papel: 'v', orient: 'v', pw: 'n', ph: 'n', margen: 'n', sep: 'n', rotar: 'c',
-  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', duplex: 'c', regla: 'c', zoom: 'v'
+  tinta: 'v', fondo: 'v', 'imp-fondo': ['impFondo', 'c'], contorno: 'c', marcas: 'c', duplex: 'c', ddx: ['dDx', 'n'], ddy: ['dDy', 'n'], regla: 'c', zoom: 'v'
 };
 const campo = id => Array.isArray(CAMPOS[id]) ? CAMPOS[id] : [id, CAMPOS[id]];
 function aFormulario() {

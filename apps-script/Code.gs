@@ -40,7 +40,7 @@ const REGLAS = {
   codigosFijos: { 'LEGADO10': 10 },   // código del popup de newsletter → % descuento
   planesMeses: { 'Primeros Brotes': 12, 'Cultivo Guiado': 12, 'Legado Completo': 12 },
   planesPrecio: { 'Primeros Brotes': 15, 'Cultivo Guiado': 60, 'Legado Completo': 120 },
-  sitio: 'https://legadobonsai.github.io',   // para el enlace del pasaporte en los mensajes
+  sitio: 'https://tony2rad.github.io/legado-bonsai',   // para el enlace del pasaporte en los mensajes
   horaRecordatorios: 8        // hora local del disparador diario
 };
 

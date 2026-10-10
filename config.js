@@ -27,7 +27,7 @@ window.LEGADO_CONFIG = {
 
   /* URL pública del sitio (sin barra final). Se usa para armar el enlace y el
      código QR del pasaporte de cada árbol (arbol.html?id=LB-0001). */
-  SITE_URL: 'https://legadobonsai.github.io',
+  SITE_URL: 'https://tony2rad.github.io/legado-bonsai',
 
   /* Popup "10% en tu primer legado": el correo se envía a este Google Form
      (Formulario → Respuestas → vinculado a un Sheet). Para cambiar de
