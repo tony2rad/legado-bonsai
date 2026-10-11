@@ -1694,7 +1694,7 @@ async function cargarArte() {
 function listaArchivos() {
   const vers = [['Vertical', 'legado-logo-vertical'], ['Vertical con lema', 'legado-logo-lema'], ['Horizontal', 'legado-logo-horizontal'], ['Emblema', 'legado-emblema'], ['Nombre', 'legado-wordmark']];
   $('archivos').innerHTML = vers.map(([t, f]) => `<div><span>${t}</span><span>` +
-    ['tinta', 'blanco', 'verde', 'dorado', 'crema'].map(c => `<a href="../assets/img/logo/${f}-${c}.svg" download>${c}</a> (<a href="../assets/img/logo/png/${f}-${c}.png" download>PNG</a>)`).join(' · ') +
+    ['tinta', 'negro', 'blanco', 'verde', 'dorado', 'crema'].map(c => `<a href="../assets/img/logo/${f}-${c}.svg" download>${c}</a> (<a href="../assets/img/logo/png/${f}-${c}.png" download>PNG</a>)`).join(' · ') +
     '</span></div>').join('');
 }
 
