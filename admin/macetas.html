@@ -37,7 +37,10 @@
   .btn{font:600 14px var(--sans);border:0;border-radius:6px;padding:10px 16px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
   .btn.alt{background:var(--glaze);color:#fff}
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-  .stlopt{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted);cursor:pointer}
+  .stlopt{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .stlopt input{width:auto;margin:0}
+  .stlopt:has(input:disabled){opacity:.45;cursor:default}
+  .topbar select.stlsel{width:auto;font:13px var(--sans);padding:8px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
   dialog#dlg3d{width:min(1280px,97vw);height:min(820px,94vh);padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);overflow:hidden}
   dialog#dlg3d::backdrop{background:rgba(10,14,12,.6)}
   .v3wrap{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%}
@@ -134,7 +137,7 @@
     <h1>Plantillas de Macetas Bonsái</h1>
     <div class="sub">Patrones de corte en arcilla y moldes de cemento, a escala real, listos para imprimir. Todas las medidas en centímetros.</div>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="btn3d" type="button">Ver en 3D</button><button class="btn ghost" id="btnStl" type="button" title="Descarga la maceta como sólido 3D, en milímetros, para imprimirla">Descargar STL</button><label class="stlopt" title="Abre los agujeros de drenaje y de alambre en el sólido"><input type="checkbox" id="stlHoles" checked> con agujeros</label><button class="btn" id="btnPrint" type="button">Imprimir al 100 %</button><button class="btn alt" id="btnAll" type="button" title="Plato-guía y perfiles de los 14 modelos, en A4, para la máquina de barrido">Imprimir todos los modelos · cemento</button><div class="hint" id="stlMsg" style="flex-basis:100%;text-align:right"></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="btn3d" type="button">Ver en 3D</button><button class="btn ghost" id="btnStl" type="button" title="Descarga la pieza elegida como sólido 3D, en milímetros, para imprimirla">Descargar STL</button><select id="stlWhat" class="stlsel" aria-label="Pieza a exportar en STL"><option value="maceta">Maceta</option><option value="guia">Plato-guía</option><option value="pext">Perfil exterior</option><option value="pint">Perfil interior</option><option value="juego">Juego de la máquina (3 piezas)</option></select><label class="stlopt" title="Abre los agujeros de drenaje y de alambre en el sólido"><input type="checkbox" id="stlHoles" checked> con agujeros</label><button class="btn" id="btnPrint" type="button">Imprimir al 100 %</button><button class="btn alt" id="btnAll" type="button" title="Plato-guía y perfiles de los 14 modelos, en A4, para la máquina de barrido">Imprimir todos los modelos · cemento</button><div class="hint" id="stlMsg" style="flex-basis:100%;text-align:right"></div></div>
 </div>
 
 <div class="app">
@@ -772,28 +775,48 @@
     g+=`<line x1="${r1(sx)}" y1="${r1(yg-MACH.SLOTS[1]-MACH.SLOT_L/2-6)}" x2="${r1(sx)}" y2="${r1(yg)}" ${REF}/>`;
     return g;
   }
+  // Geometría de una lámina de perfil, compartida por la plantilla (profilePlate) y el STL (plateOutline): así la pieza
+  // impresa en papel y la impresa en 3D salen del mismo cálculo. Coordenadas en mm, y hacia abajo, eje de giro en x = 0.
+  function plateGeo(half,o){
+    const gx=o.guideX, sx=gx+MACH.D, w=sx+25, xc=gx+8;
+    let yg,top,pts;
+    if(o.inverted){ yg=Math.max(o.depth+12,MACH.TOP); top=yg-o.depth; pts=half.map(([x,y])=>[x,yg-y]); }
+    // boca arriba: la boca queda a o.H sobre el plato-guía; bajo el fondo de la cavidad la lámina se recorta hasta
+    // fuera de la maceta para no chocar con la pared ni con el pie del seguidor.
+    else { yg=Math.max(o.H+12,MACH.TOP); top=yg-o.H; pts=half.map(([x,y])=>[x,top+y]); }
+    return {gx,sx,w,h:yg,yg,top,xc,pts};
+  }
+  // Contorno del material que queda de la lámina (rectángulo menos la silueta de la maceta) y las dos ranuras.
+  function plateOutline(half,o){
+    const {sx,w,h,yg,top,xc,pts}=plateGeo(half,o), last=pts[pts.length-1];
+    const outline=o.inverted?[[0,0],[w,0],[w,h],...pts,[0,last[1]]]:[[0,0],[w,0],[w,h],[xc,h],[xc,last[1]],...pts.slice().reverse(),[0,top]];
+    const r=MACH.SLOT_W/2, hl=MACH.SLOT_L/2-r;
+    const slots=MACH.SLOTS.map(dy=>{ const cy=yg-dy, P=[]; for(let i=0;i<=16;i++){ const a=Math.PI+i/16*Math.PI; P.push([sx+r*Math.cos(a),cy-hl+r*Math.sin(a)]); } for(let i=0;i<=16;i++){ const a=i/16*Math.PI; P.push([sx+r*Math.cos(a),cy+hl+r*Math.sin(a)]); } return P; });
+    return {outline,holes:slots,w,h};
+  }
+  // Argumentos de las dos láminas de un modelo (los usan las plantillas y el STL)
+  function profileArgs(s,b){
+    const H=s.H, t=s.t, d=s.flare, Hc=b.core, Wd=s.type==='round'?s.L:s.W, gx=Wd/2+s.lipX;   // sección por el eje corto o el diámetro; gx = borde del plato-guía = vertical del seguidor
+    return {Wd,gx,
+      ext:[withFeet(halfExt(s,Wd/2,H,s.feet,d),s.feet,footSize(Wd)),{inverted:true,depth:H,guideX:gx,dims:`radio ${cm(gx)} · alto ${cm(H)} · ${RIM_NAME[s.rim]} · ${BODY_NAME[s.body]}`,note:'maceta boca abajo · tol galvanizado 0,9 mm o acrílico 3 mm · el borde inferior apoya en el plato-guía'}],
+      int:[halfInt(s,Wd/2-t,Hc,d),{inverted:false,depth:Hc,H:H,guideX:gx,dims:`radio ${cm(Wd/2-t)} · profundidad ${cm(Hc)} · ${s.rim==='uchien'?'labio interno '+cm(s.lip)+' cm':'sin labio'}`,note:`maceta boca arriba sobre el plato-guía · borde de barrido ${cm(t+s.lipX)} cm hacia dentro del seguidor`}]};
+  }
+  // Contorno del plato-guía, centrado en el eje: mismas reglas que planShape (esquinas vivas o entrantes se redondean
+  // al radio mínimo del rodamiento seguidor).
+  function guideOutline(s){
+    const Lg=s.L+2*s.lipX, Wg=s.W+2*s.lipX, N=SHP(s);
+    const d=N?polyPath(polyPts(0,0,Wg/2,N)):(s.lobes||s.type==='round'||s.type==='oval')?ovalPath(0,0,Lg/2,Wg/2,s.lobes||0)
+      :cornerPath(-Lg/2,-Wg/2,Lg,Wg,(s.corner==='recta'||s.corner==='sumiiri')?'nadekaku':s.corner,(s.corner==='recta'||s.corner==='sumiiri')?MACH.BEARING/2+1:s.c);
+    return samplePath(d,Math.min(720,Math.max(240,Math.round((Lg+Wg)*1.6))));
+  }
   function profilePlate(name,half,o){
     // Lámina de perfil para la máquina de barrido. Eje de giro en el borde izquierdo (x=0). El borde de barrido es el
     // medio perfil; el rayado es la silueta de la maceta que se retira. Las ranuras van a MACH.D del borde del
     // plato-guía (vertical del seguidor) y a las alturas MACH.SLOTS sobre su cara superior, iguales en todos los modelos.
     // o.inverted: maceta boca abajo (exterior): boca abajo en la lámina, base arriba.
     // o.guideX: x del borde del plato-guía (donde rueda el seguidor). o.H: alto total de la maceta (solo boca arriba).
-    const xm=xmax(half), gx=o.guideX, sx=gx+MACH.D, w=sx+25;
-    let pts, poly, yg, h, top, cut;
-    if(o.inverted){
-      yg=Math.max(o.depth+12,MACH.TOP); h=yg; top=yg-o.depth;
-      pts=half.map(([x,y])=>[x,yg-y]);
-      poly=[[0,yg]].concat(pts).concat([[0,pts[pts.length-1][1]]]);
-      cut=pts.concat([[0,pts[pts.length-1][1]]]);
-    } else {
-      // boca arriba: la boca queda a o.H sobre el plato-guía; bajo el fondo de la cavidad la lámina se recorta hasta
-      // fuera de la maceta para no chocar con la pared ni con el pie del seguidor.
-      yg=Math.max(o.H+12,MACH.TOP); top=yg-o.H; h=yg;
-      pts=half.map(([x,y])=>[x,top+y]);
-      const yf=pts[pts.length-1][1], xc=gx+8;
-      poly=[[0,top]].concat(pts).concat([[0,yf]]);
-      cut=pts.concat([[0,yf]]);
-    }
+    const {gx,w,h,yg,top,pts}=plateGeo(half,o), yl=pts[pts.length-1][1];
+    const poly=[[0,o.inverted?yg:top]].concat(pts).concat([[0,yl]]), cut=pts.concat([[0,yl]]);
     let g=`<defs>${HATCH}</defs><rect x="0" y="0" width="${r1(w)}" height="${r1(h)}" fill="url(#gr)"/>`;
     if(!o.inverted){ const yf=pts[pts.length-1][1], xc=gx+8; g+=`<rect x="0" y="${r1(yf)}" width="${r1(xc)}" height="${r1(h-yf)}" fill="#fff"/><rect x="0" y="${r1(yf)}" width="${r1(xc)}" height="${r1(h-yf)}" fill="url(#hl)"/>`; }
     g+=`<polygon points="${pts2s(poly)}" fill="url(#hl)" stroke="none"/>`;
@@ -801,7 +824,7 @@
     if(!o.inverted){ const yf=pts[pts.length-1][1], xc=gx+8; g+=`<polyline points="${r1(xc)},${r1(yf)} ${r1(xc)},${r1(h)}" fill="none" stroke="#000" stroke-width=".6"/>`; g+=`<line x1="0" y1="${r1(top)}" x2="${r1(w)}" y2="${r1(top)}" ${REF}/>`; }
     g+=`<line x1="0" y1="0" x2="0" y2="${r1(h)}" ${SEAM}/>`;
     g+=`<line x1="0" y1="${r1(h)}" x2="${r1(w)}" y2="${r1(h)}" stroke="#000" stroke-width=".6"/>`;
-    g+=slotMarks(sx,yg);
+    g+=slotMarks(gx+MACH.D,yg);
     g+=`<line x1="${r1(gx)}" y1="${r1(yg-16)}" x2="${r1(gx)}" y2="${r1(yg)}" ${REF}/>`;
     g+=`<rect x="0" y="0" width="${r1(w)}" height="${r1(h)}" ${CUT}/>`;
     // rótulos en la franja derecha, girados
@@ -835,13 +858,11 @@
     return {name:'Esquema de la máquina',qty:1,w,h,inner:g};
   }
   function cementPieces(s,b){
-    const p=[], H=s.H, t=s.t, d=s.flare, Hc=b.core;
-    const Wd=s.type==='round'?s.L:s.W; // section through the short axis, or the diameter
-    const gx=Wd/2+s.lipX;              // borde del plato-guía en la sección corta = vertical del seguidor
+    const p=[], A=profileArgs(s,b);
     p.push(planGuide(s));
-    p.push(profilePlate('Perfil exterior',withFeet(halfExt(s,Wd/2,H,s.feet,d),s.feet,footSize(Wd)),{inverted:true,depth:H,guideX:gx,dims:`radio ${cm(gx)} · alto ${cm(H)} · ${RIM_NAME[s.rim]} · ${BODY_NAME[s.body]}`,note:'maceta boca abajo · tol galvanizado 0,9 mm o acrílico 3 mm · el borde inferior apoya en el plato-guía'}));
-    p.push(profilePlate('Perfil interior',halfInt(s,Wd/2-t,Hc,d),{inverted:false,depth:Hc,H:H,guideX:gx,dims:`radio ${cm(Wd/2-t)} · profundidad ${cm(Hc)} · ${s.rim==='uchien'?'labio interno '+cm(s.lip)+' cm':'sin labio'}`,note:`maceta boca arriba sobre el plato-guía · borde de barrido ${cm(t+s.lipX)} cm hacia dentro del seguidor`}));
-    p.push(sectionFull(s,b,Wd));
+    p.push(profilePlate('Perfil exterior',...A.ext));
+    p.push(profilePlate('Perfil interior',...A.int));
+    p.push(sectionFull(s,b,A.Wd));
     p.push(machineSketch(s));
     return p;
   }
@@ -1250,33 +1271,68 @@
       dv.setUint16(o,0,true); o+=2; });
     return buf;
   }
+  // Triángulos de un objeto de three.js en coordenadas del mundo; map pasa cada vértice al sistema del STL.
+  function meshTris(THREE,obj,map){
+    obj.updateMatrixWorld(true);
+    const T=[], v=new THREE.Vector3();
+    obj.traverse(o=>{ if(!o.isMesh) return; const g=o.geometry, p=g.attributes.position, ix=g.index, cnt=ix?ix.count:p.count;
+      for(let i=0;i<cnt;i++){ v.fromBufferAttribute(p,ix?ix.getX(i):i).applyMatrix4(o.matrixWorld); T.push(...map(v)); } });
+    obj.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
+    return T;
+  }
+  // Placa plana: contorno y agujeros en mm del dibujo (y hacia abajo), extruida al grosor y apoyada en z = 0.
+  // Mirando la cama desde arriba se ve igual que la plantilla impresa.
+  function plateTris(THREE,outline,holes,thick){
+    const clean=P=>P.filter((p,i)=>{ const q=P[(i+P.length-1)%P.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>0.01; }).map(([x,y])=>new THREE.Vector2(x,-y));
+    const sh=new THREE.Shape(clean(outline)); holes.forEach(hp=>sh.holes.push(new THREE.Path(clean(hp))));
+    return meshTris(THREE,new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:thick,bevelEnabled:false,curveSegments:1})),v=>[v.x,v.y,v.z]);
+  }
+  const BLADE_3D=4;   // grosor de las láminas de perfil impresas en 3D (mm): más rígidas que el acrílico de 3 mm
+  function machineTris(THREE,what,s,b){
+    const A=profileArgs(s,b);
+    if(what==='guia'){ const hole=Array.from({length:48},(_,i)=>{ const a=-i/48*2*Math.PI; return [5*Math.cos(a),5*Math.sin(a)]; }); return plateTris(THREE,guideOutline(s),[hole],s.m); }
+    const P=plateOutline(...(what==='pext'?A.ext:A.int)); return plateTris(THREE,P.outline,P.holes,BLADE_3D);
+  }
+  function bbox(T){ const mn=[Infinity,Infinity,Infinity], mx=[-Infinity,-Infinity,-Infinity]; for(let i=0;i<T.length;i++){ const k=i%3; if(T[i]<mn[k]) mn[k]=T[i]; if(T[i]>mx[k]) mx[k]=T[i]; } return {mn,mx}; }
   async function exportSTL(){
     if(!last3) return;
     const say=t=>{ $('stlMsg').textContent=t; if($('dlg3d').open) $('v3msg').textContent=t; };
     let THREE=V3&&V3.THREE;
     if(!THREE){ say('Preparando el STL…'); try{ THREE=await import('three'); }catch(e){ say('No se pudo generar el STL: hace falta conexión a internet la primera vez.'); return; } }
-    const {s,b}=last3, G=potGroup(THREE,s,b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false});
-    G.updateMatrixWorld(true);
-    const T=[], v=new THREE.Vector3();
-    G.traverse(o=>{ if(!o.isMesh) return; const g=o.geometry, p=g.attributes.position, ix=g.index, cnt=ix?ix.count:p.count;
-      for(let i=0;i<cnt;i++){ v.fromBufferAttribute(p,ix?ix.getX(i):i).applyMatrix4(o.matrixWorld); T.push(v.x,-v.z,v.y); } });   // Y arriba → Z arriba
-    G.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
-    const R=stlOrient(T), mn=[Infinity,Infinity,Infinity], mx=[-Infinity,-Infinity,-Infinity];
-    for(let i=0;i<R.V.length;i++){ const k=i%3; mn[k]=Math.min(mn[k],R.V[i]); mx[k]=Math.max(mx[k],R.V[i]); }
+    const {s,b}=last3, what=s.mat==='clay'?'maceta':$('stlWhat').value;
+    let T;
+    if(what==='maceta') T=meshTris(THREE,potGroup(THREE,s,b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}),v=>[v.x,-v.z,v.y]);   // Y arriba → Z arriba
+    else if(what==='juego'){
+      // las tres piezas en fila sobre la cama, separadas 10 mm (en el laminador: «Dividir en objetos»)
+      T=[]; let x=0;
+      ['guia','pext','pint'].forEach(k=>{ const P=machineTris(THREE,k,s,b), {mn,mx}=bbox(P), dx=x-mn[0], dy=-mn[1]; for(let i=0;i<P.length;i+=3) T.push(P[i]+dx,P[i+1]+dy,P[i+2]); x+=mx[0]-mn[0]+10; });
+    } else T=machineTris(THREE,what,s,b);
+    const R=stlOrient(T), {mn,mx}=bbox(R.V);
     const off=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]; for(let i=0;i<R.V.length;i++) R.V[i]-=off[i%3];   // centrada y apoyada en la cama
     const size=[0,1,2].map(k=>mx[k]-mn[k]);
     const slug=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-    const nm=current?current.name:shapeName(s), mm=x=>String(Math.round(x)/10).replace('.',',');
-    const file=`maceta-${slug(nm)}-${mm(size[0])}x${mm(size[1])}x${mm(size[2])}cm.stl`;
+    const nm=slug(current?current.name:shapeName(s)), mm=x=>String(Math.round(x)/10).replace('.',',');
+    const potDims=s.type==='round'?`${mm(s.L)}x${mm(s.H)}cm`:`${mm(s.L)}x${mm(s.W)}x${mm(s.H)}cm`;
+    const PRE={maceta:'maceta',guia:'plato-guia',pext:'perfil-exterior',pint:'perfil-interior',juego:'maquina-juego'};
+    const file=what==='maceta'?`maceta-${nm}-${mm(size[0])}x${mm(size[1])}x${mm(size[2])}cm.stl`:`${PRE[what]}-${nm}-${potDims}.stl`;
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([stlBinary(R.V,R.F)],{type:'model/stl'})); a.download=file;
     document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },2000);
-    const notes=[];
-    if(size[0]>220||size[1]>220||size[2]>250) notes.push('Supera una cama típica de 22 × 22 cm: escálalo en el laminador o usa una impresora grande');
-    if(s.panel&&PAN.mode!=='relieve') notes.push('el panel rehundido o inciso no va en el sólido');
-    if(s.mat==='clay') notes.push('medidas de la maceta terminada');
+    const LABEL={maceta:'Maceta',guia:'Plato-guía',pext:'Perfil exterior',pint:'Perfil interior',juego:'Juego de la máquina'}, notes=[];
+    if(size[0]>220||size[1]>220||size[2]>250) notes.push(what==='juego'?'la fila de piezas supera una cama de 22 × 22 cm: en el laminador usa «Dividir en objetos» y repártelas en varias impresiones':'supera una cama típica de 22 × 22 cm: escálalo en el laminador o usa una impresora grande');
+    if(what==='maceta'){
+      if(s.panel&&PAN.mode!=='relieve') notes.push('el panel rehundido o inciso no va en el sólido');
+      if(s.mat==='clay') notes.push('medidas de la maceta terminada');
+    } else {
+      if(what==='guia'||what==='juego') notes.push(`plato-guía de ${cm(s.m)} cm de grosor, como el tablero de la máquina, con agujero central Ø1 cm`);
+      if(what!=='guia') notes.push(`perfiles de ${cm(BLADE_3D)} cm con las ranuras para los pernos 1/4"; imprímelos planos y lija el borde de barrido`);
+    }
     if(R.open) notes.push(`la malla tiene ${R.open} bordes abiertos, el laminador los repara`);
-    say(`STL descargado: ${mm(size[0])} × ${mm(size[1])} × ${mm(size[2])} cm, ${R.F.length.toLocaleString('es-EC')} triángulos, ${Math.round(R.volume/1000).toLocaleString('es-EC')} cm³ de material, en mm.${notes.length?' '+notes.join('. ').replace(/^./,c=>c.toUpperCase())+'.':''}`);
-    return {file,size,tris:R.F.length,open:R.open,shells:R.shells,volume:R.volume};
+    say(`${LABEL[what]} en STL: ${mm(size[0])} × ${mm(size[1])} × ${mm(size[2])} cm, ${R.F.length.toLocaleString('es-EC')} triángulos, ${Math.round(R.volume/1000).toLocaleString('es-EC')} cm³ de material, en mm.`+(notes.length?' '+notes.map(n=>n.replace(/^./,c=>c.toUpperCase())).join('. ')+'.':''));
+  }
+  // Las piezas de la máquina solo existen en cemento; los agujeros solo aplican a la maceta.
+  function syncStlUI(clay){
+    const sw=$('stlWhat'); [...sw.options].forEach(o=>{ if(o.value!=='maceta') o.hidden=o.disabled=clay; });
+    if(clay) sw.value='maceta'; sw.hidden=clay; $('stlHoles').disabled=sw.value!=='maceta';
   }
   let current=null;
   let view=0;
@@ -1304,7 +1360,7 @@
   function render(){
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
     $('W').disabled=s.type==='round'||!!SHP(s); $('clayOpts').hidden=!clay; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
-    $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay;
+    $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay; syncStlUI(clay);
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     $('flareLabel').innerHTML='Inclinación <b>cm</b>/lado';
     $('pageRule').textContent=`@page{size:${s.paper} landscape;margin:0}`;
@@ -1540,7 +1596,8 @@
   $('matClay').addEventListener('change',switchMaterial); $('matCement').addEventListener('change',switchMaterial);
   $('btnPrint').addEventListener('click',()=>window.print());
   $('btn3d').addEventListener('click',open3D);
-  $('btnStl').addEventListener('click',exportSTL); $('v3stl').addEventListener('click',exportSTL);  $('btnFit').addEventListener('click',fitToTree);
+  $('btnStl').addEventListener('click',exportSTL); $('v3stl').addEventListener('click',exportSTL);
+  $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
   $('v3finish').innerHTML=$('finish').innerHTML;
