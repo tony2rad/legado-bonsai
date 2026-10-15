@@ -143,7 +143,7 @@
     <h1>Plantillas de Macetas Bonsái</h1>
     <div class="sub">Patrones de corte en arcilla y moldes de cemento, a escala real, listos para imprimir. Todas las medidas en centímetros.</div>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="btn3d" type="button">Ver en 3D</button><button class="btn ghost" id="btnStl" type="button" title="Descarga la pieza elegida como sólido 3D, en milímetros, para imprimirla">Descargar STL</button><select id="stlWhat" class="stlsel" aria-label="Pieza a exportar en STL"><option value="maceta">Maceta</option><option value="guia">Plato-guía</option><option value="pext">Perfil exterior</option><option value="pint">Perfil interior</option><option value="juego">Juego de la máquina (3 piezas)</option></select><label class="stlopt" title="Abre los agujeros de drenaje y de alambre en el sólido"><input type="checkbox" id="stlHoles" checked> con agujeros</label><button class="btn" id="btnPrint" type="button">Imprimir al 100 %</button><button class="btn alt" id="btnAll" type="button" title="Plato-guía y perfiles de los 14 modelos, en A4, para la máquina de barrido">Imprimir todos los modelos · cemento</button><div class="hint" id="stlMsg" style="flex-basis:100%;text-align:right"></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="btn3d" type="button">Ver en 3D</button><button class="btn ghost" id="btnMoldTop" type="button" title="Molde de cemento para imprimir en 3D: lo muestra desarmado en el visor">Ver molde 3D</button><button class="btn ghost" id="btnStl" type="button" title="Descarga la pieza elegida como sólido 3D, en milímetros, para imprimirla">Descargar STL</button><select id="stlWhat" class="stlsel" aria-label="Pieza a exportar en STL"><option value="maceta">Maceta</option><option value="guia">Plato-guía</option><option value="pext">Perfil exterior</option><option value="pint">Perfil interior</option><option value="juego">Juego de la máquina (3 piezas)</option></select><label class="stlopt" title="Abre los agujeros de drenaje y de alambre en el sólido"><input type="checkbox" id="stlHoles" checked> con agujeros</label><button class="btn" id="btnPrint" type="button">Imprimir al 100 %</button><button class="btn alt" id="btnAll" type="button" title="Plato-guía y perfiles de los 14 modelos, en A4, para la máquina de barrido">Imprimir todos los modelos · cemento</button><div class="hint" id="stlMsg" style="flex-basis:100%;text-align:right"></div></div>
 </div>
 
 <div class="app">
@@ -1254,7 +1254,8 @@
     if(!V3||!last3||!$('dlg3d').open) return;
     const {THREE,scene,camera,controls,floor}=V3, {s,b}=last3;
     const cut=$('v3cut').checked; V3.renderer.clippingPlanes=cut?[new THREE.Plane(new THREE.Vector3(0,0,-1),0)]:[];
-    const moldOn=$('v3mold').checked&&s.mat==='cement'; $('v3mold').disabled=s.mat!=='cement';
+    if(s.mat!=='cement') $('v3mold').checked=false;
+    const moldOn=$('v3mold').checked&&s.mat==='cement';
     const swap=G=>{ if(V3.pot){ scene.remove(V3.pot); V3.pot.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); } V3.pot=G; scene.add(G); };
     clearTimeout(V3.moldT);
     // el molde tarda hasta ~2 s en piezas grandes: se recalcula cuando dejas de escribir, no en cada tecla
@@ -1850,8 +1851,11 @@
   $('btn3d').addEventListener('click',open3D);
   $('btnStl').addEventListener('click',exportSTL); $('v3stl').addEventListener('click',exportSTL);
   $('btnMold').addEventListener('click',exportMold);
-  $('btnMold3d').addEventListener('click',()=>{ $('v3mold').checked=true; $('v3spin').checked=false; open3D(); });
-  $('v3mold').addEventListener('input',()=>update3D(true));
+  // El molde es de cemento: si estás en arcilla, «Ver molde 3D» (barra, panel o casilla del visor) cambia el material.
+  const toCement=()=>{ if(!$('matCement').checked){ $('matCement').checked=true; $('matClay').checked=false; switchMaterial(); return true; } return false; };
+  const showMold=()=>{ const sw=toCement(); $('v3mold').checked=true; $('v3spin').checked=false; open3D().then(()=>{ if(sw) setTimeout(()=>{ $('v3msg').textContent='El molde es para cemento: cambié el material a «Cemento · moldes». '+$('v3msg').textContent; },400); }); };
+  $('btnMold3d').addEventListener('click',showMold); $('btnMoldTop').addEventListener('click',showMold);
+  $('v3mold').addEventListener('input',()=>{ if($('v3mold').checked&&toCement()) return; update3D(true); });
   ['moldParts','moldBolt','moldWall','bedXY'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));

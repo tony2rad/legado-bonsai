@@ -101,9 +101,10 @@ const vistas = {
 const tabDe = { formulario: 'formulario', macetas: 'ejemplares', maquina: 'ejemplares', diseno: 'ejemplares', imprimibles: 'ejemplares' };
 
 /* Páginas embebidas (producción de macetas, máquina): el iframe de la vista visible se carga la primera vez,
-   antes y con independencia de la carga de datos del sheet. */
+   antes y con independencia de la carga de datos del sheet. El parámetro v evita que el navegador muestre una copia
+   vieja: GitHub Pages deja guardar cada página unos 10 minutos y estas herramientas se actualizan seguido. */
 function cargarEmbeds() {
-  $$('.view:not([hidden]) iframe.embed[data-src]').forEach(f => { if (!f.src) f.src = f.dataset.src; });
+  $$('.view:not([hidden]) iframe.embed[data-src]').forEach(f => { if (!f.src) f.src = f.dataset.src + (f.dataset.src.includes('?') ? '&' : '?') + 'v=' + Date.now(); });
 }
 
 const PLANES = (window.LEGADO_CONFIG?.PLANES || []);
