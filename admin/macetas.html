@@ -255,7 +255,7 @@
     <label><input type="checkbox" id="v3cut"> Corte en sección</label>
     <label title="Muestra el molde de vaciado desarmado alrededor de la maceta (solo cemento)"><input type="checkbox" id="v3mold"> Molde</label>
     <label><input type="checkbox" id="v3dimsOn" checked> Medidas</label>
-    <span class="v3views"><button class="btn ghost" id="v3vIso" type="button">3/4</button><button class="btn ghost" id="v3vFront" type="button">Frente</button><button class="btn ghost" id="v3vTop" type="button">Planta</button></span>
+    <span class="v3views"><button class="btn ghost" id="v3vIso" type="button">3/4</button><button class="btn ghost" id="v3vFront" type="button">Frente</button><button class="btn ghost" id="v3vTop" type="button">Planta</button><button class="btn ghost" id="v3vBottom" type="button" title="Mira la maceta desde abajo: el fondo con el sello">Fondo</button></span>
     <button class="btn ghost" id="v3stl" type="button" title="Descarga este modelo como sólido 3D, en milímetros">Descargar STL</button>
     <button class="btn" id="v3close" type="button">Cerrar</button></div>
   <div class="v3body"><div class="v3stage"><canvas id="v3canvas"></canvas><div id="v3dims"></div></div><aside id="v3side"><h3>Personalizar</h3><div id="v3fields"></div><p class="v3note">Estos campos son los mismos del panel lateral: lo que cambies aquí se aplica también a las plantillas.</p></aside></div>
@@ -1179,6 +1179,15 @@
         grp.position.set(nx*off,yc,nz*off); grp.rotation.y=Math.atan2(nx,nz); grp.rotateX(tilt); G.add(grp);
       });
     }
+    // sello de la marca en la cara inferior (cemento): en relieve sobresale 1 mm; rehundido se pinta como grabado
+    // (en el STL solo va el relieve: restar el grabado de la malla no es posible aquí)
+    const sl=computeSeal(s);
+    if(sl&&ft>=0){
+      if(s.sealMode==='up'){ const T=[]; sl.regions.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,ft-1,ft+0.3,T));
+        const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,mat)); }
+      else if(!opt.stl){ const T=[]; sl.regions.filter(r=>r.d%2===0).forEach(r=>{ const tmp=[]; prismXZ(THREE,r.L,r.kids,ft-0.08,ft-0.04,tmp); T.push(...tmp); });
+        const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:F.rim,roughness:1,side:THREE.DoubleSide}))); }
+    }
     if(opt.tree){
       // sustrato y un arbolito de referencia de escala
       const ys=Math.min(Hc*0.18,9), xs=int[0][0]+(int[int.length-1][0]-int[0][0])*(ys/Hc), sp=[], si=[];
@@ -1226,6 +1235,7 @@
   function view3(kind){
     if(!V3||!last3) return; const {s}=last3, tree=$('v3tree').checked, d=Math.max(s.L,s.W,s.H*1.6)*(tree?2.9:2.3), ty=s.H*(tree?1.1:0.5);
     V3.controls.target.set(0,ty,0); $('v3spin').checked=false;
+    if(kind==='bottom'){ V3.controls.target.set(0,s.feet,0); V3.camera.position.set(0,-d*0.8,d*0.12); return; }   // desde abajo, con +z arriba: el sello se lee derecho
     if(kind==='front') V3.camera.position.set(0,ty,d*1.05); else if(kind==='top') V3.camera.position.set(0,d*1.15,0.01); else V3.camera.position.set(d*0.62,d*0.5,d*0.72);
   }
   async function open3D(){
@@ -1240,12 +1250,13 @@
         scene.add(new THREE.HemisphereLight(0xffffff,0x6b6258,1.25));
         const sun=new THREE.DirectionalLight(0xffffff,1.9); sun.position.set(300,600,450); scene.add(sun);
         const fill=new THREE.DirectionalLight(0xfff1dd,0.5); fill.position.set(-400,200,-300); scene.add(fill);
+        const below=new THREE.DirectionalLight(0xffffff,1.1); below.position.set(-250,-500,320); scene.add(below);   // rasante desde abajo: marca el sello en la vista «Fondo»
         const floor=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.12})); floor.rotation.x=-Math.PI/2; scene.add(floor);
         const controls=new OrbitControls(camera,canvas); controls.enableDamping=true; controls.autoRotate=true; controls.autoRotateSpeed=1.4; controls.maxPolarAngle=Math.PI*0.95;
         V3={THREE,renderer,scene,camera,controls,floor,pot:null,framed:''};
         const size=()=>{ const w=canvas.clientWidth,h=canvas.clientHeight; if(w&&h){ renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); } };
         V3.size=size; window.addEventListener('resize',size);
-        const loop=()=>{ if($('dlg3d').open){ controls.autoRotate=$('v3spin').checked; controls.update(); renderer.render(scene,camera); } requestAnimationFrame(loop); }; loop();
+        const loop=()=>{ if($('dlg3d').open){ controls.autoRotate=$('v3spin').checked; controls.update(); floor.visible=camera.position.y>controls.target.y-1; renderer.render(scene,camera); } requestAnimationFrame(loop); }; loop();
       }catch(e){ $('v3msg').textContent='No se pudo cargar el visor 3D (hace falta conexión a internet la primera vez).'; return; }
     }
     build3Side();
@@ -1260,8 +1271,11 @@
     const swap=G=>{ if(V3.pot){ scene.remove(V3.pot); V3.pot.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); } V3.pot=G; scene.add(G); };
     clearTimeout(V3.moldT);
     // el molde tarda hasta ~2 s en piezas grandes: se recalcula cuando dejas de escribir, no en cada tecla
-    if(moldOn){ $('v3msg').textContent='Calculando el molde…'; V3.moldT=setTimeout(async()=>{ if(!$('dlg3d').open||!last3) return; await prepareSeal(last3.s); if(!$('dlg3d').open||!last3) return; swap(moldGroup(THREE,last3.s,last3.b)); $('v3msg').textContent='Molde desarmado: base con núcleo abajo, gajos del molde exterior alrededor y placa de patas con el sello arriba; la maceta translúcida en su sitio'; },reframe?30:300); }
-    else swap(potGroup(THREE,s,b,{tree:$('v3tree').checked&&!cut,cut}));
+    if(moldOn){ $('v3msg').textContent='Calculando el molde…'; V3.moldT=setTimeout(async()=>{ if(!$('dlg3d').open||!last3) return; await prepareSeal(last3.s); if(!$('dlg3d').open||!last3) return; swap(moldGroup(THREE,last3.s,last3.b)); $('v3msg').textContent='Molde desarmado: base con núcleo abajo, gajos del molde exterior alrededor y, arriba, la placa de patas volteada para que se vea el sello grabado; la maceta translúcida en su sitio. Con «Molde» desmarcado, el botón «Fondo» muestra el sello en la maceta'; },reframe?30:300); }
+    else { swap(potGroup(THREE,s,b,{tree:$('v3tree').checked&&!cut,cut}));
+      // el logotipo se carga la primera vez que hace falta y se vuelve a dibujar (un solo intento por sesión)
+      const art=s.mat==='cement'&&s.seal&&s.seal!=='none'&&SEALS[s.seal].art;
+      if(art&&!SEAL_ART[art]&&!V3.sealTry){ V3.sealTry=true; prepareSeal(s).then(()=>{ if($('dlg3d').open) update3D(false); }); } }
     sync3(); $('v3dims').textContent=dims3(s,b); $('v3dims').hidden=!$('v3dimsOn').checked;
     floor.scale.setScalar(Math.max(s.L,s.W)*0.75);
     V3.size();
@@ -1333,6 +1347,7 @@
     const say=t=>{ $('stlMsg').textContent=t; if($('dlg3d').open) $('v3msg').textContent=t; };
     let THREE=V3&&V3.THREE;
     if(!THREE){ say('Preparando el STL…'); try{ THREE=await import('three'); }catch(e){ say('No se pudo generar el STL: hace falta conexión a internet la primera vez.'); return; } }
+    await prepareSeal(last3.s);
     const {s,b}=last3, what=s.mat==='clay'?'maceta':$('stlWhat').value;
     let T;
     if(what==='maceta') T=meshTris(THREE,potGroup(THREE,s,b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}),v=>[v.x,-v.z,v.y]);   // Y arriba → Z arriba
@@ -1402,6 +1417,65 @@
     return SEAL_ART[key]={loops,vb:ART[key].vb};
   }
   async function prepareSeal(s){ if(!s.seal||s.seal==='none') return; try{ await loadSealArt(SEALS[s.seal].art); if(s.seal!=='B') await loadSealArt('emblema'); }catch(e){} }
+  // Sitio y contornos del sello en la cara inferior (mm, maceta derecha). Lo usan la placa del molde, la maceta del
+  // visor y su STL, así los tres coinciden. Se guarda en caché por medidas: la búsqueda del sitio no es instantánea.
+  const SEAL_CACHE=new Map();
+  function computeSeal(s,notes){
+    if(s.mat!=='cement'||!s.seal||s.seal==='none') return null;
+    const key=JSON.stringify([s.type,s.L,s.W,s.H,s.t,s.flare,s.feet,s.base,s.rim,s.lip,s.body,s.corner,s.c,s.lobes,s.seal]);
+    let hit=SEAL_CACHE.get(key);
+    if(!hit){ hit=computeSealRaw(s); if(hit.ok) SEAL_CACHE.set(key,hit); }
+    if(notes) notes.push(...hit.notes);
+    return hit.seal;
+  }
+  function computeSealRaw(s){
+    const notes=[], R=s.W/2, ext=halfExt(s,R,s.H,s.feet,s.flare), xb=ext[ext.length-1][0], dl=R-xb;
+    const under=ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),480), f=footSize(s.L,s.W), feet=s.feet>0?blockFeet(s):[];
+    const P=holePlan(s.L/2-s.flare-s.t,s.W/2-s.flare-s.t,1,s.type==='round'||!!SHP(s));
+    const circle=([cx,cz],r,k)=>Array.from({length:k},(_,i)=>{ const a=i/k*2*Math.PI; return [cx+r*Math.cos(a),cz+r*Math.sin(a)]; });
+    const ray=(dx,dz)=>{ let best=0; for(let i=0,m=under.length;i<m;i++){ const a=under[i], c=under[(i+1)%m], ex=c[0]-a[0], ez=c[1]-a[1], den=dx*ez-dz*ex; if(Math.abs(den)<1e-12) continue; const t=(a[0]*ez-a[1]*ex)/den, u=(a[0]*dz-a[1]*dx)/den; if(u>=-1e-9&&u<=1+1e-9&&t>best) best=t; } return best; };
+    const UT=Array.from({length:720},(_,i)=>{ const a=i/720*2*Math.PI; return ray(Math.cos(a),Math.sin(a)); });
+    const underR=(x,z)=>{ let a=Math.atan2(z,x); if(a<0) a+=2*Math.PI; const fi=a/(2*Math.PI)*720, i=Math.floor(fi)%720, t=fi-Math.floor(fi); return UT[i]*(1-t)+UT[(i+1)%720]*t; };
+    const obst=[...P.drains.map(d=>({c:d,r:P.dr+3})),...P.wires.map(w=>({c:w,r:P.wr+3})),...feet.map(c=>({q:c,h:f/2+3}))];
+    const fits=(cx,cz,w,h)=>{
+      for(let i=0;i<=8;i++) for(const [sx,sz] of [[-1,-1+i/4],[1,-1+i/4],[-1+i/4,-1],[-1+i/4,1]]){ const x=cx+sx*w/2, z=cz+sz*h/2, r=Math.hypot(x,z); if(r>0&&r+5>underR(x,z)) return false; }
+      return obst.every(o=>o.c?Math.hypot(Math.max(Math.abs(o.c[0]-cx)-w/2,0),Math.max(Math.abs(o.c[1]-cz)-h/2,0))>=o.r:!(Math.abs(o.q[0]-cx)<w/2+o.h&&Math.abs(o.q[1]-cz)<h/2+o.h)); };
+    const place=(key,minW)=>{ const S=SEALS[key], vb=ART[S.art].vb, asp=S.ring?1:vb[3]/vb[2], mn=minW||S.min, target=Math.min(S.max,Math.max(mn,S.ratio*s.W));
+      for(let w=target;w>=mn-1e-9;w-=1){ const h=w*asp; for(const a of [-Math.PI/2,Math.PI/2,0,Math.PI]){ const ok=[]; for(let d=0;d<Math.max(s.L,s.W)/2;d+=1){ const cx=d*Math.cos(a), cz=d*Math.sin(a); if(fits(cx,cz,w,h)) ok.push([cx,cz]); } if(ok.length) return {key,w,h,c:ok[Math.floor(ok.length/2)]}; } }
+      return null; };
+    // último recurso, para que todo molde lleve firma: el emblema (formas llenas) hasta 1,4 cm de ancho
+    let seal=place(s.seal); if(!seal&&s.seal!=='B') seal=place('B');
+    if(!seal) seal=place('B',14);
+    if(seal&&seal.key!==s.seal) notes.push(`El ${SEALS[s.seal].name.toLowerCase()} no cabe en el fondo de esta maceta: va el emblema de ${cm(seal.w)} cm.`);
+    else if(seal&&seal.w<SEALS.B.min&&s.seal==='B') notes.push(`El fondo es pequeño: el emblema va a ${cm(seal.w)} cm de ancho.`);
+    if(!seal){ notes.push('El fondo de esta maceta no deja sitio libre para el sello: va sin sello.'); return {seal:null,notes,ok:true}; }
+    const art=SEAL_ART[SEALS[seal.key].art];
+    if(!art){ notes.push('No se pudo cargar el logotipo: va sin sello. Revisa la conexión y vuelve a intentarlo.'); return {seal:null,notes,ok:false}; }
+    const S=SEALS[seal.key], vb=art.vb, [cx,cz]=seal.c, D=seal.w, lw=S.ring?D*0.6:D, k=lw/vb[2], oz=S.ring?D*0.01:0;
+    // arriba del logotipo = +z (se lee derecho al voltear la maceta y mirar el fondo)
+    seal.loops=art.loops.map(L=>L.map(([x,y])=>[cx+(x-vb[0]-vb[2]/2)*k,cz+oz+(vb[1]+vb[3]/2-y)*k]));
+    if(S.ring){ const ring=(r,sw)=>{ seal.loops.push(circle([cx,cz],r+sw/2,96),circle([cx,cz],r-sw/2,96)); };
+      ring(D/2-D*0.05,Math.max(0.6,D*0.012)); ring(D/2-D*0.075,Math.max(0.6,D*0.004)); notes.push('Sello circular: los anillos se engrosan a 0,6 mm como mínimo para que se copien en cemento.'); }
+    // anidado: profundidad de cada contorno (par = relleno del logotipo, impar = hueco)
+    const inside=(p,L)=>{ let c=false; for(let i=0,j=L.length-1;i<L.length;j=i++){ const a=L[i], b2=L[j]; if((a[1]>p[1])!==(b2[1]>p[1])&&p[0]<(b2[0]-a[0])*(p[1]-a[1])/(b2[1]-a[1])+a[0]) c=!c; } return c; };
+    const area=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
+    const Ls=seal.loops.filter(L=>L.length>=3&&area(L)>0.01), par=Ls.map((L,i)=>{ let best=-1,ba=Infinity; Ls.forEach((M2,j)=>{ if(j!==i&&inside(L[0],M2)){ const a2=area(M2); if(a2<ba&&a2>area(L)){ ba=a2; best=j; } } }); return best; });
+    const depth=Ls.map((_,i)=>{ let d=0,p=par[i]; while(p>=0){ d++; p=par[p]; } return d; });
+    seal.regions=Ls.map((L,i)=>({L,d:depth[i],kids:Ls.filter((_,j)=>par[j]===i)}));
+    seal.name=S.name;
+    return {seal,notes,ok:true};
+  }
+  // Triángulos de un prisma horizontal (planta en x,z; altura Y de y0 a y1), con el mismo truco que fill2D del molde
+  // para que el triangulador no descarte puntos alineados y la malla quede cerrada.
+  function prismXZ(THREE,outer,holes,y0,y1,T){
+    const dd=L=>L.filter((p,i)=>{ const q=L[(i+L.length-1)%L.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>0.02; });
+    const loops=[dd(outer),...holes.map(dd)], all=[].concat(...loops); let q=0;
+    const jit=()=>{ q=(q*9301+49297)%233280; return (q/233280-0.5)*2e-5; }, V2=L=>L.map(p=>new THREE.Vector2(p[0]+jit(),p[1]+jit()));
+    const tr=THREE.ShapeUtils.triangulateShape(V2(loops[0]),loops.slice(1).map(V2)), P=(p,y)=>[p[0],y,p[1]], push=(a,b2,c)=>T.push(...a,...b2,...c);
+    tr.forEach(t=>{ push(P(all[t[0]],y0),P(all[t[1]],y0),P(all[t[2]],y0)); push(P(all[t[0]],y1),P(all[t[1]],y1),P(all[t[2]],y1)); });
+    loops.forEach(L=>{ for(let i=0;i<L.length;i++){ const a=L[i], c=L[(i+1)%L.length]; push(P(a,y0),P(c,y0),P(c,y1)); push(P(a,y0),P(c,y1),P(a,y1)); } });
+    return T;
+  }
 
   function buildMold(THREE,s,b){
     const R=s.W/2, H=s.H, ft=s.feet, Hb=H-ft, n=480, Tw=s.moldWall, NP=s.moldParts, TB=MOLD.TB, CLR=MOLD.CLR, FL=MOLD.FL;
@@ -1484,41 +1558,8 @@
       parts.push({key:'base',name:'Base con núcleo',file:'molde-base-nucleo',T:A.T,print:'base',color:0xc8a86e,explode:[0,40,0]});
     }
 
-    // --- sello de la marca: sitio libre en la cara inferior (lejos de drenajes, alambres y patas) y contornos en mm
-    let seal=null;
-    if(s.seal&&s.seal!=='none'){
-      const under=ringC(ext[ext.length-1][0]), UT=radii(under,Array.from({length:720},(_,i)=>{ const a=i/720*2*Math.PI; return [Math.cos(a),Math.sin(a)]; }));
-      const underR=(x,z)=>{ let a=Math.atan2(z,x); if(a<0) a+=2*Math.PI; const fi=a/(2*Math.PI)*720, i=Math.floor(fi)%720, t=fi-Math.floor(fi); return UT[i]*(1-t)+UT[(i+1)%720]*t; };
-      const obst=[...P.drains.map(d=>({c:d,r:P.dr+3})),...P.wires.map(w=>({c:w,r:P.wr+3})),...feet.map(c=>({q:c,h:f/2+3}))];
-      const fits=(cx,cz,w,h)=>{
-        for(let i=0;i<=8;i++) for(const [sx,sz] of [[-1,-1+i/4],[1,-1+i/4],[-1+i/4,-1],[-1+i/4,1]]){ const x=cx+sx*w/2, z=cz+sz*h/2, r=Math.hypot(x,z); if(r>0&&r+5>underR(x,z)) return false; }
-        return obst.every(o=>o.c?Math.hypot(Math.max(Math.abs(o.c[0]-cx)-w/2,0),Math.max(Math.abs(o.c[1]-cz)-h/2,0))>=o.r:!(Math.abs(o.q[0]-cx)<w/2+o.h&&Math.abs(o.q[1]-cz)<h/2+o.h)); };
-      const place=(key,minW)=>{ const S=SEALS[key], vb=ART[S.art].vb, asp=S.ring?1:vb[3]/vb[2], mn=minW||S.min, target=Math.min(S.max,Math.max(mn,S.ratio*s.W));
-        for(let w=target;w>=mn-1e-9;w-=1){ const h=w*asp; for(const a of [-Math.PI/2,Math.PI/2,0,Math.PI]){ const ok=[]; for(let d=0;d<Math.max(s.L,s.W)/2;d+=1){ const cx=d*Math.cos(a), cz=d*Math.sin(a); if(fits(cx,cz,w,h)) ok.push([cx,cz]); } if(ok.length) return {key,w,h,c:ok[Math.floor(ok.length/2)]}; } }
-        return null; };
-      // último recurso, para que todo molde lleve firma: el emblema (formas llenas) hasta 1,4 cm de ancho
-      seal=place(s.seal); if(!seal&&s.seal!=='B') seal=place('B');
-      if(!seal) seal=place('B',14);
-      if(seal&&seal.key!==s.seal) notes.push(`El ${SEALS[s.seal].name.toLowerCase()} no cabe en el fondo de esta maceta: va el emblema de ${cm(seal.w)} cm.`);
-      else if(seal&&seal.w<SEALS.B.min&&s.seal==='B') notes.push(`El fondo es pequeño: el emblema va a ${cm(seal.w)} cm de ancho.`);
-      if(!seal) notes.push('El fondo de esta maceta no deja sitio libre para el sello: va sin sello.');
-      const art=seal&&SEAL_ART[SEALS[seal.key].art];
-      if(seal&&!art){ notes.push('No se pudo cargar el logotipo: el molde va sin sello. Revisa la conexión y vuelve a descargar.'); seal=null; }
-      if(seal){
-        const S=SEALS[seal.key], vb=art.vb, [cx,cz]=seal.c, D=seal.w, lw=S.ring?D*0.6:D, k=lw/vb[2], oz=S.ring?D*0.01:0;
-        // arriba del logotipo = +z (se lee derecho al voltear la maceta y mirar el fondo)
-        seal.loops=art.loops.map(L=>L.map(([x,y])=>[cx+(x-vb[0]-vb[2]/2)*k,cz+oz+(vb[1]+vb[3]/2-y)*k]));
-        if(S.ring){ const ring=(r,sw)=>{ seal.loops.push(circle([cx,cz],r+sw/2,96),circle([cx,cz],r-sw/2,96)); };
-          ring(D/2-D*0.05,Math.max(0.6,D*0.012)); ring(D/2-D*0.075,Math.max(0.6,D*0.004)); notes.push('Sello circular: los anillos se engrosan a 0,6 mm como mínimo para que se copien en cemento.'); }
-        // anidado: profundidad de cada contorno (par = relleno del logotipo, impar = hueco)
-        const inside=(p,L)=>{ let c=false; for(let i=0,j=L.length-1;i<L.length;j=i++){ const a=L[i], b2=L[j]; if((a[1]>p[1])!==(b2[1]>p[1])&&p[0]<(b2[0]-a[0])*(p[1]-a[1])/(b2[1]-a[1])+a[0]) c=!c; } return c; };
-        const area=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
-        const Ls=seal.loops.filter(L=>L.length>=3&&area(L)>0.01), par=Ls.map((L,i)=>{ let best=-1,ba=Infinity; Ls.forEach((M2,j)=>{ if(j!==i&&inside(L[0],M2)){ const a2=area(M2); if(a2<ba&&a2>area(L)){ ba=a2; best=j; } } }); return best; });
-        const depth=Ls.map((_,i)=>{ let d=0,p=par[i]; while(p>=0){ d++; p=par[p]; } return d; });
-        seal.regions=Ls.map((L,i)=>({L,d:depth[i],kids:Ls.filter((_,j)=>par[j]===i)}));
-        seal.name=S.name;
-      }
-    }
+    // --- sello de la marca (computeSeal: mismo cálculo que la maceta del visor y su STL)
+    const seal=computeSeal(s,notes);
 
     // --- placa de patas (o de fondo): forma la cara inferior, las patas de bloque y el sello; el faldón calza por fuera
     if(ft>0||seal){
@@ -1573,7 +1614,8 @@
   function moldGroup(THREE,s,b){
     const G=new THREE.Group(), MD=buildMold(THREE,s,b), H=s.H;
     MD.parts.filter(pt=>pt.key!=='kit').forEach(pt=>{ const T=pt.T, pos=new Float32Array(T.length), e=pt.explode;
-      for(let i=0;i<T.length;i+=3){ pos[i]=T[i]+e[0]; pos[i+1]=H-T[i+1]-(pt.key==='base'||pt.key==='feet'?e[1]:0); pos[i+2]=-(T[i+2]+e[2]); }
+      // la placa de patas va volteada (cara que toca el cemento hacia arriba) para que se vea el sello
+      for(let i=0;i<T.length;i+=3){ if(pt.key==='feet'){ pos[i]=T[i]; pos[i+1]=T[i+1]+H+40; pos[i+2]=T[i+2]; continue; } pos[i]=T[i]+e[0]; pos[i+1]=H-T[i+1]-(pt.key==='base'?e[1]:0); pos[i+2]=-(T[i+2]+e[2]); }
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.computeVertexNormals();
       G.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:pt.color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true}))); });
     const pot=potGroup(THREE,s,b,{tree:false,cut:false}); pot.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.transparent=true; o.material.opacity=0.35; o.material.depthWrite=false; } });
@@ -1919,7 +1961,7 @@
   $('v3tree').addEventListener('input',()=>update3D(true));
   $('v3cut').addEventListener('input',()=>{ update3D(false); if($('v3cut').checked) view3('front'); });
   $('v3dimsOn').addEventListener('input',()=>update3D(false));
-  $('v3vIso').addEventListener('click',()=>view3('iso')); $('v3vFront').addEventListener('click',()=>view3('front')); $('v3vTop').addEventListener('click',()=>view3('top'));
+  $('v3vIso').addEventListener('click',()=>view3('iso')); $('v3vBottom').addEventListener('click',()=>view3('bottom')); $('v3vFront').addEventListener('click',()=>view3('front')); $('v3vTop').addEventListener('click',()=>view3('top'));
   const step3=d=>{ const ids=PRESETS.map(p=>p.id), i=ids.indexOf(sel.value); sel.value=ids[(Math.max(0,i)+d+ids.length)%ids.length]; applyPreset(sel.value); $('v3finish').value=$('finish').value; };
   $('v3prev').addEventListener('click',()=>step3(-1)); $('v3next').addEventListener('click',()=>step3(1));
   $('btnAll').addEventListener('click',()=>{
