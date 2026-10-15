@@ -61,6 +61,7 @@
   #v3fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   #v3fields label{display:grid;gap:3px;color:var(--muted);font-size:11.5px}
   #v3fields label.wide{grid-column:1/-1}
+  #v3fields .v3wide,#v3fields .v3sec{grid-column:1/-1} #v3fields .v3sec{font:700 13px var(--display);color:var(--ink);margin:12px 0 0;padding-top:10px;border-top:1px solid var(--line)} #v3fields .v3note{margin:0} .v3btns{display:flex;gap:6px;flex-wrap:wrap} .v3btns .btn{padding:6px 10px;font-size:12px}
   #v3fields label.chk{grid-column:1/-1;display:flex;gap:6px;align-items:center}
   #v3fields input[type=number],#v3fields select{width:100%;font:13px var(--mono);padding:5px 6px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
   .v3note{color:var(--muted);font-size:11.5px;line-height:1.4;margin-top:10px}
@@ -197,13 +198,13 @@
         <label class="f"><span>Esquinas</span>
           <select id="corner"><option value="recta">Rectas</option><option value="sumikiri">Sumikiri · corte</option><option value="nadekaku">Nadekaku · redondeada</option><option value="sumiiri">Sumiiri · entrante</option><option value="mokko">Mokko · entrante en arco</option></select></label>
         <label class="f"><span>Lóbulos (ovalada / redonda)</span><select id="lobes"><option value="0">Sin lóbulos</option><option value="6">6 · rinka</option><option value="8">8 · rinka</option><option value="10">10 · rinka</option><option value="12">12 · rinka</option></select></label>
+        <label class="f"><span>Patas</span><select id="foot"><option value="nube">Nube (kumo-ashi) · curva clásica</option><option value="voluta">Voluta · curva doble</option><option value="escalon">Escalonada (dan-ashi) · formal</option><option value="cuna">Cuña (kiri-ashi) · corte recto</option><option value="puente">Puente bajo · arco largo</option><option value="bloque">Bloques cuadrados</option></select></label>
       </div>
       <div id="clayOpts" style="margin-top:12px">
         <h2>Construcción en placas</h2>
         <div class="grid2">
           <label class="f"><span>Unión de esquinas</span><select id="joint"><option value="inglete">A inglete (bisel)</option><option value="tope">A tope</option></select></label>
           <label class="f"><span>Labio</span><select id="rimMode"><option value="marco">Marco de placa</option><option value="rollo">Rollo (cordón)</option></select></label>
-          <label class="f"><span>Patas</span><select id="foot"><option value="nube">Nube (kumo-ashi) · curva clásica</option><option value="voluta">Voluta · curva doble</option><option value="escalon">Escalonada (dan-ashi) · formal</option><option value="cuna">Cuña (kiri-ashi) · corte recto</option><option value="puente">Puente bajo · arco largo</option><option value="bloque">Bloques cuadrados</option></select></label>
         </div>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="nest"><span>Ahorrar papel: dibujar las piezas dentro del fondo (se sobremontan)</span></label>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="panel"><span>Panel decorativo en las paredes</span></label>
@@ -1093,6 +1094,54 @@
     if(s.type==='rect'){ const inset=s.c*({sumiiri:0.75,mokko:0.75,sumikiri:0.5,nadekaku:0.3}[s.corner]||0); return [[-1,-1],[1,-1],[-1,1],[1,1]].map(([sx,sz])=>[sx*(lb-inset-f/2-2),sz*(wb-inset-f/2-2)]); }
     const k=s.type==='round'?3:4; return Array.from({length:k},(_,i)=>{ const a=(k===3?Math.PI/2:Math.PI/4)+i*2*Math.PI/k; return [(lb-s.t)*0.72*Math.cos(a),(wb-s.t)*0.72*Math.sin(a)]; });
   }
+  // Patas con estilo en cemento: cada pata es una «cinta» con su borde exterior o[], su borde interior i[] (en planta,
+  // x/z en mm) y su profundidad dep[] bajo el fondo en cada muestra. Visor, STL y molde usan la misma cinta, así la
+  // pata que se ve es la que sale del molde. La profundidad es el borde inferior del contorno del estilo (alaPts,
+  // wingPts, archPts): una pata colada no puede tener entrantes por debajo, la placa del molde no saldría.
+  function footRibbons(s){
+    if(!(s.feet>0)||s.foot==='bloque') return null;
+    const ft=s.feet, lb=s.L/2-s.flare, wb=s.W/2-s.flare, N=SHP(s), th=Math.max(8,s.t), leg=footLeg({L:2*lb,W:2*wb},N), out=[];
+    const lower=(pts,u)=>{ let m=0; for(let i=0;i<pts.length;i++){ const a=pts[i], c=pts[(i+1)%pts.length]; if((a[0]-u)*(c[0]-u)<=0&&a[0]!==c[0]) m=Math.max(m,a[1]+(c[1]-a[1])*(u-a[0])/(c[0]-a[0])); } return m; };
+    const dep=(pts,u,len)=>Math.min(ft,Math.max(0.8,lower(pts,Math.min(len-0.01,Math.max(0.01,u)))));
+    // esquina en L: dos alas desde el vértice v por los dos lados (d1, d2), gruesas hacia dentro (n1, n2), unidas en inglete
+    const ell=(v,d1,n1,d2,n2)=>{ const P=alaPts(leg,ft,s.foot), K=18, k=th/(1+n1[0]*n2[0]+n1[1]*n2[1]), m=[v[0]+(n1[0]+n2[0])*k,v[1]+(n1[1]+n2[1])*k], r={o:[],i:[],dep:[]};
+      const wing=(d,n,t)=>{ const tip=[v[0]+d[0]*leg,v[1]+d[1]*leg], tin=[tip[0]+n[0]*th,tip[1]+n[1]*th]; return {o:[v[0]+d[0]*leg*t,v[1]+d[1]*leg*t],i:[m[0]+(tin[0]-m[0])*t,m[1]+(tin[1]-m[1])*t],dep:dep(P,leg*t,leg)}; };
+      for(let j=K;j>=0;j--){ const w=wing(d1,n1,j/K); r.o.push(w.o); r.i.push(w.i); r.dep.push(w.dep); }
+      for(let j=1;j<=K;j++){ const w=wing(d2,n2,j/K); r.o.push(w.o); r.i.push(w.i); r.dep.push(w.dep); }
+      out.push(r); };
+    const inward=(d,v)=>{ let n=[-d[1],d[0]]; if(n[0]*-v[0]+n[1]*-v[1]<0) n=[-n[0],-n[1]]; return n; };
+    if(N){ const V=polyPts(0,0,lb-0.5,N); for(let k=0;k<N;k+=2){ const v=V[k], ds=[V[(k+N-1)%N],V[(k+1)%N]].map(q=>{ const d=Math.hypot(q[0]-v[0],q[1]-v[1]); return [(q[0]-v[0])/d,(q[1]-v[1])/d]; }); ell(v,ds[0],inward(ds[0],v),ds[1],inward(ds[1],v)); } return out; }
+    if(s.type==='rect'&&s.corner==='recta'){ [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([sx,sz])=>ell([sx*lb,sz*wb],[-sx,0],[0,-sz],[0,-sz],[-sx,0])); return out; }
+    // pata que sigue el contorno del fondo (esquinas redondeadas, cortadas o mokko; ovaladas y redondas), metida 2 mm
+    const R=s.W/2, ext=halfExt(s,R,s.H,ft,s.flare), dl=R-ext[ext.length-1][0], n=240, baseO=ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),n), cum=[0];
+    for(let i=0;i<n;i++){ const a=baseO[i], c=baseO[(i+1)%n]; cum.push(cum[i]+Math.hypot(c[0]-a[0],c[1]-a[1])); }
+    const per=cum[n], at=d=>{ d=((d%per)+per)%per; let i=0; while(i<n-1&&cum[i+1]<d) i++; const a=baseO[i], c=baseO[(i+1)%n], f=(d-cum[i])/((cum[i+1]-cum[i])||1); return [a[0]+(c[0]-a[0])*f,a[1]+(c[1]-a[1])*f]; };
+    const sOf=(dx,dz)=>{ let best=0,bv=-2; const dlen=Math.hypot(dx,dz); baseO.forEach((p,i)=>{ const v=(p[0]*dx+p[1]*dz)/((Math.hypot(p[0],p[1])||1)*dlen); if(v>bv+1e-9){ bv=v; best=i; } }); return cum[best]; };
+    const strip=(sc,len,cont,tw)=>{ const m2=44, ins=2, r={o:[],i:[],dep:[]};
+      for(let i=0;i<=m2;i++){ const u=len*i/m2, d=sc-len/2+u, p=at(d), q=at(d+0.6), tx=q[0]-p[0], tz=q[1]-p[1], tl=Math.hypot(tx,tz)||1; let nx=-tz/tl, nz=tx/tl; if(nx*-p[0]+nz*-p[1]<0){ nx=-nx; nz=-nz; }
+        r.o.push([p[0]+nx*ins,p[1]+nz*ins]); r.i.push([p[0]+nx*(ins+tw),p[1]+nz*(ins+tw)]); r.dep.push(dep(cont,u,len)); }
+      // en una esquina viva (sumikiri, mokko) el borde interior desplazado se cruza consigo mismo («cola de golondrina»):
+      // los puntos del lazo se juntan en el cruce, si no el hueco de la placa del molde sale con la malla abierta
+      const X=(a,b,c,d)=>{ const r1=[b[0]-a[0],b[1]-a[1]], r2=[d[0]-c[0],d[1]-c[1]], den=r1[0]*r2[1]-r1[1]*r2[0]; if(Math.abs(den)<1e-12) return null; const t=((c[0]-a[0])*r2[1]-(c[1]-a[1])*r2[0])/den, w=((c[0]-a[0])*r1[1]-(c[1]-a[1])*r1[0])/den; return t>0&&t<1&&w>0&&w<1?[a[0]+r1[0]*t,a[1]+r1[1]*t]:null; };
+      // (también el borde exterior, metido 2 mm, en las puntas de 90° de la esquina mokko)
+      [r.o,r.i].forEach(L=>{ for(let pass=0;pass<6;pass++){ let hit=false; for(let k=0;k<L.length-2;k++) for(let m=k+2;m<=Math.min(L.length-2,k+30);m++){ const q=X(L[k],L[k+1],L[m],L[m+1]); if(q){ hit=true; for(let j=k+1;j<=m;j++) L[j]=q.slice(); k=m-1; break; } } if(!hit) break; } });
+      // si el lazo empieza antes del extremo de la cinta, el borde interior cruza la tapa del extremo: se recorta ahí
+      { const L=r.i, o=r.o, e=L.length-1; for(let j=1;j<Math.min(e,31);j++){ const q=X(o[0],L[0],L[j],L[j+1]); if(q){ for(let k=0;k<=j;k++) L[k]=q.slice(); break; } }
+        for(let j=e-2;j>Math.max(0,e-31);j--){ const q=X(o[e],L[e],L[j],L[j+1]); if(q){ for(let k=j+1;k<=e;k++) L[k]=q.slice(); break; } } }
+      out.push(r); };
+    if(s.type==='rect'){ const lenB=2*leg+s.c*0.6; [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([sx,sz])=>strip(sOf(sx*lb,sz*wb),lenB,wingPts(lenB,ft,s.foot),Math.min(th,Math.max(6,s.c*0.4)))); return out; }
+    const k=s.type==='round'?3:4; for(let i=0;i<k;i++){ const a=(k===3?Math.PI/2:Math.PI/4)+i*2*Math.PI/k; strip(sOf(lb*Math.cos(a),wb*Math.sin(a)),2*leg,archPts(2*leg,ft,s.foot),th); }
+    return out;
+  }
+  // Sólido cerrado de una cinta: entre las alturas lo[k] y hi[k] en cada muestra (triángulos sueltos, x/y/z en mm).
+  function ribbonTris(o,i,lo,hi){
+    const T=[], P=(p,y)=>[p[0],y,p[1]], tri=(a,b,c)=>T.push(...a,...b,...c), quad=(a,b,c,d)=>{ tri(a,b,c); tri(a,c,d); }, n=o.length;
+    for(let a=0;a<n-1;a++){ const b=a+1;
+      quad(P(o[a],hi[a]),P(o[b],hi[b]),P(o[b],lo[b]),P(o[a],lo[a])); quad(P(i[a],hi[a]),P(i[a],lo[a]),P(i[b],lo[b]),P(i[b],hi[b]));
+      quad(P(o[a],lo[a]),P(o[b],lo[b]),P(i[b],lo[b]),P(i[a],lo[a])); quad(P(o[a],hi[a]),P(i[a],hi[a]),P(i[b],hi[b]),P(o[b],hi[b])); }
+    [0,n-1].forEach(k=>quad(P(o[k],hi[k]),P(i[k],hi[k]),P(i[k],lo[k]),P(o[k],lo[k])));
+    return T;
+  }
   function potGroup(THREE,s,b,opt){
     const G=new THREE.Group(), F=FINISH[s.finish]||FINISH.shudei, n=240, H=s.H, ft=s.feet, R=s.W/2, clay=s.mat==='clay';
     const glossy=['azul','oribe','crema','seiji'].includes(s.finish);
@@ -1153,7 +1202,10 @@
       const bentCorner=s.type==='rect'&&['nadekaku','sumikiri','mokko'].includes(s.corner);
       if(useAla&&N){ const V=polyPts(0,0,lb-0.5,N); for(let k=0;k<N;k+=2){ const v=V[k]; [V[(k+N-1)%N],V[(k+1)%N]].forEach(q=>{ const d=Math.hypot(q[0]-v[0],q[1]-v[1]); flat(alaPts(leg,ft,s.foot),v,[(q[0]-v[0])/d,(q[1]-v[1])/d]); }); } }
       const BF=blockFeet(s);   // patas de bloque: mismas posiciones que usa el molde de vaciado
-      if(!useAla) BF.forEach(([x,z])=>box(f,ft,f,x,ft/2,z));
+      // cemento con estilo de pata: las cintas de footRibbons (las mismas que forman los huecos de la placa del molde)
+      const FR=!clay&&footRibbons(s);
+      if(FR) FR.forEach(r=>{ const T=ribbonTris(r.o,r.i,r.dep.map(d=>ft-d),r.dep.map(()=>ft+0.3)), gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); gg.computeVertexNormals(); G.add(new THREE.Mesh(gg,dark)); });
+      else if(!useAla) BF.forEach(([x,z])=>box(f,ft,f,x,ft/2,z));
       else if(N){ /* alas del polígono, arriba */ }
       else if(s.type==='rect'){
         const inset=s.corner==='sumiiri'?s.c*0.75:0, lenB=2*leg+s.c*0.6;
@@ -1205,10 +1257,11 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1]];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#mold','Molde para imprimir en 3D'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['bedXY','Cama impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     V3F.forEach(([id,label,wide])=>{
+      if(id[0]==='#'){ const h=document.createElement('h4'); h.className='v3sec'; h.textContent=label; const p=document.createElement('p'); p.className='v3note v3wide'; p.textContent='Es de cemento: si estás en arcilla, al ver o descargar el molde cambia el material.'; box.append(h,p); return; }
       const src=$(id), el=src.cloneNode(true), lab=document.createElement('label'); el.id='v3_'+id; el.removeAttribute('placeholder');
       if(src.type==='checkbox'){ lab.className='chk'; lab.append(el,document.createTextNode(label)); }
       else { if(wide) lab.className='wide'; const sp=document.createElement('span'); sp.textContent=label; lab.append(sp,el); }
@@ -1217,9 +1270,12 @@
       el.addEventListener('input',()=>{ if(src.type==='checkbox') src.checked=el.checked; else src.value=el.value; src.dispatchEvent(new Event('input',{bubbles:true})); });
       box.append(lab);
     });
+    const row=document.createElement('div'); row.className='v3wide v3btns'; row.innerHTML='<button class="btn ghost" type="button" id="v3moldView">Ver molde 3D</button><button class="btn" type="button" id="v3moldDl">Descargar molde (ZIP)</button>'; box.append(row);
+    $('v3moldView').addEventListener('click',()=>{ $('v3mold').checked=true; $('v3mold').dispatchEvent(new Event('input')); });
+    $('v3moldDl').addEventListener('click',async()=>{ toCement(); $('v3msg').textContent='Calculando el molde…'; await exportMold(); const w=[...$('moldOut').querySelectorAll('.warn')].map(e=>e.textContent).join(' '); $('v3msg').textContent='Molde descargado: un ZIP con un STL por pieza (ya orientadas para imprimir), pasadores y cuñas, y LEEME.txt con el armado.'+(w?' '+w:''); });
   }
   function sync3(){
-    V3F.forEach(([id])=>{ const src=$(id), el=$('v3_'+id); if(!el) return; if(src.type==='checkbox') el.checked=src.checked; else if(document.activeElement!==el||el.value==='') el.value=src.value; el.disabled=src.disabled||(id==='foot'&&$('clayOpts').hidden); });
+    V3F.forEach(([id])=>{ const src=$(id), el=$('v3_'+id); if(!el) return; if(src.type==='checkbox') el.checked=src.checked; else if(document.activeElement!==el||el.value==='') el.value=src.value; el.disabled=src.disabled; });
     $('v3finish').value=$('finish').value;
   }
   function dims3(s,b){
@@ -1436,7 +1492,7 @@
   const sealDepth=s=>s.feet>0?Math.max(0.6,Math.min(MOLD.SEAL_DEPTH,s.feet-1)):MOLD.SEAL_DEPTH;
   function computeSeal(s,notes){
     if(s.mat!=='cement'||!s.seal||s.seal==='none') return null;
-    const key=JSON.stringify([s.type,s.L,s.W,s.H,s.t,s.flare,s.feet,s.base,s.rim,s.lip,s.body,s.corner,s.c,s.lobes,s.seal]);
+    const key=JSON.stringify([s.type,s.L,s.W,s.H,s.t,s.flare,s.feet,s.foot,s.base,s.rim,s.lip,s.body,s.corner,s.c,s.lobes,s.seal]);
     let hit=SEAL_CACHE.get(key);
     if(!hit){ hit=computeSealRaw(s); if(hit.ok) SEAL_CACHE.set(key,hit); }
     if(notes) notes.push(...hit.notes);
@@ -1450,7 +1506,7 @@
     const ray=(dx,dz)=>{ let best=0; for(let i=0,m=under.length;i<m;i++){ const a=under[i], c=under[(i+1)%m], ex=c[0]-a[0], ez=c[1]-a[1], den=dx*ez-dz*ex; if(Math.abs(den)<1e-12) continue; const t=(a[0]*ez-a[1]*ex)/den, u=(a[0]*dz-a[1]*dx)/den; if(u>=-1e-9&&u<=1+1e-9&&t>best) best=t; } return best; };
     const UT=Array.from({length:720},(_,i)=>{ const a=i/720*2*Math.PI; return ray(Math.cos(a),Math.sin(a)); });
     const underR=(x,z)=>{ let a=Math.atan2(z,x); if(a<0) a+=2*Math.PI; const fi=a/(2*Math.PI)*720, i=Math.floor(fi)%720, t=fi-Math.floor(fi); return UT[i]*(1-t)+UT[(i+1)%720]*t; };
-    const obst=[...P.drains.map(d=>({c:d,r:P.dr+3})),...P.wires.map(w=>({c:w,r:P.wr+3})),...feet.map(c=>({q:c,h:f/2+3}))];
+    const obst=[...P.drains.map(d=>({c:d,r:P.dr+3})),...P.wires.map(w=>({c:w,r:P.wr+3})),...(()=>{ const FR=footRibbons(s); return FR?FR.flatMap(r=>r.o.map((p,k)=>({c:[(p[0]+r.i[k][0])/2,(p[1]+r.i[k][1])/2],r:Math.hypot(p[0]-r.i[k][0],p[1]-r.i[k][1])/2+3}))):feet.map(c=>({q:c,h:f/2+3})); })()];
     const fits=(cx,cz,w,h)=>{
       for(let i=0;i<=8;i++) for(const [sx,sz] of [[-1,-1+i/4],[1,-1+i/4],[-1+i/4,-1],[-1+i/4,1]]){ const x=cx+sx*w/2, z=cz+sz*h/2, r=Math.hypot(x,z); if(r>0&&r+5>underR(x,z)) return false; }
       return obst.every(o=>o.c?Math.hypot(Math.max(Math.abs(o.c[0]-cx)-w/2,0),Math.max(Math.abs(o.c[1]-cz)-h/2,0))>=o.r:!(Math.abs(o.q[0]-cx)<w/2+o.h&&Math.abs(o.q[1]-cz)<h/2+o.h)); };
@@ -1535,7 +1591,7 @@
     const int=halfInt(sK,R-s.t,Hc,dC);
     const radial=s.type==='round'||!!SHP(s), P=holePlan(s.L/2-s.flare-s.t,s.W/2-s.flare-s.t,1,radial);
     const f=footSize(s.L,s.W), feet=ft>0?blockFeet(s):[];
-    const parts=[], notes=[]; let pinHoles=0;
+    const parts=[], notes=[]; let pinHoles=0; const pinAt=[];
 
     // --- molde exterior en gajos (2 mitades o 4 cuartos)
     const M=NP===2?240:120, yBot=ft+MOLD.SKIRT_H+1, Ytop=H+TB;
@@ -1553,7 +1609,7 @@
       [0,M].forEach(j=>{ const nrm=j===0?[-dirs[0][1],dirs[0][0]]:[dirs[M][1],-dirs[M][0]], pts=[];
         for(let k=0;k<outer.length;k++){ const Y=outer[k].Y, r=Ro[k][j]-1; if(Y>=yBot-1e-6){ pts.push([r,Y]); continue; } const Yp=outer[k-1].Y, rp=Ro[k-1][j]-1, t=(Yp-yBot)/(Yp-Y); pts.push([rp+(r-rp)*t,yBot]); break; }
         const ro=Math.max(...Ro.map(r=>r[j]))+FL, yA=yBot+MOLD.HOLE+4, yB=Ytop-MOLD.HOLE-4, ns=yB-yA>=12?Math.max(2,Math.floor((yB-yA)/30)+1):1, hs=[];
-        for(let q=0;q<ns;q++){ const Yh=ns===1?(yA+yB)/2:yA+(yB-yA)*q/(ns-1); hs.push(circle([ro-FL/2,Yh],MOLD.HOLE,24)); }
+        for(let q=0;q<ns;q++){ const Yh=ns===1?(yA+yB)/2:yA+(yB-yA)*q/(ns-1); hs.push(circle([ro-FL/2,Yh],MOLD.HOLE,24)); if(j===0) pinAt.push({p:[(ro-FL/2)*dirs[0][0],Yh,(ro-FL/2)*dirs[0][1]],a:nrm,r:dirs[0],own:p,nb:(p+NP-1)%NP}); }
         pinHoles+=ns;
         prism(A,pts.concat([[ro,yBot],[ro,Ytop]]),hs,0,MOLD.FS,(u,v,w)=>[u*dirs[j][0]+w*nrm[0],v,u*dirs[j][1]+w*nrm[1]]);
       });
@@ -1578,7 +1634,7 @@
     // --- placa de patas (o de fondo): forma la cara inferior, las patas de bloque y el sello; el faldón calza por fuera
     if(ft>0||seal){
       const A=adder(); let xs=-1e9; ys.forEach(y=>{ if(y>=Hb-MOLD.SKIRT_H-1e-6) xs=Math.max(xs,xOut(y)); });
-      const lo=ringC(xs+CLR+MOLD.SKIRT), li=ringC(xs+CLR), y0=ft>0?0:ft-MOLD.SEAL_DEPTH-3, sq=([x,z])=>[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], fh=feet.map(sq), dp=sealDepth(s);
+      const lo=ringC(xs+CLR+MOLD.SKIRT), li=ringC(xs+CLR), y0=ft>0?0:ft-MOLD.SEAL_DEPTH-3, sq=([x,z])=>[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], FR=ft>0&&footRibbons(s), fh=FR?FR.map(r=>r.o.concat(r.i.slice().reverse())):feet.map(sq), dp=sealDepth(s);
       if(seal&&s.sealMode==='up'){
         // en relieve sobre la maceta: el logotipo va hundido en la placa
         prism(A,lo,fh,y0,ft-dp,XZ);
@@ -1589,6 +1645,15 @@
         // rehundido en la maceta: el logotipo sobresale de la placa
         if(seal) seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(A,r.L,r.kids,ft-0.3,ft+dp,XZ));
       }
+      // patas con estilo: dentro de cada hueco, la placa rellena desde su cara exterior hasta el borde inferior de la pata;
+      // queda abierto solo donde la pata llega al suelo (por ahí entra el mortero y sale el aire). El relleno invade
+      // 0,2 mm las paredes del hueco para no dejar caras coincidentes.
+      if(FR) FR.forEach(r=>{ const m=r.o.length, ex=(k,sg)=>{ const dx=r.o[k][0]-r.i[k][0], dz=r.o[k][1]-r.i[k][1], l=Math.hypot(dx,dz)||1; return sg>0?[r.o[k][0]+dx/l*0.2,r.o[k][1]+dz/l*0.2]:[r.i[k][0]-dx/l*0.2,r.i[k][1]-dz/l*0.2]; };
+        const O=r.o.map((_,k)=>ex(k,1)), I=r.i.map((_,k)=>ex(k,-1)), stretch=(L,k,j)=>{ const dx=L[k][0]-L[j][0], dz=L[k][1]-L[j][1], l=Math.hypot(dx,dz)||1; L[k]=[L[k][0]+dx/l*0.2,L[k][1]+dz/l*0.2]; };
+        [O,I].forEach(L=>{ stretch(L,0,1); stretch(L,m-1,m-2); });
+        let k=0; while(k<m){ if(ft-r.dep[k]-y0<=0.05){ k++; continue; } let e=k; while(e+1<m&&ft-r.dep[e+1]-y0>0.05) e++;
+          if(e>k){ const T=ribbonTris(O.slice(k,e+1),I.slice(k,e+1),r.dep.slice(k,e+1).map(()=>y0),r.dep.slice(k,e+1).map(d=>ft-d)); for(let q=0;q<T.length;q++) A.T.push(T[q]); }
+          k=e+1; } });
       prism(A,lo,[li],ft-0.5,ft+MOLD.SKIRT_H,XZ);
       parts.push({key:'feet',name:ft>0?'Placa de patas':'Placa de fondo',file:ft>0?'molde-placa-patas':'molde-placa-fondo',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
     }
@@ -1611,7 +1676,7 @@
     if(s.rim==='uchien') notes.push('El labio interno no se puede moldear (el núcleo no saldría): el núcleo se hace recto y el labio se forma a mano o se omite.');
     if(dC>s.flare+0.05) notes.push(`El núcleo lleva ${MOLD.DRAFT}° de salida para poder desmoldar: la cavidad es ${cm(dC-s.flare)} cm más estrecha abajo.`);
     if(s.panel) notes.push('El panel decorativo no se moldea: pégalo o tállalo después.');
-    return {parts,notes,seal,hw:{pins:nPins,used:pinHoles/2}};
+    return {parts,notes,seal,hw:{pins:nPins,used:pinHoles/2,at:pinAt}};
   }
   // Coordenadas de impresión (Z arriba, sin espejar): gajos con el canto inferior en la cama; base con núcleo con su cara
   // de abajo en la cama; placa de patas con la cara exterior en la cama; pasadores y cuñas tal cual (ya planos).
@@ -1648,15 +1713,28 @@
       const e=pt.explode, v=pt.key==='base'?new THREE.Vector3(0,-e[1],0):pt.key==='feet'?new THREE.Vector3(0,2*(H-home.y)+40,0):new THREE.Vector3(e[0],0,-e[2]);
       const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:pt.color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true}));
       m.position.copy(home); M.add(m); parts.push({m,home,v,key:pt.key,name:pt.name}); });
+    // pasadores y cuñas en sus agujeros: el pasador cruza las dos pestañas (cabeza del lado del gajo vecino) y la cuña
+    // entra por su ranura y aprieta contra la pestaña. Al desarmar salen de los agujeros.
+    const Pn=MOLD.PIN, Wd=MOLD.WEDGE, x1=Pn.headL+Pn.grip+Pn.slotL+Pn.tip, sx0=Pn.headL+Pn.grip-1.5, kitMat=new THREE.MeshStandardMaterial({color:0xd9a441,roughness:0.5,side:THREE.DoubleSide});
+    const pinSh=new THREE.Shape([[0,-Pn.head/2],[Pn.headL,-Pn.head/2],[Pn.headL,-Pn.w/2],[x1-1.5,-Pn.w/2],[x1,-Pn.w/2+1.5],[x1,Pn.w/2-1.5],[x1-1.5,Pn.w/2],[Pn.headL,Pn.w/2],[Pn.headL,Pn.head/2],[0,Pn.head/2]].map(([x,y])=>new THREE.Vector2(x,y)));
+    pinSh.holes.push(new THREE.Path([[sx0,-Pn.slotW/2],[sx0+Pn.slotL,-Pn.slotW/2],[sx0+Pn.slotL,Pn.slotW/2],[sx0,Pn.slotW/2]].map(([x,y])=>new THREE.Vector2(x,y))));
+    const pinGeo=new THREE.ExtrudeGeometry(pinSh,{depth:Pn.t,bevelEnabled:false}), wedGeo=new THREE.ExtrudeGeometry(new THREE.Shape([[0,0],[Wd.L,0],[Wd.L,Wd.h1],[0,Wd.h0]].map(([x,y])=>new THREE.Vector2(x,y))),{depth:Wd.t,bevelEnabled:false});
+    const up=new THREE.Vector3(0,1,0), kit=[];
+    (MD.hw.at||[]).forEach(h=>{ const c=new THREE.Vector3(h.p[0],H-h.p[1],-h.p[2]), a=new THREE.Vector3(h.a[0],0,-h.a[1]), r=new THREE.Vector3(h.r[0],0,-h.r[1]);
+      const place=(geo,X,Y,Z,o)=>{ const m=new THREE.Mesh(geo,kitMat); m.matrixAutoUpdate=false; m.userData.base=new THREE.Matrix4().makeBasis(X,Y,Z).setPosition(o); m.matrix.copy(m.userData.base); M.add(m); return m; };
+      const own=parts.find(p=>p.key==='ext'+(h.own+1)), nb=parts.find(p=>p.key==='ext'+(h.nb+1));
+      kit.push({m:place(pinGeo,a,up,r,c.clone().addScaledVector(a,-MOLD.FS-Pn.headL).addScaledVector(r,-Pn.t/2)),v:(nb?nb.v.clone():new THREE.Vector3()).addScaledVector(a,-22)});
+      kit.push({m:place(wedGeo,r,a,up,c.clone().addScaledVector(a,MOLD.FS).addScaledVector(r,-Wd.L/2).addScaledVector(up,-Wd.t/2)),v:(own?own.v.clone():new THREE.Vector3()).addScaledVector(r,Wd.L*0.8)}); });
+    const moveKit=t=>kit.forEach(k=>{ k.m.matrix.copy(k.m.userData.base); k.m.matrix.elements[12]+=k.v.x*t; k.m.matrix.elements[13]+=k.v.y*t; k.m.matrix.elements[14]+=k.v.z*t; k.m.matrixWorldNeedsUpdate=true; });
     const ghost=potGroup(THREE,s,b,{tree:false,cut:false}); ghost.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.transparent=true; o.material.opacity=0.35; o.material.depthWrite=false; } });
     ghost.rotation.x=Math.PI; ghost.position.y=H; M.add(ghost);
     // rótulos: 1 base, 2 gajos (uno solo, en el primero), 3 placa; armado, un rótulo para todo el molde
     const nExt=parts.filter(p=>p.key.startsWith('ext')).length, feetP=parts.find(p=>p.key==='feet');
-    const L=[['base','1 · Base con núcleo'],['ext1',`2 · Molde exterior: ${nExt} gajos`],...(feetP?[['feet',`3 · ${feetP.name}${MD.seal?' con el sello':''}`]]:[])]
-      .map(([k,t])=>({p:parts.find(p=>p.key===k),sp:label3(THREE,t,lh)})).filter(l=>l.p);
+    const L=[['base','1 · Base con núcleo'],['ext1',`2 · Molde exterior: ${nExt} gajos`],...(feetP?[['feet',`3 · ${feetP.name}${MD.seal?' con el sello':''}`]]:[])].concat(kit.length?[['kit',`${feetP?4:3} · ${MD.hw.used} pasadores con su cuña`]]:[])
+      .map(([k,t])=>({p:k==='kit'?{m:kit.reduce((a,c)=>c.m.userData.base.elements[13]>a.m.userData.base.elements[13]?c:a).m,key:'kit'}:parts.find(p=>p.key===k),sp:label3(THREE,t,lh)})).filter(l=>l.p);
     const Lall=label3(THREE,'Molde armado: aquí se cuela el cemento',lh); L.forEach(l=>G.add(l.sp)); G.add(Lall);
     const bx=new THREE.Box3(), at=(sp,o,below)=>{ bx.setFromObject(o); const c=bx.getCenter(new THREE.Vector3()); if(below){ sp.center.set(1,0.5); sp.position.set(bx.min.x-lh*0.4,(bx.min.y+bx.max.y)/2,c.z); } else sp.position.set(c.x,bx.max.y+lh*0.5,c.z); };   // la base, a su izquierda
-    const setExplode=t=>{ parts.forEach(p=>{ p.m.position.copy(p.home).addScaledVector(p.v,t); if(p.key==='feet') p.m.rotation.x=Math.PI*t; });
+    const setExplode=t=>{ parts.forEach(p=>{ p.m.position.copy(p.home).addScaledVector(p.v,t); if(p.key==='feet') p.m.rotation.x=Math.PI*t; }); moveKit(t);
       M.position.y=0; bx.setFromObject(M); M.position.y=-bx.min.y;   // siempre apoyado en el suelo
       const apart=t>0.4; L.forEach(l=>{ l.sp.visible=apart; if(apart) at(l.sp,l.p.m,l.p.key==='base'); }); Lall.visible=!apart; if(!apart) at(Lall,M); };
     // apoyado en el suelo desarmado; la maceta terminada a la derecha, separada
@@ -1715,7 +1793,7 @@
       '  3. Acerca los gajos del molde exterior: el nervio de abajo de cada gajo entra en la ranura del canto de la base.',
       '  4. Une los gajos por sus pestañas: pasa un pasador por cada par de agujeros y clava su cuña hasta que apriete.',
       '  5. Mezcla el mortero (1 cemento : 2 arena fina tamizada, fibra, agua 0,45) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa.',
-      ...(s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde. ${s.feet>0?'Llena los huecos de las patas y enrasa la cara de la placa.':'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
+      ...(s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.`:s.feet>0?'Llena los huecos de las patas y enrasa la cara de la placa.':'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
       '  7. Cubre con plástico. Desmolda a las 24–48 h: quita la placa, saca cuñas y pasadores, abre los gajos y levanta la maceta del núcleo.',
       '  8. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad.');
     if(MD.notes.length) L.push('','NOTAS',...MD.notes.map(t=>'  - '+t));
@@ -1755,7 +1833,7 @@
   }
   function render(){
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
-    $('W').disabled=s.type==='round'||!!SHP(s); $('clayOpts').hidden=!clay; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
+    $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('clayOpts').hidden=!clay; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
     $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=clay;
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     $('flareLabel').innerHTML='Inclinación <b>cm</b>/lado';
