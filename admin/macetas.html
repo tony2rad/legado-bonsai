@@ -1179,11 +1179,11 @@
         grp.position.set(nx*off,yc,nz*off); grp.rotation.y=Math.atan2(nx,nz); grp.rotateX(tilt); G.add(grp);
       });
     }
-    // sello de la marca en la cara inferior (cemento): en relieve sobresale 1 mm; rehundido se pinta como grabado
+    // sello de la marca en la cara inferior (cemento): en relieve sobresale sealDepth (2 mm); rehundido se pinta como grabado
     // (en el STL solo va el relieve: restar el grabado de la malla no es posible aquí)
     const sl=computeSeal(s);
     if(sl&&ft>=0){
-      if(s.sealMode==='up'){ const T=[]; sl.regions.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,ft-1,ft+0.3,T));
+      if(s.sealMode==='up'){ const T=[]; sl.regions.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,ft-sealDepth(s),ft+0.3,T));
         const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,mat)); }
       else if(!opt.stl){ const T=[]; sl.regions.filter(r=>r.d%2===0).forEach(r=>{ const tmp=[]; prismXZ(THREE,r.L,r.kids,ft-0.08,ft-0.04,tmp); T.push(...tmp); });
         const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:F.rim,roughness:1,side:THREE.DoubleSide}))); }
@@ -1401,7 +1401,7 @@
   //  · Placa de patas (o placa de fondo si no hay patas): forma la cara inferior, las patas y el sello de la marca.
   //  · Pasadores y cuñas impresos, en una sola placa de impresión.
   // Drenajes y agujeros del alambre se forman con postes del propio núcleo.
-  const MOLD={FS:6,CLR:0.3,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:1,
+  const MOLD={FS:6,CLR:0.3,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:2,
     PIN:{w:7.6,t:4.8,head:16,headL:5,grip:12,slotL:9,slotW:3.4,tip:4},WEDGE:{L:36,h0:3,h1:8.5,t:3}};
   // Sello de la marca en la cara inferior: logotipos originales de assets/img/logo, tamaño proporcional al ancho de la
   // maceta (ratio) entre un mínimo legible en cemento y un máximo. Si no cabe, se cae al emblema; si tampoco, no va.
@@ -1420,6 +1420,8 @@
   // Sitio y contornos del sello en la cara inferior (mm, maceta derecha). Lo usan la placa del molde, la maceta del
   // visor y su STL, así los tres coinciden. Se guarda en caché por medidas: la búsqueda del sitio no es instantánea.
   const SEAL_CACHE=new Map();
+  // profundidad del sello: MOLD.SEAL_DEPTH (2 mm), pero con patas bajas el relieve deja 1 mm libre bajo las patas
+  const sealDepth=s=>s.feet>0?Math.max(0.6,Math.min(MOLD.SEAL_DEPTH,s.feet-1)):MOLD.SEAL_DEPTH;
   function computeSeal(s,notes){
     if(s.mat!=='cement'||!s.seal||s.seal==='none') return null;
     const key=JSON.stringify([s.type,s.L,s.W,s.H,s.t,s.flare,s.feet,s.base,s.rim,s.lip,s.body,s.corner,s.c,s.lobes,s.seal]);
@@ -1564,7 +1566,7 @@
     // --- placa de patas (o de fondo): forma la cara inferior, las patas de bloque y el sello; el faldón calza por fuera
     if(ft>0||seal){
       const A=adder(); let xs=-1e9; ys.forEach(y=>{ if(y>=Hb-MOLD.SKIRT_H-1e-6) xs=Math.max(xs,xOut(y)); });
-      const lo=ringC(xs+CLR+MOLD.SKIRT), li=ringC(xs+CLR), y0=ft>0?0:ft-4, sq=([x,z])=>[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], fh=feet.map(sq), dp=MOLD.SEAL_DEPTH;
+      const lo=ringC(xs+CLR+MOLD.SKIRT), li=ringC(xs+CLR), y0=ft>0?0:ft-MOLD.SEAL_DEPTH-3, sq=([x,z])=>[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], fh=feet.map(sq), dp=sealDepth(s);
       if(seal&&s.sealMode==='up'){
         // en relieve sobre la maceta: el logotipo va hundido en la placa
         prism(A,lo,fh,y0,ft-dp,XZ);
@@ -1651,7 +1653,7 @@
       const size=[0,1,2].map(k=>mx[k]-mn[k]), fits=size[0]<=s.bed+0.5&&size[1]<=s.bed+0.5;
       open+=R.open; files.push({name:`${String(i+1).padStart(2,'0')}-${pt.file}.stl`,data:new Uint8Array(stlBinary(R.V,R.F))});
       rows.push({name:pt.name,key:pt.key,size,fits}); });
-    const hw=MD.hw, sealTxt=MD.seal?`${MD.seal.name} de ${mmc(MD.seal.w)} cm de ancho, ${s.sealMode==='up'?'en relieve: sobresale 1 mm':'grabado: se hunde 1 mm'}`:'sin sello';
+    const hw=MD.hw, sealTxt=MD.seal?`${MD.seal.name} de ${mmc(MD.seal.w)} cm de ancho, ${s.sealMode==='up'?'en relieve: sobresale '+mmc(sealDepth(s))+' cm':'grabado: se hunde '+mmc(sealDepth(s))+' cm'}`:'sin sello';
     const kitLines=[
       `${hw.pins} pasadores y ${hw.pins} cuñas impresos (${hw.used} para unir los gajos y 2 de repuesto). Los agujeros de Ø 9,6 mm también admiten pernos M8 × 20 mm si prefieres metal.`,
       'No hacen falta varillas, pernos ni clavos: base y núcleo son una sola pieza y los gajos se traban en la ranura de la base.',
