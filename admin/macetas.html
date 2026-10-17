@@ -80,8 +80,7 @@
   .seg4 label:nth-child(n+3){border-top:1px solid var(--line)} .mode-hint{margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.4}
   /* Impresión 3D y Molde 3D: el visor ocupa el lugar de las hojas, sin ventana (el panel lateral ya tiene los campos) */
   dialog#dlg3d.inline{position:relative;inset:auto;margin:0;width:100%;max-width:none;height:calc(100vh - 150px);min-height:520px;z-index:0}
-  dialog#dlg3d.inline #v3side,dialog#dlg3d.inline #v3close,dialog#dlg3d.inline label:has(#v3mold){display:none}
-  dialog#dlg3d.inline .v3body{grid-template-columns:minmax(0,1fr)}
+  dialog#dlg3d.inline #v3close,dialog#dlg3d.inline label:has(#v3mold){display:none}
   body[data-mode=print] #btnPrint,body[data-mode=print] #btnAll,body[data-mode=mold] #btnPrint,body[data-mode=mold] #btnAll,body[data-mode=print] #btn3d,body[data-mode=mold] #btn3d{display:none}
   .seg label{display:block;text-align:center;font:600 13px var(--sans);padding:8px 6px;cursor:pointer;color:var(--muted)}
   .seg input{position:absolute;opacity:0;width:0;height:0}
@@ -1343,25 +1342,32 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#mold','Molde para imprimir en 3D'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pLip','Labio',1],['pFeet','Patas',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
+    let sec='';
     V3F.forEach(([id,label,wide])=>{
-      if(id[0]==='#'){ const h=document.createElement('h4'); h.className='v3sec'; h.textContent=label; const p=document.createElement('p'); p.className='v3note v3wide'; p.textContent='Es de cemento: si estás en arcilla, al ver o descargar el molde cambia el material.'; box.append(h,p); return; }
+      if(id[0]==='#'){ sec=id.slice(1); const h=document.createElement('h4'); h.className='v3sec'; h.textContent=label; h.dataset.sec=sec; const p=document.createElement('p'); p.className='v3note v3wide'; p.textContent=wide; p.dataset.sec=sec; box.append(h,p); return; }
       const src=$(id), el=src.cloneNode(true), lab=document.createElement('label'); el.id='v3_'+id; el.removeAttribute('placeholder');
       if(src.type==='checkbox'){ lab.className='chk'; lab.append(el,document.createTextNode(label)); }
       else { if(wide) lab.className='wide'; const sp=document.createElement('span'); sp.textContent=label; lab.append(sp,el); }
       el.addEventListener('focus',()=>src.dispatchEvent(new Event('focus')));
       el.addEventListener('change',()=>src.dispatchEvent(new Event('change')));
+      if(sec) lab.dataset.sec=sec;
       el.addEventListener('input',()=>{ if(src.type==='checkbox') src.checked=el.checked; else src.value=el.value; src.dispatchEvent(new Event('input',{bubbles:true})); });
       box.append(lab);
     });
-    const row=document.createElement('div'); row.className='v3wide v3btns'; row.innerHTML='<button class="btn ghost" type="button" id="v3moldView">Ver molde 3D</button><button class="btn" type="button" id="v3moldDl">Descargar molde (ZIP)</button>'; box.append(row);
+    // botón de descarga de la sección Impresión 3D, justo después de sus campos
+    { const r=document.createElement('div'); r.className='v3wide v3btns'; r.dataset.sec='print'; r.innerHTML='<button class="btn" type="button" id="v3printDl">Descargar STL para imprimir</button>'; $('v3_pFeet').closest('label').after(r);
+      $('v3printDl').addEventListener('click',()=>{ if(MODE!=='print') setMode('print'); $('btnPrintStl').click(); }); }
+    const row=document.createElement('div'); row.className='v3wide v3btns'; row.dataset.sec='mold'; row.innerHTML='<button class="btn ghost" type="button" id="v3moldView">Ver molde 3D</button><button class="btn" type="button" id="v3moldDl">Descargar molde (ZIP)</button>'; box.append(row);
     $('v3moldView').addEventListener('click',()=>{ $('v3mold').checked=true; $('v3mold').dispatchEvent(new Event('input')); });
     $('v3moldDl').addEventListener('click',async()=>{ if(MODE!=='mold') setMode('mold'); $('v3msg').textContent='Calculando el molde…'; await exportMold(); const w=[...$('moldOut').querySelectorAll('.warn')].map(e=>e.textContent).join(' '); $('v3msg').textContent='Molde descargado: un ZIP con un STL por pieza (ya orientadas para imprimir), pasadores y cuñas, y LEEME.txt con el armado.'+(w?' '+w:''); });
   }
   function sync3(){
     V3F.forEach(([id])=>{ const src=$(id), el=$('v3_'+id); if(!el) return; if(src.type==='checkbox') el.checked=src.checked; else if(document.activeElement!==el||el.value==='') el.value=src.value; el.disabled=src.disabled; });
+    // cada sección del panel se ve solo donde aplica: Impresión 3D en su sección; el molde en Molde 3D y en Cemento
+    const md=document.body.dataset.mode||'clay'; $('v3fields').querySelectorAll('[data-sec]').forEach(el=>{ el.style.display=(el.dataset.sec==='print'?md==='print':md==='mold'||md==='cement')?'':'none'; });
     $('v3finish').value=$('finish').value;
   }
   function dims3(s,b){
