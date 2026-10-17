@@ -1552,6 +1552,116 @@
     return T;
   }
 
+  // ---------- Partir piezas que no caben en la cama ----------
+  // Las piezas del molde son sopas de sólidos cerrados que se solapan (el laminador los une). Para partirlas, cada
+  // sólido (componente conexo) se corta por planos verticales y se tapa por separado: cada trozo vuelve a ser un
+  // conjunto de sólidos cerrados. En cada cara de corte van agujeros en gota para espigas impresas que alinean los
+  // trozos al pegarlos. Coordenadas del molde (x, Y, z), mm; `ax` = 0 (corte perpendicular a x) o 2 (a z).
+  const DOWEL={r:2.2,d:9,len:16,dia:4};   // agujero Ø 4,4 y 9 mm por lado; espiga Ø 4 × 16 mm
+  function solidsOf(T){
+    const key=(o)=>Math.round(T[o]*50)+','+Math.round(T[o+1]*50)+','+Math.round(T[o+2]*50), vid=new Map(), par=[], nt=T.length/9;
+    const find=a=>{ while(par[a]!==a){ par[a]=par[par[a]]; a=par[a]; } return a; };
+    for(let t=0;t<nt;t++) par.push(t);
+    for(let t=0;t<nt;t++) for(let k=0;k<3;k++){ const kk=key(9*t+3*k), o=vid.get(kk); if(o===undefined) vid.set(kk,t); else { const a=find(o), b=find(t); if(a!==b) par[a]=b; } }
+    const g=new Map(); for(let t=0;t<nt;t++){ const r=find(t); if(!g.has(r)) g.set(r,[]); g.get(r).push(t); }
+    return [...g.values()].map(ts=>{ const S=new Float64Array(ts.length*9); ts.forEach((t,i)=>{ for(let k=0;k<9;k++) S[9*i+k]=T[9*t+k]; }); return S; });
+  }
+  // ¿p dentro del sólido S? (rayo en dirección fija, paridad de cruces)
+  function insideSolid(S,p){
+    const d=[0.3127,0.7713,0.5543]; let c=0;
+    for(let o=0;o<S.length;o+=9){ const e1=[S[o+3]-S[o],S[o+4]-S[o+1],S[o+5]-S[o+2]], e2=[S[o+6]-S[o],S[o+7]-S[o+1],S[o+8]-S[o+2]];
+      const h=[d[1]*e2[2]-d[2]*e2[1],d[2]*e2[0]-d[0]*e2[2],d[0]*e2[1]-d[1]*e2[0]], a=e1[0]*h[0]+e1[1]*h[1]+e1[2]*h[2]; if(Math.abs(a)<1e-12) continue;
+      const f=1/a, sv=[p[0]-S[o],p[1]-S[o+1],p[2]-S[o+2]], u=f*(sv[0]*h[0]+sv[1]*h[1]+sv[2]*h[2]); if(u<0||u>1) continue;
+      const q=[sv[1]*e1[2]-sv[2]*e1[1],sv[2]*e1[0]-sv[0]*e1[2],sv[0]*e1[1]-sv[1]*e1[0]], v=f*(d[0]*q[0]+d[1]*q[1]+d[2]*q[2]); if(v<0||u+v>1) continue;
+      if(f*(e2[0]*q[0]+e2[1]*q[1]+e2[2]*q[2])>1e-9) c++; }
+    return c%2===1;
+  }
+  // Sección de un sólido por el plano coord[ax] = c: lazos en (u, v) = (la otra horizontal, Y)
+  function sectionLoops(S,ax,c){
+    const ua=ax===0?2:0, segs=[], P=(o)=>[S[o],S[o+1],S[o+2]];
+    for(let o=0;o<S.length;o+=9){ const V=[P(o),P(o+3),P(o+6)], dd=V.map(p=>p[ax]-c), pts=[];
+      for(let k=0;k<3;k++){ const a=V[k], b=V[(k+1)%3], da=dd[k], db=dd[(k+1)%3]; if((da<0)!==(db<0)){ const t=da/(da-db); pts.push([a[ua]+(b[ua]-a[ua])*t,a[1]+(b[1]-a[1])*t]); } }
+      if(pts.length===2) segs.push(pts); }
+    const k2=p=>Math.round(p[0]*1e3)+','+Math.round(p[1]*1e3), adj=new Map(), pt=new Map();
+    segs.forEach(([a,b])=>{ const ka=k2(a), kb=k2(b); if(ka===kb) return; pt.set(ka,a); pt.set(kb,b); (adj.get(ka)||adj.set(ka,[]).get(ka)).push(kb); (adj.get(kb)||adj.set(kb,[]).get(kb)).push(ka); });
+    const used=new Set(), loops=[];
+    for(const [s0] of adj){ if(used.has(s0)) continue; const L=[]; let cur=s0, prev=null;
+      while(cur&&!used.has(cur)){ used.add(cur); L.push(pt.get(cur)); const nb=(adj.get(cur)||[]).filter(k=>k!==prev&&!used.has(k)); prev=cur; cur=nb[0]; }
+      if(L.length>=3) loops.push(L); }
+    return loops;
+  }
+  const inPoly=(p,L)=>{ let c=false; for(let i=0,j=L.length-1;i<L.length;j=i++){ const a=L[i], b=L[j]; if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]) c=!c; } return c; };
+  const segDist=(p,a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], l=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l)); return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dy*t); };
+  // gota en el plano de corte: punta hacia `up` (+1 o −1 en Y), lados a 55° sobre la horizontal
+  const dowelLoop=([u,v],up,r=DOWEL.r,k=20)=>{ const b=55*Math.PI/180, P=[[u,v+up*r/Math.cos(b)]]; for(let i=0;i<=k;i++){ const f=b+(2*Math.PI-2*b)*i/k; P.push([u+r*Math.sin(f),v+up*r*Math.cos(f)]); } return P; };
+  // Corta el sólido S y se queda con el lado sign·(coord−c) ≥ 0; tapa la sección (con los agujeros de espiga que caen
+  // dentro de este sólido y su tubo de `DOWEL.d` hacia dentro).
+  function clipSolid(THREE,S,ax,c,sign,dow,up){
+    const ua=ax===0?2:0, out=[], P=(o)=>[S[o],S[o+1],S[o+2]], ek=(a,b)=>{ const x=a.join(','), y=b.join(','); return x<y?x+'|'+y:y+'|'+x; }, cutP=new Map();
+    const put=(a,b,c3)=>out.push(...a,...b,...c3);
+    let any=false, all=true;
+    for(let o=0;o<S.length;o+=9){ const V=[P(o),P(o+3),P(o+6)], dd=V.map(p=>sign*(p[ax]-c)); if(dd.some(x=>x<0)) all=false; if(dd.some(x=>x>0)) any=true; }
+    if(!any) return []; if(all) return Array.from(S);
+    for(let o=0;o<S.length;o+=9){ const V=[P(o),P(o+3),P(o+6)], dd=V.map(p=>sign*(p[ax]-c)), poly=[];
+      for(let k=0;k<3;k++){ const a=V[k], b=V[(k+1)%3], da=dd[k], db=dd[(k+1)%3]; if(da>=0) poly.push(a);
+        if((da<0)!==(db<0)){ const key=ek(a,b); let q=cutP.get(key); if(!q){ const t=da/(da-db); q=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; q[ax]=c; cutP.set(key,q); } poly.push(q); } }
+      for(let k=1;k+1<poly.length;k++) put(poly[0],poly[k],poly[k+1]); }
+    // tapa: lazos de la sección, anidados por paridad; los agujeros de espiga que caen dentro van como huecos
+    const loops=sectionLoops(S,ax,c), depth=loops.map((L,i)=>loops.filter((M,j)=>j!==i&&inPoly(L[0],M)).length);
+    const to3=(u,v,w)=>{ const p=[0,v,0]; p[ua]=u; p[ax]=w; return p; };
+    let q=0; const jit=()=>{ q=(q*9301+49297)%233280; return (q/233280-0.5)*2e-5; };
+    loops.forEach((L,i)=>{ if(depth[i]%2) return;
+      const holes=loops.filter((M,j)=>depth[j]===depth[i]+1&&inPoly(M[0],L)), mine=dow.filter(d=>inPoly(d,L)&&!holes.some(H=>inPoly(d,H))).map(d=>dowelLoop(d,up,d[2]));
+      const all2=[L,...holes,...mine], flat=[].concat(...all2), V2=A=>A.map(p=>new THREE.Vector2(p[0]+jit(),p[1]+jit()));
+      THREE.ShapeUtils.triangulateShape(V2(L),[...holes,...mine].map(V2)).forEach(t=>put(to3(...flat[t[0]],c),to3(...flat[t[1]],c),to3(...flat[t[2]],c)));
+      // tubo de cada espiga: pared y fondo a DOWEL.d mm hacia dentro del trozo
+      mine.forEach(D=>{ const w1=c+sign*DOWEL.d; for(let k=0;k<D.length;k++){ const a=D[k], b=D[(k+1)%D.length]; put(to3(a[0],a[1],c),to3(b[0],b[1],c),to3(b[0],b[1],w1)); put(to3(a[0],a[1],c),to3(b[0],b[1],w1),to3(a[0],a[1],w1)); }
+        THREE.ShapeUtils.triangulateShape(V2(D),[]).forEach(t=>put(to3(...D[t[0]],w1),to3(...D[t[1]],w1),to3(...D[t[2]],w1))); }); });
+    return out;
+  }
+  // Parte la pieza `pt` si no cabe en la cama: el menor número de trozos iguales por el eje largo que entran, los cortes
+  // corridos para no pasar por el sello, y dos espigas por corte (en el sólido más grueso de la sección, lejos de los
+  // bordes, de agujeros y de otros sólidos, y con su tubo entero dentro de material).
+  function splitToFit(THREE,pt,s,seal){
+    const P=moldPrintTris(pt,s), {mn,mx}=bbox(P), size=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]];
+    const fits=(w,d,h)=>((w<=s.bedX+0.5&&d<=s.bedY+0.5)||(w<=s.bedY+0.5&&d<=s.bedX+0.5))&&h<=s.bedZ+0.5;
+    if(fits(...size)) return null;
+    const B=bbox(pt.T), ax=(B.mx[0]-B.mn[0])>=(B.mx[2]-B.mn[2])?0:2, lo=B.mn[ax], hi=B.mx[ax], other=ax===0?size[1]:size[0];
+    let n=2; while(n<6&&!fits((hi-lo)/n+0.5,other,size[2])&&!fits(other,(hi-lo)/n+0.5,size[2])) n++;
+    const up=pt.print==='base'?-1:1;   // la punta de la gota mira hacia arriba al imprimir
+    let cuts=Array.from({length:n-1},(_,k)=>lo+(hi-lo)*(k+1)/n);
+    // no cortar por el sello: el corte se corre lo justo, si el trozo mayor sigue cabiendo
+    if(seal&&pt.key==='feet') cuts=cuts.map(c=>{ const sc=seal.c[ax===0?0:1], half=(ax===0?seal.w:seal.h)/2+4; if(Math.abs(c-sc)>=half) return c; for(const c2 of [sc-half,sc+half].sort((a,b)=>Math.abs(a-c)-Math.abs(b-c))){ const ok=[lo,...cuts.map(x=>x===c?c2:x),hi].every((x,i,A)=>i===0||fits(A[i]-A[i-1]+0.5,other,size[2])||fits(other,A[i]-A[i-1]+0.5,size[2])); if(ok) return c2; } return c; });
+    const solids=solidsOf(pt.T);
+    // el plano no puede pasar justo por un vértice
+    cuts=cuts.map(c=>{ for(let k=0;k<20;k++){ let hit=false; for(let i=ax;i<pt.T.length;i+=3) if(Math.abs(pt.T[i]-c)<1e-4){ hit=true; break; } if(!hit) return c; c+=0.0137; } return c; });
+    const dows=cuts.map(c=>{
+      const secs=solids.map(S=>sectionLoops(S,ax,c)), segs=[].concat(...secs.map(Ls=>[].concat(...Ls.map(L=>L.map((p,i)=>[p,L[(i+1)%L.length]])))));
+      if(!segs.length) return [];
+      const us=[].concat(...secs.map(Ls=>[].concat(...Ls.map(L=>L.map(p=>p[0]))))), vs=[].concat(...secs.map(Ls=>[].concat(...Ls.map(L=>L.map(p=>p[1]))))), umn=Math.min(...us), umx=Math.max(...us), vmn=Math.min(...vs), vmx=Math.max(...vs);
+      // la gota entera (no un círculo que la envuelva) a 0,8 mm o más de todo borde y dentro de un solo sólido
+      const own=p=>secs.map((Ls,i)=>Ls.filter(L=>inPoly(p,L)).length%2?i:-1).filter(i=>i>=0), ua=ax===0?2:0;
+      let res=[];
+      for(const r of [DOWEL.r,1.7,1.4]){ const R=r/Math.cos(55*Math.PI/180), cand=[];
+      for(let u=umn+R;u<=umx-R;u+=2){ let best=null; for(let v=vmn+r;v<=vmx-r;v+=0.1){ const o0=own([u,v]); if(o0.length!==1) continue;
+          const D=dowelLoop([u,v],up,r,10); let cl=Infinity; for(const q of D){ const oq=own(q); if(oq.length!==1||oq[0]!==o0[0]){ cl=-1; break; } for(const [a,b] of segs){ const dd=segDist(q,a,b); if(dd<cl) cl=dd; } }
+          if(cl>=0.8&&(!best||cl>best.cl)) best={u,v,r,cl,o:o0[0]}; }
+        if(best) cand.push(best); }
+      const ok3=d=>{ for(const off of [-DOWEL.d-1,-5,-2,2,5,DOWEL.d+1]) for(const [qu,qv] of [[d.u,d.v],...dowelLoop([d.u,d.v],up,d.r-0.3,6)]){ const p=[0,qv,0]; p[ua]=qu; p[ax]=c+off; if(!insideSolid(solids[d.o],p)) return false; if(solids.some((S,i)=>i!==d.o&&insideSolid(S,p))) return false; } return true; };
+      const out=[]; const ends=[cand,cand.slice().reverse()];
+      for(const list of ends){ for(const d of list.slice(0,12)){ if(out.some(o=>Math.abs(o.u-d.u)<20)) continue; if(ok3(d)){ out.push(d); break; } } }
+      if(out.length>res.length) res=out; if(res.length>=2) break; }
+      return res.map(d=>[d.u,d.v,d.r]); });
+    const pieces=[]; const bounds=[-Infinity,...cuts,Infinity];
+    for(let k=0;k<n;k++){ const T=[]; solids.forEach(S=>{ let A=S;
+        if(k>0) A=Float64Array.from(clipSolid(THREE,A,ax,bounds[k],1,dows[k-1],up));
+        if(A.length&&k<n-1) A=Float64Array.from(clipSolid(THREE,A,ax,bounds[k+1],-1,dows[k],up));
+        for(let i=0;i<A.length;i++) T.push(A[i]); });
+      const sep=[0,0,0]; sep[ax]=(k-(n-1)/2)*12;
+      pieces.push(Object.assign({},pt,{T,name:`${pt.name} · trozo ${k+1} de ${n}`,file:`${pt.file}-trozo-${k+1}de${n}`,piece:k,sep})); }
+    const nd=dows.reduce((t,d)=>t+d.length,0), rs=[].concat(...dows).map(d=>d[2]);
+    return {parts:pieces,dowels:rs,n,note:`${pt.name}: no cabe en la ${s.bedName}, va en ${n} trozos${nd?` con ${nd} espigas de unión (Ø ${[...new Set(rs.map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',',')))].join(' y ')} × ${String(DOWEL.len/10).replace('.',',')} cm, impresas con los pasadores)`:' (la placa es muy delgada para espigas: alinéalos por el faldón)'}. Pégalos sobre una mesa plana con cianoacrilato o epoxi y lija la junta del lado del mortero.`};
+  }
   function buildMold(THREE,s,b){
     const R=s.W/2, H=s.H, ft=s.feet, Hb=H-ft, n=480, Tw=s.moldWall, NP=s.moldParts, TB=MOLD.TB, CLR=MOLD.CLR, FL=MOLD.FL;
     const RC=new Map(), ringC=x=>{ const k=x.toFixed(3); if(!RC.has(k)){ const dl=R-x; RC.set(k,ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),n)); } return RC.get(k); };
@@ -1675,6 +1785,12 @@
       parts.push({key:'feet',name:ft>0?'Placa de patas':'Placa de fondo',file:ft>0?'molde-placa-patas':'molde-placa-fondo',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
     }
 
+    // --- piezas que no caben en la cama de la impresora: se parten en trozos con espigas de unión
+    const dowR=[];
+    for(let i=0;i<parts.length;i++){ const pt=parts[i]; if(pt.key!=='base'&&pt.key!=='feet') continue; const sp=splitToFit(THREE,pt,s,seal); if(!sp) continue; parts.splice(i,1,...sp.parts); i+=sp.parts.length-1; dowR.push(...sp.dowels); notes.push(sp.note); }
+    // espigas: una por agujero doble más una de repuesto de cada medida
+    const dowK=[...dowR,...new Set(dowR)].sort((a,b)=>b-a), nDowK=dowK.length;
+
     // --- pasadores y cuñas impresos (con 2 de repuesto), repartidos en una placa de impresión
     const nPins=pinHoles/2+2;
     {
@@ -1688,12 +1804,14 @@
       const rowsP=Math.ceil(nPins/cols), y00=rowsP*(Pn.head+4)+4, colsW=Math.max(1,Math.floor((s.bed-10)/(Wd.L+6)));
       for(let i=0;i<nPins;i++){ const ox=(i%colsW)*(Wd.L+6), oy=y00+Math.floor(i/colsW)*(Wd.h1+4);
         prism(A,wedge.map(([x,y])=>[x+ox,y+oy]),[],0,Wd.t,flat); }
-      parts.push({key:'kit',name:'Pasadores y cuñas',file:'molde-pasadores-cunas',T:A.T,print:'flat',color:0x888888,explode:[0,0,0]});
+      // espigas de unión de los trozos (de pie: cilindros sin voladizo)
+      const y01=y00+Math.ceil(nPins/colsW)*(Wd.h1+4)+4; for(let i=0;i<nDowK;i++){ const ox=3+(i%12)*(DOWEL.dia+5), oy=y01+3+Math.floor(i/12)*(DOWEL.dia+5); prism(A,circle([ox,oy],dowK[i]-0.2,24),[],0,DOWEL.len,flat); }
+      parts.push({key:'kit',name:nDowK?'Pasadores, cuñas y espigas':'Pasadores y cuñas',file:'molde-pasadores-cunas',T:A.T,print:'flat',color:0x888888,explode:[0,0,0]});
     }
     if(s.rim==='uchien') notes.push('El labio interno no se puede moldear (el núcleo no saldría): el núcleo se hace recto y el labio se forma a mano o se omite.');
     if(dC>s.flare+0.05) notes.push(`El núcleo lleva ${MOLD.DRAFT}° de salida para poder desmoldar: la cavidad es ${cm(dC-s.flare)} cm más estrecha abajo.`);
     if(s.panel) notes.push('El panel decorativo no se moldea: pégalo o tállalo después.');
-    return {parts,notes,seal,hw:{pins:nPins,used:pinHoles/2,at:pinAt}};
+    return {parts,notes,seal,hw:{pins:nPins,used:pinHoles/2,at:pinAt,dowels:nDowK,dowSizes:[...new Set(dowR)].map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',','))}};
   }
   // Coordenadas de impresión (Z arriba, sin espejar): gajos con el canto inferior en la cama; base con núcleo con su cara
   // de abajo en la cama; placa de patas con la cara exterior en la cama; pasadores y cuñas tal cual (ya planos).
@@ -1743,9 +1861,9 @@
       for(let i=0;i<T.length;i+=3){ pos[i]=T[i]; pos[i+1]=H-T[i+1]; pos[i+2]=-T[i+2]; }
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.computeBoundingBox();
       const home=new THREE.Vector3(); g.boundingBox.getCenter(home); g.translate(-home.x,-home.y,-home.z); g.computeVertexNormals();
-      const e=pt.explode, v=pt.key==='base'?new THREE.Vector3(0,-e[1],0):pt.key==='feet'?new THREE.Vector3(0,2*(H-home.y)+40,0):new THREE.Vector3(e[0],0,-e[2]);
+      const e=pt.explode, v=pt.key==='base'?new THREE.Vector3(0,-e[1],0):pt.key==='feet'?new THREE.Vector3(0,2*(H-home.y)+40,0):new THREE.Vector3(e[0],0,-e[2]); if(pt.sep) v.add(new THREE.Vector3(pt.sep[0],0,-pt.sep[2]));   // trozos de una pieza partida: un poco separados
       const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:pt.color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true}));
-      m.position.copy(home); M.add(m); parts.push({m,home,v,key:pt.key,name:pt.name}); });
+      m.position.copy(home); M.add(m); parts.push({m,home,v,key:pt.key,name:pt.name,piece:pt.piece}); });
     // pasadores y cuñas en sus agujeros: el pasador cruza las dos pestañas (cabeza del lado del gajo vecino) y la cuña
     // entra por su ranura y aprieta contra la pestaña. Al desarmar salen de los agujeros.
     const Pn=MOLD.PIN, Wd=MOLD.WEDGE, x1=Pn.headL+Pn.grip+Pn.slotL+Pn.tip, sx0=Pn.headL+Pn.grip-1.5, kitMat=new THREE.MeshStandardMaterial({color:0xd9a441,roughness:0.5,side:THREE.DoubleSide});
@@ -1763,7 +1881,7 @@
     ghost.rotation.x=Math.PI; ghost.position.y=H; M.add(ghost);
     // rótulos: 1 base, 2 gajos (uno solo, en el primero), 3 placa; armado, un rótulo para todo el molde
     const nExt=parts.filter(p=>p.key.startsWith('ext')).length, feetP=parts.find(p=>p.key==='feet');
-    const L=[['base','1 · Base con núcleo'],['ext1',`2 · Molde exterior: ${nExt} gajos`],...(feetP?[['feet',`3 · ${feetP.name}${MD.seal?' con el sello':''}`]]:[])].concat(kit.length?[['kit',`${feetP?4:3} · ${MD.hw.used} pasadores con su cuña`]]:[])
+    const L=[['base',`1 · Base con núcleo${parts.find(p=>p.key==='base'&&p.piece!=null)?' (en trozos)':''}`],['ext1',`2 · Molde exterior: ${nExt} gajos`],...(feetP?[['feet',`3 · ${feetP.name.split(' · trozo')[0]}${MD.seal?' con el sello':''}${feetP.piece!=null?' (en trozos)':''}`]]:[])].concat(kit.length?[['kit',`${feetP?4:3} · ${MD.hw.used} pasadores con su cuña`]]:[])
       .map(([k,t])=>({p:k==='kit'?{m:kit.reduce((a,c)=>c.m.userData.base.elements[13]>a.m.userData.base.elements[13]?c:a).m,key:'kit'}:parts.find(p=>p.key===k),sp:label3(THREE,t,lh)})).filter(l=>l.p);
     const Lall=label3(THREE,'Molde armado: aquí se cuela el cemento',lh); L.forEach(l=>G.add(l.sp)); G.add(Lall);
     const bx=new THREE.Box3(), at=(sp,o,below)=>{ bx.setFromObject(o); const c=bx.getCenter(new THREE.Vector3()); if(below){ sp.center.set(1,0.5); sp.position.set(bx.min.x-lh*0.4,(bx.min.y+bx.max.y)/2,c.z); } else sp.position.set(c.x,bx.max.y+lh*0.5,c.z); };   // la base, a su izquierda
@@ -1813,7 +1931,8 @@
     const kitLines=[
       `${hw.pins} pasadores y ${hw.pins} cuñas impresos (${hw.used} para unir los gajos y 2 de repuesto). Los agujeros de Ø 9,6 mm también admiten pernos M8 × 20 mm si prefieres metal.`,
       'No hacen falta varillas, pernos ni clavos: base y núcleo son una sola pieza y los gajos se traban en la ranura de la base.',
-      'Desmoldante: vaselina, aceite de cocina o cera en todas las caras que tocan el mortero.'];
+      'Desmoldante: vaselina, aceite de cocina o cera en todas las caras que tocan el mortero.',
+      ...(hw.dowels?[`${hw.dowels} espigas de unión impresas (Ø ${hw.dowSizes.join(' y ')} × 1,6 cm, una de repuesto de cada medida) para juntar los trozos de las piezas partidas, más cianoacrilato o epoxi.`]:[])];
     const L=[];
     L.push(`MOLDE DE VACIADO PARA IMPRESIÓN 3D — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
       'La maceta se cuela BOCA ABAJO. Kit 100 % impreso. Cada STL ya viene orientado para imprimir sin soportes.','Los STL están en milímetros, la unidad que esperan los laminadores; las medidas de esta lista van en centímetros.',`Sello en el fondo: ${sealTxt}.`,'','PIEZAS');
@@ -1821,6 +1940,7 @@
     L.push('','KIT Y MATERIALES',...kitLines.map(h=>'  - '+h),'',
       'IMPRESIÓN',`  Pensado para la ${s.bedName} (${mmc(s.bedX)} × ${mmc(s.bedY)} × ${mmc(s.bedZ)} cm). PLA o PETG; ABS y ASA no, porque piden cámara cerrada y cama más caliente. Capa 0,2 mm, 3 perímetros, 15–20 % de relleno. Pasadores y cuñas con 100 % de relleno.`,'  Sin soportes: cada STL ya viene orientado (los gajos de pie sobre su cara inferior, la base con el núcleo hacia arriba, la placa con la cara exterior abajo) y ninguna cara cuelga a menos de 45° de la horizontal. El nervio, la ranura, los taludes bajo el labio y los agujeros en gota están a 55° o más, con margen. Deja «Soportes» desactivado en Bambu Studio; si una pieza dice «activa soportes», hazlo solo en esa zona.','  Lija las caras que tocan el mortero y séllalas con barniz o laca si quieres un acabado liso.','',
       'ARMADO Y VACIADO',
+      ...(hw.dowels?['  0. Junta los trozos de las piezas partidas: espigas en sus agujeros, pegamento en la cara de corte, y prénsalos sobre una mesa plana con la cara del mortero hacia abajo para que quede pareja. Lija la junta y rellena con masilla si se nota.']:[]),
       '  1. Unta desmoldante en todas las caras que tocan el mortero: base con núcleo, gajos y placa de patas.',
       '  2. Pon la base con el núcleo sobre una mesa nivelada.',
       '  3. Acerca los gajos del molde exterior: el nervio de abajo de cada gajo entra en la ranura del canto de la base.',
