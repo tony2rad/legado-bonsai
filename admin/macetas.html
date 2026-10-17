@@ -78,6 +78,9 @@
   .panel h2{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
   .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:6px;overflow:hidden}
   .seg4 label:nth-child(n+3){border-top:1px solid var(--line)} .mode-hint{margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.4}
+  .calc-wrap{overflow-x:auto;margin-top:8px} .calc-out table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+  .calc-out th,.calc-out td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap} .calc-out th:first-child,.calc-out td:first-child{text-align:left;white-space:normal}
+  .calc-out th{color:var(--muted);font-weight:600} .calc-out tr.tot td{font-weight:700;border-bottom:0} .calc-out tr.nofit td{color:var(--muted)} .calc-out .btn{margin-top:6px}
   /* Impresión 3D y Molde 3D: el visor ocupa el lugar de las hojas, sin ventana (el panel lateral ya tiene los campos) */
   dialog#dlg3d.inline{position:relative;inset:auto;margin:0;width:100%;max-width:none;height:calc(100vh - 150px);min-height:520px;z-index:0}
   dialog#dlg3d.inline #v3close,dialog#dlg3d.inline label:has(#v3mold){display:none}
@@ -258,6 +261,19 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold" type="button">Descargar molde (ZIP)</button></div>
       <div id="moldOut" class="mold-out"></div>
+    </details>
+    <details class="gloss" id="calcBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
+      <summary>Material y tiempo de impresión</summary>
+      <p class="mold-lead">Estimado para tu impresora, con el perfil estándar de Bambu y boquilla de 0,4 mm, antes de laminar (±25 %). Bambu Studio da la cifra exacta al laminar.</p>
+      <div class="grid2">
+        <label class="f"><span>Filamento</span><select id="cMat"><option value="PLA" selected>PLA</option><option value="PETG">PETG</option></select></label>
+        <label class="f"><span>Precio <b>USD/kg</b></span><input id="cPrice" type="number" step="0.5" min="0" value="25"></label>
+        <label class="f"><span>Relleno <b>%</b></span><input id="cInfill" type="number" step="5" min="0" max="100" value="15"></label>
+        <label class="f"><span>Perímetros</span><input id="cWalls" type="number" step="1" min="1" max="8" value="3"></label>
+        <label class="f"><span>Altura de capa <b>mm</b></span><select id="cLayer"><option value="0.12">0,12 · fino</option><option value="0.16">0,16</option><option value="0.2" selected>0,20 · estándar</option><option value="0.28">0,28 · rápido</option></select></label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCalc" type="button">Calcular este diseño</button><button class="btn ghost" id="btnCalcAll" type="button">Tabla de los 23 modelos</button></div>
+      <div id="calcOut" class="calc-out"></div>
     </details>
     <div class="summary" id="summary"></div>
     <div id="warns" style="display:grid;gap:6px"></div>
@@ -2098,7 +2114,7 @@
   function render(){
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
     $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('bedXY').disabled=s.printer!=='otra'; $('clayOpts').hidden=!clay; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
-    $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'; $('printBox').hidden=s.mode!=='print'; $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'; if(s.mode==='print'){ $('clayOpts').hidden=true; $('shrinkF').hidden=true; }
+    $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'; $('printBox').hidden=s.mode!=='print'; $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'; if(s.mode==='print'){ $('clayOpts').hidden=true; $('shrinkF').hidden=true; }
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     $('flareLabel').innerHTML='Inclinación <b>cm</b>/lado';
     $('pageRule').textContent=`@page{size:${s.paper} landscape;margin:0}`;
@@ -2362,6 +2378,59 @@
   }
   $('stage').after($('dlg3d'));
   document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener('change',()=>{ if(r.checked) setMode(r.value); }));
+  // ---------- Material y tiempo de impresión (estimado, sin laminar) ----------
+  // Para la impresora elegida, perfil estándar de Bambu (boquilla 0,4 mm, línea de 0,42 mm): cáscara = perímetros ×
+  // 0,42 mm sobre toda la superficie (paredes, techo y piso) y relleno al % elegido en el resto. Tiempo = cáscara a
+  // 11 mm³/s + relleno a 20 mm³/s (a capa de 0,2 mm; proporcional a la altura de capa) + 2,5 s por capa (cambio de capa,
+  // retracción y viajes) + 6 min por cama (calentar y calibrar). Filamento de 1,75 mm (2,405 mm² de sección).
+  const FIL={PLA:1.24,PETG:1.27};
+  function calcOpts(){ return {mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2}; }
+  function solidStats(T){ const R=stlOrient(T), {mn,mx}=bbox(R.V); let A=0;
+    for(const [a,b2,c] of R.F){ const u=[R.V[3*b2]-R.V[3*a],R.V[3*b2+1]-R.V[3*a+1],R.V[3*b2+2]-R.V[3*a+2]], v=[R.V[3*c]-R.V[3*a],R.V[3*c+1]-R.V[3*a+1],R.V[3*c+2]-R.V[3*a+2]]; A+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
+    return {V:Math.abs(R.volume),A,size:[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]}; }
+  function estimate(p,o){ const shell=Math.min(p.V,p.A*o.walls*0.42), inf=Math.max(0,p.V-shell)*o.infill/100, vol=shell+inf, k=o.layer/0.2;
+    return {g:vol/1000*FIL[o.mat], m:vol/2.405/1000, h:(shell/(11*k)+inf/(20*k)+p.size[2]/o.layer*2.5)/3600}; }
+  // piezas que se imprimen en la sección actual: la maceta (y sus patas aparte) o las piezas del molde
+  async function printPieces(s,b){
+    let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three');
+    if(s.mode==='mold'){ await prepareSeal(s); const MD=buildMold(THREE,s,b); return MD.parts.map(pt=>Object.assign({name:pt.name},solidStats(moldPrintTris(pt,s)))); }
+    const G=potGroup(THREE,Object.assign({},s,{printable:true}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(o=>o.userData.foot);
+    feet.forEach(o=>G.remove(o)); const out=[Object.assign({name:'Maceta'},solidStats(meshTris(THREE,G,v=>[v.x,-v.z,v.y])))];
+    if(feet.length){ const byF=new Map(); feet.forEach(o=>{ const k=o.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(o); });
+      const P=[...byF.values()].map(g=>solidStats(meshTris(THREE,g,v=>[v.x,v.z,-v.y])));
+      out.push({name:`Patas con encaje ×${P.length}`,V:P.reduce((t,p)=>t+p.V,0),A:P.reduce((t,p)=>t+p.A,0),size:[Math.max(...P.map(p=>p.size[0])),Math.max(...P.map(p=>p.size[1])),Math.max(...P.map(p=>p.size[2]))],n:P.length}); }
+    return out; }
+  const hm=h=>{ const t=Math.round(h*60); return `${Math.floor(t/60)} h ${String(t%60).padStart(2,'0')} min`; };
+  const n1=x=>String(Math.round(x*10)/10).replace('.',','), usd=x=>'$'+x.toFixed(2).replace('.',',');
+  // totales: camas = área de apoyo de las piezas / 70 % de la cama (al menos una); 6 min de preparación por cama
+  function totals(P,s,o){ const rows=P.map(p=>Object.assign({},p,estimate(p,o))), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
+    const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
+    const fit=rows.every(r=>((r.size[0]<=s.bedX+0.5&&r.size[1]<=s.bedY+0.5)||(r.size[0]<=s.bedY+0.5&&r.size[1]<=s.bedX+0.5))&&r.size[2]<=s.bedZ+0.5);
+    return {rows,g,m,h,beds,cost:g/1000*o.price,fit}; }
+  async function calcThis(){
+    if(!last3) return; const out=$('calcOut'); out.textContent='Calculando…'; await new Promise(r=>setTimeout(r,20));
+    const {s,b}=last3, o=calcOpts(), t=totals(await printPieces(s,b),s,o), mm=x=>n1(x/10);
+    out.innerHTML=`<div class="calc-wrap"><table><tr><th>Pieza</th><th>cm</th><th>g</th><th>m</th><th>Tiempo</th><th>USD</th></tr>`
+      +t.rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${mm(r.size[0])}×${mm(r.size[1])}×${mm(r.size[2])}</td><td>${Math.round(r.g)}</td><td>${n1(r.m)}</td><td>${hm(r.h)}</td><td>${usd(r.g/1000*o.price)}</td></tr>`).join('')
+      +`<tr class="tot"><td>Total · ${t.beds} cama${t.beds>1?'s':''}</td><td></td><td>${Math.round(t.g)}</td><td>${n1(t.m)}</td><td>${hm(t.h)}</td><td>${usd(t.cost)}</td></tr></table></div>`
+      +`<p class="mold-lead">${esc(s.bedName)} · ${o.mat} · relleno ${o.infill} % · ${o.walls} perímetros · capa ${String(o.layer).replace('.',',')} mm. El total suma 6 min de preparación por cama${t.fit?'':'. Alguna pieza no cabe en la cama: hay que partirla o elegir otra impresora'}. ${(k=>k<1?`Un rollo de 1 kg no alcanza: hacen falta ${n1(t.g/1000)} kg`:`Un rollo de 1 kg rinde para ${k} ${s.mode==='mold'?(k===1?'molde como este':'moldes como este'):(k===1?'maceta como esta':'macetas como esta')}`)(Math.floor(1000/Math.max(1,t.g)))}.</p>`;
+  }
+  async function calcAll(){
+    const out=$('calcOut'), sel=$('preset'), keep=sel.value, o=calcOpts(), ids=[...sel.options].map(x=>x.value).filter(v=>v!=='custom'), rows=[];
+    for(let i=0;i<ids.length;i++){ out.textContent=`Calculando ${i+1} de ${ids.length}…`; sel.value=ids[i]; sel.dispatchEvent(new Event('change')); await new Promise(r=>setTimeout(r,20));
+      const {s,b}=last3, t=totals(await printPieces(s,b),s,o), p=PRESETS.find(x=>x.id===ids[i]);
+      rows.push({name:p?p.name:ids[i],style:p?p.style:'',dims:s.type==='round'?`Ø${n1(s.L/10)}×${n1(s.H/10)}`:`${n1(s.L/10)}×${n1(s.W/10)}×${n1(s.H/10)}`,t}); }
+    sel.value=keep; sel.dispatchEvent(new Event('change'));
+    const mold=last3.s.mode==='mold', what=mold?'Molde de vaciado (kit completo)':'Maceta impresa (con patas aparte)';
+    const csv=['Modelo;Estilo;Medidas cm;Gramos;Metros;Horas;Camas;Costo USD;Cabe en la cama'].concat(rows.map(r=>[r.name,r.style,r.dims,Math.round(r.t.g),n1(r.t.m),n1(r.t.h),r.t.beds,r.t.cost.toFixed(2).replace('.',','),r.t.fit?'sí':'no'].join(';'))).join('\r\n');
+    const sum=rows.reduce((t,r)=>({g:t.g+r.t.g,h:t.h+r.t.h,c:t.c+r.t.cost}),{g:0,h:0,c:0});
+    out.innerHTML=`<p class="mold-lead"><b>${what}</b> · ${esc(last3.s.bedName)} · ${o.mat} · relleno ${o.infill} % · ${o.walls} perímetros · capa ${String(o.layer).replace('.',',')} mm</p><div class="calc-wrap"><table><tr><th>Modelo</th><th>cm</th><th>g</th><th>Tiempo</th><th>USD</th></tr>`
+      +rows.map(r=>`<tr${r.t.fit?'':' class="nofit"'}><td>${esc(r.name)}</td><td>${r.dims}</td><td>${Math.round(r.t.g)}</td><td>${hm(r.t.h)}</td><td>${usd(r.t.cost)}</td></tr>`).join('')
+      +`<tr class="tot"><td>Los ${rows.length}</td><td></td><td>${n1(sum.g/1000)} kg</td><td>${hm(sum.h)}</td><td>${usd(sum.c)}</td></tr></table></div><p class="mold-lead">En gris, los que no caben en la cama sin partir${mold?' (el molde los parte solo)':''}.</p><button class="btn ghost" id="btnCsv" type="button">Descargar tabla (CSV)</button>`;
+    $('btnCsv').addEventListener('click',()=>download(new Blob(['﻿'+csv],{type:'text/csv'}),`material-y-tiempo-${mold?'moldes':'macetas'}.csv`));
+  }
+  $('btnCalc').addEventListener('click',calcThis); $('btnCalcAll').addEventListener('click',calcAll);
+  ['cMat','cPrice','cInfill','cWalls','cLayer'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; }));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
   $('btnPrintStl').addEventListener('click',()=>{ $('stlWhat').value='imprimir'; exportSTL(); });
