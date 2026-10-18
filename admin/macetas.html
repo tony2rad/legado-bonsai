@@ -1642,7 +1642,7 @@
     return L.join('\n');
   }
   function view3(kind){
-    if(!V3||!last3) return; if(V3.pot&&V3.pot.userData.box&&($('v3mold').checked||V3.pot.userData.mesa)){ $('v3spin').checked=false; return frameMold(kind); }
+    if(!V3||!last3) return; if(V3.pot&&V3.pot.userData.box&&($('v3mold').checked||V3.pot.userData.mesa||V3.pot.userData.plasterMsg)){ $('v3spin').checked=false; return frameMold(kind); }   // molde, mesa y molde de yeso: encuadre del conjunto
     const {s}=last3, tree=$('v3tree').checked, d=Math.max(s.L,s.W,s.H*1.6)*(tree?2.9:2.3), ty=s.H*(tree?1.1:0.5);
     V3.controls.target.set(0,ty,0); $('v3spin').checked=false;
     if(kind==='bottom'){ V3.controls.target.set(0,s.feet,0); V3.camera.position.set(0,-d*0.8,d*0.12); return; }   // desde abajo, con +z arriba: el sello se lee derecho
