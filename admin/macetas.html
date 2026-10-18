@@ -258,6 +258,7 @@
         <label class="f"><span>Sello en la base</span><select id="sealKind"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="none">Sin sello</option></select></label>
         <label class="f"><span>Relieve del sello</span><select id="sealMode"><option value="up" selected>En relieve</option><option value="down">Rehundido</option></select></label>
         <label class="f"><span>Pared del molde <b>cm</b></span><input id="moldWall" type="number" step="0.1" min="0.3" max="1" value="0.4"></label>
+        <label class="f"><span>Núcleo</span><select id="moldCore"><option value="hueco" selected>Hueco (ahorra filamento)</option><option value="macizo">Macizo</option></select></label>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold" type="button">Descargar molde (ZIP)</button></div>
       <div id="moldOut" class="mold-out"></div>
@@ -435,7 +436,7 @@
     const s={mat,type:$('type').value,L:+$('L').value*10,W:+$('W').value*10,H:+$('H').value*10,t:+$('t').value*10,shrink:mat==='clay'?+$('shrink').value:0,flare:+$('flare').value*10,feet:+$('feet').value*10,base:+$('base').value*10,m:+$('board').value*10,paper:$('paper').value,finish:$('finish').value,rim:$('rim').value,body:$('body').value,corner:$('type').value==='rect'?$('corner').value:'recta',lip:+$('lip').value*10,joint:$('joint').value,rimMode:$('rimMode').value,nest:$('nest').checked,foot:$('foot').value,panel:$('panel').checked&&$('type').value!=='oval'&&$('type').value!=='round'};
     if(s.type==='round'||s.type==='hex'||s.type==='oct') s.W=s.L;
     if(s.type==='oval') s.flare=0;
-    s.moldParts=+$('moldParts').value||2; s.seal=$('sealKind').value; s.sealMode=$('sealMode').value; s.moldWall=Math.min(10,Math.max(3,(+$('moldWall').value||0.4)*10)); s.printer=$('printer').value; { const PR={a2l:[330,320,325,'Bambu Lab A2L'],a1:[256,256,256,'Bambu Lab A1 / P1S / X1C'],mini:[180,180,180,'Bambu Lab A1 mini']}, m=Math.max(100,(+$('bedXY').value||22)*10), p=PR[s.printer]||[m,m,m,'tu impresora']; s.bedX=p[0]; s.bedY=p[1]; s.bedZ=p[2]; s.bedName=p[3]; s.bed=Math.min(p[0],p[1]); }
+    s.moldParts=+$('moldParts').value||2; s.moldCore=$('moldCore').value; s.seal=$('sealKind').value; s.sealMode=$('sealMode').value; s.moldWall=Math.min(10,Math.max(3,(+$('moldWall').value||0.4)*10)); s.printer=$('printer').value; { const PR={a2l:[330,320,325,'Bambu Lab A2L'],a1:[256,256,256,'Bambu Lab A1 / P1S / X1C'],mini:[180,180,180,'Bambu Lab A1 mini']}, m=Math.max(100,(+$('bedXY').value||22)*10), p=PR[s.printer]||[m,m,m,'tu impresora']; s.bedX=p[0]; s.bedY=p[1]; s.bedZ=p[2]; s.bedName=p[3]; s.bed=Math.min(p[0],p[1]); }
     s.lobes=(s.type==='oval'||s.type==='round')?+$('lobes').value:0;
     const clamp01=(v,lo,hi,d)=>{ v=+v; return (v>=lo&&v<=hi?v:d)/100; };
     PAN={st:$('panelStyle').value,mode:$('panelMode').value,pw:clamp01($('panelW').value,30,90,60),ph:clamp01($('panelH').value,30,85,58),where:$('panelWhere').value};
@@ -1358,7 +1359,7 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pLip','Labio',1],['pFeet','Patas',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pLip','Labio',1],['pFeet','Patas',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     let sec='';
@@ -1841,7 +1842,7 @@
     const int=halfInt(sK,R-s.t,Hc,dC);
     const radial=s.type==='round'||!!SHP(s), P=holePlan(s.L/2-s.flare-s.t,s.W/2-s.flare-s.t,1,radial);
     const f=footSize(s.L,s.W), feet=ft>0?blockFeet(s):[];
-    const parts=[], notes=[]; let pinHoles=0; const pinAt=[];
+    const parts=[], notes=[]; let pinHoles=0; let coreBridge=0; const pinAt=[];
 
     // --- molde exterior en gajos (2 mitades o 4 cuartos)
     const M=NP===2?240:120, yBot=ft+MOLD.SKIRT_H+1, Ytop=H+TB;
@@ -1869,13 +1870,34 @@
 
     // --- base con núcleo (una pieza): placa con ranura en el canto, núcleo de la cavidad y postes de drenaje y alambre
     {
-      const A=adder();
-      loftRings(A,baseProf.map(([x,y])=>({loop:ringC(x),Y:H-y})));
-      loftRings(A,[[int[0][0],-1],...int].map(([x,y])=>({loop:ringC(x),Y:H-y})));
-      const Yt=H-Hc;
+      const A=adder(), Yt=H-Hc, w=Math.max(2.4,s.moldWall);
+      const plate=baseProf.map(([x,y])=>({loop:ringC(x),Y:H-y})), core=int.map(([x,y])=>({loop:ringC(x),Y:H-y}));
+      // Núcleo hueco (por defecto): la cavidad entra por la cara de la base que va en la cama, con paredes de `w` y techo a
+      // dos aguas de 55° (se imprime sin soportes; arriba queda un puente angosto de 8 mm). Placa, núcleo y cavidad forman
+      // un solo sólido cerrado, así stlOrient no confunde la cavidad con un sólido.
+      const xAtY=Y=>{ for(let i=0;i<int.length-1;i++){ const Ya=H-int[i][1], Yb=H-int[i+1][1]; if(Y<=Ya+1e-9&&Y>=Yb-1e-9){ const t=(Ya-Y)/((Ya-Yb)||1); return int[i][0]+(int[i+1][0]-int[i][0])*t; } } return int[int.length-1][0]; };
+      const Yr=Yt+w, cx=Y=>Math.min(xAtY(Math.min(Y,H))-w,Math.tan(35*Math.PI/180)*(Y-Yr)), cav=[];
+      if(s.moldCore!=='macizo'&&cx(H+TB)>=4){
+        const Ys=[H+TB,H]; for(let Y=H-2;Y>Yr;Y-=2) Ys.push(Y);
+        let prev=null; for(const Y of Ys){ const x=cx(Y); if(x>=4){ cav.push({loop:ringC(x),Y}); prev=Y; continue; }
+          let a=prev, b2=Y; for(let it=0;it<40;it++){ const m=(a+b2)/2; if(cx(m)>=4) a=m; else b2=m; } cav.push({loop:ringC(4),Y:a}); break; }
+      }
+      if(cav.length>=2){
+        const bandR=rings=>{ for(let i=0;i<rings.length-1;i++){ const L1=rings[i].loop, L2=rings[i+1].loop, m=L1.length; for(let j=0;j<m;j++){ const k=(j+1)%m; A.quad([L1[j][0],rings[i].Y,L1[j][1]],[L1[k][0],rings[i].Y,L1[k][1]],[L2[k][0],rings[i+1].Y,L2[k][1]],[L2[j][0],rings[i+1].Y,L2[j][1]]); } } };
+        const last=cav[cav.length-1];
+        bandR(plate); fill2D(A,plate[0].loop,[core[0].loop],(u,v)=>[u,H,v]);                       // canto y cara de arriba de la placa
+        bandR(core); fill2D(A,core[core.length-1].loop,[],(u,v)=>[u,Yt,v]);                        // núcleo y su techo (piso de la maceta)
+        fill2D(A,plate[plate.length-1].loop,[cav[0].loop],(u,v)=>[u,H+TB,v]);                      // cara de abajo: anillo alrededor de la boca de la cavidad
+        bandR(cav); fill2D(A,last.loop,[],(u,v)=>[u,last.Y,v]);                                    // cavidad y su cumbrera
+        coreBridge=Math.abs(last.loop.reduce((t,p,i)=>{ const q=last.loop[(i+1)%last.loop.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
+      } else {
+        loftRings(A,plate);
+        loftRings(A,[[int[0][0],-1],...int].map(([x,y])=>({loop:ringC(x),Y:H-y})));
+      }
       P.drains.forEach(d=>prism(A,circle(d,P.dr,40),[],ft,Yt+0.5,XZ));
-      P.wires.forEach(w=>cone(A,w,P.wr,ft,P.wr+0.25,Yt+0.5));
-      parts.push({key:'base',name:'Base con núcleo',file:'molde-base-nucleo',T:A.T,print:'base',color:0xc8a86e,explode:[0,40,0]});
+      P.wires.forEach(w2=>cone(A,w2,P.wr,ft,P.wr+0.25,Yt+0.5));
+      parts.push({key:'base',name:'Base con núcleo',file:'molde-base-nucleo',T:A.T,print:'base',color:0xc8a86e,explode:[0,40,0],bridges:coreBridge});
+      if(coreBridge) notes.push(`El núcleo es hueco por debajo (paredes de ${cm(w)} cm y techo a dos aguas): ahorra filamento y se imprime sin soportes. Apoya la base en una mesa plana al colar.`);
     }
 
     // --- sello de la marca (computeSeal: mismo cálculo que la maceta del visor y su STL)
@@ -2053,7 +2075,7 @@
       for(let k=0;k<R.V.length;k++) R.V[k]-=off[k%3];
       const size=[0,1,2].map(k=>mx[k]-mn[k]), fits=((size[0]<=s.bedX+0.5&&size[1]<=s.bedY+0.5)||(size[0]<=s.bedY+0.5&&size[1]<=s.bedX+0.5))&&size[2]<=s.bedZ+0.5;
       open+=R.open; files.push({name:`${String(i+1).padStart(2,'0')}-${pt.file}.stl`,data:new Uint8Array(stlBinary(R.V,R.F))});
-      rows.push({name:pt.name,key:pt.key,size,fits,ov:overhangCheck(R.V,R.F,45).area}); });
+      rows.push({name:pt.name,key:pt.key,size,fits,ov:Math.max(0,overhangCheck(R.V,R.F,45).area-(pt.bridges||0)*1.05)}); });
     const hw=MD.hw, sealTxt=MD.seal?`${MD.seal.name} de ${mmc(MD.seal.w)} cm de ancho, ${s.sealMode==='up'?'en relieve: sobresale '+mmc(sealDepth(s))+' cm':'grabado: se hunde '+mmc(sealDepth(s))+' cm'}`:'sin sello';
     const kitLines=[
       `${hw.pins} pasadores y ${hw.pins} cuñas impresos (${hw.used} para unir los gajos y 2 de repuesto). Los agujeros de Ø 9,6 mm también admiten pernos M8 × 20 mm si prefieres metal.`,
@@ -2438,7 +2460,7 @@
   $('btnMoldTop').addEventListener('click',showMold);
   $('v3exp').addEventListener('input',()=>{ const f=V3&&V3.pot&&V3.pot.userData.setExplode; if(f) f(+$('v3exp').value); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'?'cement':MODE)));
-  ['moldParts','sealKind','sealMode','moldWall','printer','bedXY'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
+  ['moldParts','sealKind','sealMode','moldWall','moldCore','printer','bedXY'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
