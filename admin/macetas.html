@@ -340,6 +340,7 @@
     <label><input type="checkbox" id="v3cut"> Corte en sección</label>
     <label title="Muestra el molde de vaciado desarmado alrededor de la maceta (solo cemento)"><input type="checkbox" id="v3mold"> Molde</label>
     <label id="v3expBox" hidden title="Junta o separa las piezas del molde para ver cómo encajan">Armado <input type="range" id="v3exp" min="0" max="1" step="0.01" value="1" style="width:110px"> Desarmado</label>
+    <label id="v3procBox" hidden title="Cada pieza de yeso sale de su caja, se voltea a su posición de uso y llega al molde">En la caja <input type="range" id="v3proc" min="0" max="1" step="0.01" value="1" style="width:110px"> En el molde <button class="btn ghost" type="button" id="v3play" style="padding:2px 8px;margin-left:4px">▶ Ver proceso</button></label>
     <label><input type="checkbox" id="v3dimsOn" checked> Medidas</label>
     <span class="v3views"><button class="btn ghost" id="v3vIso" type="button">3/4</button><button class="btn ghost" id="v3vFront" type="button">Frente</button><button class="btn ghost" id="v3vTop" type="button">Planta</button><button class="btn ghost" id="v3vBottom" type="button" title="Mira la maceta desde abajo: el fondo con el sello">Fondo</button></span>
     <button class="btn ghost" id="v3stl" type="button" title="Descarga este modelo como sólido 3D, en milímetros">Descargar STL</button>
@@ -1717,7 +1718,7 @@
     { const art=(s.mat==='cement'||s.printable||mesaOn)&&[s.seal,s.printable&&s.pIn!=='none'?s.inSeal:null].filter(k=>k&&k!=='none'&&SEALS[k]).map(k=>SEALS[k].art).find(a=>!SEAL_ART[a]);
       if(art&&!SEAL_ART[art]&&!V3.sealTry){ V3.sealTry=true; prepareSeal(s).then(()=>{ if($('dlg3d').open) update3D(false); }); } }
     sync3(); $('v3dims').textContent=dims3(s,b); estimateInto(s,b); $('v3dims').hidden=!$('v3dimsOn').checked;
-    $('v3expBox').hidden=mesaOn||!(moldOn||plasterOn||s.printable&&s.pFeet!=='pegadas'&&s.feet>0);
+    $('v3expBox').hidden=mesaOn||!(moldOn||plasterOn||s.printable&&s.pFeet!=='pegadas'&&s.feet>0); $('v3procBox').hidden=!plasterOn||mesaOn;
     if(!moldOn&&!mesaOn&&!plasterOn){ floor.position.set(0,0,0);    floor.scale.setScalar(Math.max(s.L,s.W)*0.75); }
     V3.size();
     const key=[s.type,s.L,s.W,s.H,moldOn,plasterOn,mesaOn,mesaOn?[s.mode,s.tN,s.tW,s.tH]:''].join();
@@ -2482,7 +2483,9 @@
   function plasterPrintTris(part){ const T=part.T, out=new Array(T.length); for(let i=0;i<T.length;i+=3){ const p=part.map(T[i],T[i+1],T[i+2]); out[i]=p[0]; out[i+1]=p[1]; out[i+2]=p[2]; } return out; }
   // Visor: a la izquierda las cajas impresas con las paredes translúcidas, para ver el modelo dentro, tal como salen de la
   // impresora; al centro el molde de yeso que sale de ellas (translúcido, desarmable) con la maceta agrandada dentro;
-  // a la derecha la maceta cocida a tamaño real.
+  // a la derecha la maceta cocida a tamaño real. «Proceso» (setProc(u), 0 = en la caja, 1 = en el molde): cada pieza de
+  // yeso parte de su caja tal como se cuela (el fondo con los huecos hacia abajo, las mitades acostadas), sale, se voltea
+  // a su posición de uso y llega al molde; así se ve que el fondo se usa volteado y que el zócalo entra en el cuerpo.
   function plasterGroup(THREE,s,b,opt={}){
     const G=new THREE.Group(), M=new THREE.Group(), PM=buildPlaster(THREE,s,b), k=PM.k, big=Math.max(s.L,s.W,s.H)*k, lh=Math.max(13,big*0.085), parts=[]; G.add(M);
     const mk=(T,color,extra)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(T),3)); g.computeBoundingBox(); const home=new THREE.Vector3(); g.boundingBox.getCenter(home); g.translate(-home.x,-home.y,-home.z); g.computeVertexNormals(); const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.75,side:THREE.DoubleSide,flatShading:true},extra||{}))); m.position.copy(home); return {m,home}; };
@@ -2490,22 +2493,37 @@
     const sk=Object.assign({},s,{L:s.L*k,W:s.W*k,H:s.H*k,feet:s.feet*k,t:s.t*k,flare:s.flare*k,lip:s.lip*k,c:s.c*k});
     const ghost=potGroup(THREE,sk,b,{tree:false,cut:false}); ghost.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.transparent=true; o.material.opacity=0.45; o.material.depthWrite=false; } }); ghost.position.y=-s.feet*k; M.add(ghost);
     let nL=0; const num=()=>`${++nL} · `;
-    const L=[['yesoC',num()+'Fondo: patas y sello'],...(PM.one?[['yesoCuerpo',num()+'Cuerpo: el hueco de la maceta, en una pieza']]:[['yesoA',num()+'Mitad A'],['yesoB',num()+'Mitad B']])].map(([kk,t])=>({p:parts.find(p=>p.key===kk),sp:label3(THREE,t,lh)}));
+    const L=[['yesoC',num()+'Fondo: patas y sello (se usa volteado, con los huecos arriba)'],...(PM.one?[['yesoCuerpo',num()+'Cuerpo: el hueco de la maceta, en una pieza']]:[['yesoA',num()+'Mitad A'],['yesoB',num()+'Mitad B']])].map(([kk,t])=>({p:parts.find(p=>p.key===kk),sp:label3(THREE,t,lh)}));
     const Lall=label3(THREE,'Molde de yeso armado: la barbotina entra por la boca',lh); L.forEach(l=>G.add(l.sp)); G.add(Lall);
     const bx=new THREE.Box3(), at=(sp,o)=>{ bx.setFromObject(o); const c=bx.getCenter(new THREE.Vector3()); sp.position.set(c.x,bx.max.y+lh*0.5,c.z); };
-    const setExplode=t=>{ parts.forEach(p=>p.m.position.copy(p.home).addScaledVector(p.v,t)); M.position.y=0; bx.setFromObject(M); M.position.y=-bx.min.y; const apart=t>0.4; L.forEach(l=>{ l.sp.visible=apart; if(apart) at(l.sp,l.p.m); }); Lall.visible=!apart; if(!apart) at(Lall,M); };
-    setExplode(1); bx.setFromObject(M); const mx=bx.max.x, mnx=bx.min.x;
+    // las cajas impresas, en fila de atrás hacia adelante: paredes translúcidas y el modelo opaco dentro.
+    // Impresión (x, y, z arriba) → visor (x, z, −y): un giro, no un espejo, para poder animar las piezas desde la caja.
+    const boxes=new THREE.Group(), BL=[], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; }; let zc=0; const boxOf={};
+    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a).m; grp.add(sh,mo);
+      const cb=new THREE.Box3().setFromObject(grp); grp.position.z=zc-cb.min.z; boxes.add(grp); const sp=label3(THREE,bxd.label,lh,true); BL.push({sp,g:grp}); zc+=cb.max.z-cb.min.z+30; boxOf[bxd.key]=grp; });
+    // posición provisional de las cajas (se fija después de encuadrar el molde); poses «en la caja» de cada pieza de yeso
+    const F=PL.floor, Ym=(PM.Ytop+PM.Y0)/2, qx=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),a), qy=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),a);
+    const POSE={yesoA:{box:'cajaA',q:qx(-Math.PI/2),p:c=>[c.x,c.z+F,-c.y+Ym]},yesoB:{box:'cajaB',q:qx(-Math.PI/2).multiply(qy(Math.PI)),p:c=>[-c.x,-c.z+F,-c.y+Ym]},
+      yesoC:{box:'cajaC',q:qx(Math.PI),p:c=>[c.x,F+PL.plinth-c.y,-c.z]},yesoCuerpo:{box:'cajaCuerpo',q:qx(Math.PI),p:c=>[c.x,F+PM.Ytop-c.y,-c.z]}};
+    const ease=u=>u<=0?0:u>=1?1:u*u*(3-2*u); let T=opt.explode??1, U=1;
+    const apply=()=>{ const su=ease(U); parts.forEach(p=>{ const use=p.home.clone().addScaledVector(p.v,T), PS=POSE[p.key], g=boxOf[PS.box];
+        if(!g){ p.m.position.copy(use); p.m.quaternion.identity(); return; }
+        const off=new THREE.Vector3().addVectors(boxes.position,g.position), bp=new THREE.Vector3(...PS.p(p.home)).add(off);
+        p.m.position.lerpVectors(bp,use,su); p.m.position.y+=big*0.9*Math.sin(Math.PI*su); p.m.quaternion.copy(PS.q).slerp(new THREE.Quaternion(),su); });
+      const apart=T>0.4||U<1; L.forEach(l=>{ l.sp.visible=apart; if(apart) at(l.sp,l.p.m); }); Lall.visible=!apart; if(!apart) at(Lall,M); };
+    const setExplode=t=>{ T=t; apply(); }, setProc=u=>{ U=u; apply(); };
+    // encuadre: el molde armado/desarmado al centro, apoyado en el suelo; las cajas a la izquierda; la maceta cocida a la derecha
+    U=1; T=1; apply(); M.position.y=0; bx.setFromObject(M); M.position.y=-bx.min.y; bx.setFromObject(M); const mx=bx.max.x, mnx=bx.min.x;
     const fin=potGroup(THREE,s,b,{tree:!!opt.tree,cut:false}), fb=new THREE.Box3().setFromObject(fin); fin.position.x=mx+big*0.45-fb.min.x; G.add(fin);
     const Lfin=label3(THREE,`Maceta cocida: encoge ${Math.round((1-1/k)*100)} %`,lh,true); G.add(Lfin); { const t=new THREE.Box3().setFromObject(fin); Lfin.position.set((t.min.x+t.max.x)/2,t.max.y+lh*0.5,0); }
-    // las cajas impresas, en fila de atrás hacia adelante: paredes translúcidas y el modelo opaco dentro
-    const boxes=new THREE.Group(), BL=[], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=T[i+1]; } return P; }; let zc=0;
-    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a).m; grp.add(sh,mo);
-      const cb=new THREE.Box3().setFromObject(grp); grp.position.z=zc-cb.min.z; boxes.add(grp); const sp=label3(THREE,bxd.label,lh,true); BL.push({sp,g:grp}); zc+=cb.max.z-cb.min.z+30; });
     const bb=new THREE.Box3().setFromObject(boxes); boxes.position.set(mnx-big*0.45-bb.max.x,-bb.min.y,-(bb.min.z+bb.max.z)/2); G.add(boxes);
     BL.forEach(({sp,g})=>{ G.add(sp); const t=new THREE.Box3().setFromObject(g); sp.position.set((t.min.x+t.max.x)/2,t.max.y+lh*0.5,(t.min.z+t.max.z)/2); });
+    // las piezas de yeso se mueven dentro de M (que ya está apoyado): las poses de caja se calculan en coordenadas de G
+    const My=M.position.y; parts.forEach(p=>{ const PS=POSE[p.key]; if(PS) PS.p=(f=>c=>{ const r=f(c); return [r[0],r[1]-My,r[2]]; })(PS.p); });
+    apply();
     const f1=x=>x.toFixed(1).replace('.',','), pours=PM.boxes.map(bxd=>`${bxd.label.split(' →')[0]} ${f1((PM.parts.find(p=>p.key===bxd.key)||{}).pour||0)} L`).join(', ');
-    G.userData={setExplode,box:new THREE.Box3().setFromObject(G),plasterMsg:`A la izquierda las cajas impresas, con las paredes transparentes para ver el modelo dentro: en cada una se cuela yeso y sale una pieza del molde (${pours}). Al centro el molde de yeso que resulta, desarmado, con la maceta agrandada dentro: ≈ ${f1(PM.litres*0.9)} kg de yeso en total; mueve «Armado ↔ Desarmado». A la derecha la maceta cocida, que encoge ${Math.round((1-1/k)*100)} %.`};
-    setExplode(opt.explode??1); return G;
+    G.userData={setExplode,setProc,box:new THREE.Box3().setFromObject(G),plasterMsg:`A la izquierda las cajas impresas, con las paredes transparentes para ver el modelo dentro: en cada una se cuela yeso y sale una pieza del molde (${pours}). Al centro el molde de yeso que resulta, desarmado, con la maceta agrandada dentro: ≈ ${f1(PM.litres*0.9)} kg de yeso en total. «Ver proceso» muestra cómo cada pieza sale de su caja, se voltea (el fondo queda con los huecos hacia arriba) y se arma el molde; mueve «Armado ↔ Desarmado» para ver cómo encajan. A la derecha la maceta cocida, que encoge ${Math.round((1-1/k)*100)} %.`};
+    return G;
   }
   async function exportPlaster(){
     if(!last3) return; const out=$('plasterOut'); let THREE=V3&&V3.THREE;
@@ -2524,7 +2542,7 @@
             :'El molde de yeso tiene tres piezas: las mitades A y B del cuerpo (se abren hacia los lados; con panza o cinturón la maceta no saldría de un bloque de una pieza) y el FONDO (patas y logotipo). Se imprimen TRES CAJAS, una por pieza: cada caja lleva dentro, en positivo, lo que su pieza debe copiar. Cuelas yeso en la caja, fragua, lo sacas y esa es la pieza.',
       'Las cajas se guardan para hacer más moldes.',
       `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer) y lleva ${PL.spare} mm de reserva sobre el borde para recortarlo en cuero.`,
-      'Cada STL ya viene orientado para imprimir sin soportes (piso en la cama). Los STL están en milímetros.','','PIEZAS IMPRESAS'];
+      'Cada STL ya viene orientado para imprimir sin soportes (piso en la cama). Los STL están en milímetros.','Impresión: 3 perímetros y 6 % de relleno (gyroid). El modelo dentro de la caja queda como una cáscara con relleno disperso: al yeso solo le importa la superficie, y un casco macizo pesaría más.','','PIEZAS IMPRESAS'];
     rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm · ${r.ov<100?'sin soportes':'voladizo de '+mmc(r.ov/10)+' cm²'}${r.fits?'':'  ← no cabe en la '+s.bedName+': imprímela en dos trozos (herramienta Cortar)'}`));
     L.push('','MATERIALES',`  - Yeso cerámico (de moldes): ≈ ${kg} kg con ${agua} L de agua en total (100 de yeso por 63–70 de agua). Yeso líquido por caja: ${PM.boxes.map(bx=>bx.label.split(' →')[0]+' '+pour(bx.key)+' L').join(', ')}.`,
       '  - Jabón potásico (jabón de moldes) o alcohol de desmolde, para el interior de las cajas. Plastilina o cinta para sellar las juntas de las cajas partidas. Dos correas o ligas anchas para cerrar el molde al colar.','',
@@ -2963,7 +2981,7 @@
   // totales: camas = área de apoyo de las piezas / 70 % de la cama (al menos una); 6 min de preparación por cama
   // Ajustes recomendados por pieza (casilla «Ajustes recomendados»): las placas solo apoyan y forman una cara, así que van
   // livianas; pasadores y cuñas trabajan a presión y van macizos. Bambu Studio los admite por objeto (clic derecho → Ajustes).
-  const REC={feet:{infill:8,walls:2},base:{infill:8,walls:2},madre:{infill:10,walls:3},cajaA:{infill:10,walls:2},cajaB:{infill:10,walls:2},cajaC:{infill:10,walls:2},cajaCuerpo:{infill:10,walls:2},kit:{infill:100,walls:3},caja:{infill:10,walls:2}};
+  const REC={feet:{infill:8,walls:2},base:{infill:8,walls:2},madre:{infill:10,walls:3},cajaA:{infill:6,walls:3},cajaB:{infill:6,walls:3},cajaC:{infill:6,walls:3},cajaCuerpo:{infill:6,walls:3},kit:{infill:100,walls:3},caja:{infill:10,walls:2}};
   const pieceOpts=(p,o)=>o.rec&&REC[p.key]?Object.assign({},o,REC[p.key]):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -3210,6 +3228,10 @@
   ['pLip','pFeet','pSeal','pWall','pFit','pIn'].forEach(id=>$(id).addEventListener('input',render));
   $('btnMoldTop').addEventListener('click',showMold);
   $('v3exp').addEventListener('input',()=>{ const f=V3&&V3.pot&&V3.pot.userData.setExplode; if(f) f(+$('v3exp').value); });
+  $('v3proc').addEventListener('input',()=>{ const f=V3&&V3.pot&&V3.pot.userData.setProc; if(f) f(+$('v3proc').value); });
+  // «Ver proceso»: de la caja al molde (3 s) y luego se arma (1,5 s)
+  $('v3play').addEventListener('click',()=>{ const ud=V3&&V3.pot&&V3.pot.userData; if(!ud||!ud.setProc) return; const t0=performance.now(); $('v3exp').value=1; ud.setExplode(1);
+    const step=()=>{ const dt=(performance.now()-t0)/1000; if(dt<3){ const u=dt/3; $('v3proc').value=u; ud.setProc(u); } else if(dt<4.5){ $('v3proc').value=1; ud.setProc(1); const t=1-(dt-3)/1.5; $('v3exp').value=t; ud.setExplode(t); } else { $('v3exp').value=0; ud.setExplode(0); return; } requestAnimationFrame(step); }; step(); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'||MODE==='skin'?'cement':MODE)));
   ['moldParts','sealKind','sealMode','moldWall','moldCore','printer','bedXY','skinT','pShrink','pThick','pSplit'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
