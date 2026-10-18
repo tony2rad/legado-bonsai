@@ -2046,14 +2046,14 @@
       const pin=[[0,-Pn.head/2],[Pn.headL,-Pn.head/2],[Pn.headL,-Pn.w/2],[x1-1.5,-Pn.w/2],[x1,-Pn.w/2+1.5],[x1,Pn.w/2-1.5],[x1-1.5,Pn.w/2],[Pn.headL,Pn.w/2],[Pn.headL,Pn.head/2],[0,Pn.head/2]];
       const slot=[[sx0,-Pn.slotW/2],[sx0+Pn.slotL,-Pn.slotW/2],[sx0+Pn.slotL,Pn.slotW/2],[sx0,Pn.slotW/2]];
       const wedge=[[0,0],[Wd.L,0],[Wd.L,Wd.h1],[0,Wd.h0]];
-      const cols=Math.max(1,Math.floor((s.bed-10)/(x1+6))), flat=(u,v,w)=>[u,v,w];
+      const cols=Math.max(1,Math.min(3,Math.floor((s.bed-10)/(x1+6)))), flat=(u,v,w)=>[u,v,w];
       for(let i=0;i<nPins;i++){ const ox=(i%cols)*(x1+6), oy=Math.floor(i/cols)*(Pn.head+4);
         prism(A,pin.map(([x,y])=>[x+ox,y+oy]),[slot.map(([x,y])=>[x+ox,y+oy])],0,Pn.t,flat); }
-      const rowsP=Math.ceil(nPins/cols), y00=rowsP*(Pn.head+4)+4, colsW=Math.max(1,Math.floor((s.bed-10)/(Wd.L+6)));
+      const rowsP=Math.ceil(nPins/cols), y00=rowsP*(Pn.head+4)+4, colsW=Math.max(1,Math.min(3,Math.floor((s.bed-10)/(Wd.L+6))));
       for(let i=0;i<nPins;i++){ const ox=(i%colsW)*(Wd.L+6), oy=y00+Math.floor(i/colsW)*(Wd.h1+4);
         prism(A,wedge.map(([x,y])=>[x+ox,y+oy]),[],0,Wd.t,flat); }
       // espigas de unión de los trozos (de pie: cilindros sin voladizo)
-      const y01=y00+Math.ceil(nPins/colsW)*(Wd.h1+4)+4; for(let i=0;i<nDowK;i++){ const ox=3+(i%12)*(DOWEL.dia+5), oy=y01+3+Math.floor(i/12)*(DOWEL.dia+5); prism(A,circle([ox,oy],dowK[i]-0.2,24),[],0,DOWEL.len,flat); }
+      const y01=y00+Math.ceil(nPins/colsW)*(Wd.h1+4)+4; for(let i=0;i<nDowK;i++){ const ox=3+(i%8)*(DOWEL.dia+5), oy=y01+3+Math.floor(i/8)*(DOWEL.dia+5); prism(A,circle([ox,oy],dowK[i]-0.2,24),[],0,DOWEL.len,flat); }
       parts.push({key:'kit',name:nDowK?'Pasadores, cuñas y espigas':'Pasadores y cuñas',file:'molde-pasadores-cunas',T:A.T,print:'flat',color:0x888888,explode:[0,0,0]});
     }
     if(s.rim==='uchien') notes.push('El labio interno no se puede moldear (el núcleo no saldría): el núcleo se hace recto y el labio se forma a mano o se omite.');
@@ -2640,17 +2640,43 @@
     [[0,0x06054b50,4],[4,0,2],[6,0,2],[8,files.length,2],[10,files.length,2],[12,cd,4],[16,off,4],[20,0,2]].forEach(([o,v,z])=>z===4?end.setUint32(o,v,true):end.setUint16(o,v,true));
     return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});
   }
-  // objs: [{name, V, F}] ya orientados para imprimir (Z arriba). Se centran y se acomodan en filas con 10 mm de holgura.
+  // Reparte las piezas en camas de la impresora elegida con MaxRects (mejor ajuste del lado corto): cada cama guarda
+  // sus rectángulos libres y una pieza va al primer hueco donde quepa, girada 90° si hace falta; 8 mm entre piezas y
+  // 6 mm de borde; de la más grande a la más chica. Cada cama queda centrada en la placa. Una pieza que no cabe ni
+  // girada va sola en su cama (y se avisa). Devuelve [[{name,V,F,big}], …] con los vértices ya colocados.
+  function planBeds(objs,s){
+    const G=8, M=6, W=s.bedX-2*M+G, D=s.bedY-2*M+G, beds=[];
+    const box=V=>{ const {mn,mx}=bbox(V); return {w:mx[0]-mn[0],d:mx[1]-mn[1]}; };
+    const list=objs.map(o=>Object.assign({},o,box(o.V))).sort((a,b2)=>b2.w*b2.d-a.w*a.d);
+    const newBed=()=>({free:[{x:0,y:0,w:W,h:D}],items:[]});
+    const tryBed=(bed,o)=>{ let best=null; for(const fr of bed.free) for(const [w,h,rot] of [[o.w+G,o.d+G,false],[o.d+G,o.w+G,true]]) if(w<=fr.w+1e-6&&h<=fr.h+1e-6){ const sc=Math.min(fr.w-w,fr.h-h); if(!best||sc<best.sc) best={sc,x:fr.x,y:fr.y,w,h,rot}; } return best; };
+    const place=(bed,o,p)=>{ bed.items.push({o,rot:p.rot,x:p.x,y:p.y}); const nf=[];
+      bed.free.forEach(fr=>{ if(p.x>=fr.x+fr.w||p.x+p.w<=fr.x||p.y>=fr.y+fr.h||p.y+p.h<=fr.y){ nf.push(fr); return; }
+        if(p.x>fr.x) nf.push({x:fr.x,y:fr.y,w:p.x-fr.x,h:fr.h}); if(p.x+p.w<fr.x+fr.w) nf.push({x:p.x+p.w,y:fr.y,w:fr.x+fr.w-p.x-p.w,h:fr.h});
+        if(p.y>fr.y) nf.push({x:fr.x,y:fr.y,w:fr.w,h:p.y-fr.y}); if(p.y+p.h<fr.y+fr.h) nf.push({x:fr.x,y:p.y+p.h,w:fr.w,h:fr.y+fr.h-p.y-p.h}); });
+      bed.free=nf.filter((a,i)=>!nf.some((c,j)=>j!==i&&a.x>=c.x&&a.y>=c.y&&a.x+a.w<=c.x+c.w&&a.y+a.h<=c.y+c.h&&(j<i||a.x!==c.x||a.y!==c.y||a.w!==c.w||a.h!==c.h))); };
+    list.forEach(o=>{
+      if(!((o.w+G<=W&&o.d+G<=D)||(o.d+G<=W&&o.w+G<=D))){ beds.push({items:[{o,rot:false,x:0,y:0}],free:[],big:true}); return; }
+      for(const bed of beds){ if(bed.big) continue; const p=tryBed(bed,o); if(p){ place(bed,o,p); return; } }
+      const bed=newBed(); place(bed,o,tryBed(bed,o)); beds.push(bed);
+    });
+    return beds.map(bed=>{
+      const placed=bed.items.map(({o,rot,x,y})=>{ const V=o.V.slice(); if(rot) for(let i=0;i<V.length;i+=3){ const vx=V[i]; V[i]=-V[i+1]; V[i+1]=vx; }
+        const b2=bbox(V); for(let i=0;i<V.length;i+=3){ V[i]+=x-b2.mn[0]; V[i+1]+=y-b2.mn[1]; V[i+2]-=b2.mn[2]; } return {name:o.name,V,F:o.F,big:!!bed.big}; });
+      // centrar el grupo en la placa
+      let mnx=Infinity,mny=Infinity,mxx=-Infinity,mxy=-Infinity; placed.forEach(p=>{ const b2=bbox(p.V); mnx=Math.min(mnx,b2.mn[0]); mny=Math.min(mny,b2.mn[1]); mxx=Math.max(mxx,b2.mx[0]); mxy=Math.max(mxy,b2.mx[1]); });
+      const dx=s.bedX/2-(mnx+mxx)/2, dy=s.bedY/2-(mny+mxy)/2; placed.forEach(p=>{ for(let i=0;i<p.V.length;i+=3){ p.V[i]+=dx; p.V[i+1]+=dy; } });
+      return placed; });
+  }
+  // objs: [{name, V, F}] ya colocados en la placa (planBeds).
   async function make3MF(objs,s,title){
     const esc3=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'), f=x=>(Math.round(x*1000)/1000).toString();
-    let x=0, y=0, row=0; const W=s.bedX, res=[], items=[];
-    objs.forEach((o,k)=>{ const {mn,mx}=bbox(o.V), w=mx[0]-mn[0], d=mx[1]-mn[1];
-      if(x>0&&x+w>W){ x=0; y+=row+10; row=0; }
-      const tx=x-mn[0], ty=y-mn[1], tz=-mn[2]; x+=w+10; row=Math.max(row,d);
+    const res=[], items=[];
+    objs.forEach((o,k)=>{
       const vs=[], ts=[]; for(let i=0;i<o.V.length;i+=3) vs.push(`<vertex x="${f(o.V[i])}" y="${f(o.V[i+1])}" z="${f(o.V[i+2])}"/>`);
       o.F.forEach(([a,b2,c])=>ts.push(`<triangle v1="${a}" v2="${b2}" v3="${c}"/>`));
       res.push(`<object id="${k+1}" name="${esc3(o.name)}" type="model"><mesh><vertices>${vs.join('')}</vertices><triangles>${ts.join('')}</triangles></mesh></object>`);
-      items.push(`<item objectid="${k+1}" transform="1 0 0 0 1 0 0 0 1 ${f(tx)} ${f(ty)} ${f(tz)}"/>`); });
+      items.push(`<item objectid="${k+1}"/>`); });
     const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="es-EC" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">${esc3(title)}</metadata><metadata name="Designer">Legado Bonsai</metadata><resources>${res.join('')}</resources><build>${items.join('')}</build></model>`;
     const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>';
     const rels='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
@@ -2676,9 +2702,10 @@
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
     const P=await exportPieces(s,b), what=s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='mold'?'molde':'maceta-para-imprimir';
     const nm=(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-    const blob=await make3MF(P,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`);
-    download(blob,`${what}-${nm}.3mf`);
-    out.textContent=`Listo: ${what.replace(/-/g,' ')} en 3MF con ${P.length} pieza${P.length>1?'s':''} (${(blob.size/1048576).toFixed(1).replace('.',',')} MB). Ábrelo con doble clic en Bambu Studio (o Archivo → Importar). Si no caben en una cama, agrega otra cama con «+» y pulsa «Organizar» (tecla A). Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.`;
+    const beds=planBeds(P,s), nb=beds.length; let mb=0;
+    for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
+    const lista=beds.map((bd,k)=>`cama ${k+1}: ${bd.map(p=>p.name.split(' — ')[0].toLowerCase()).join(', ')}${bd[0]&&bd[0].big?' (no cabe en la cama: pártela en el laminador)':''}`).join(' · ');
+    out.textContent=`Listo: ${P.length} pieza${P.length>1?'s':''} en ${nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. Ábrelo con doble clic en Bambu Studio; si avisa «configuración no válida, carga solo los datos de geometría», pulsa OK: es normal con archivos que no hizo Bambu Studio. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.`;
   }
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
