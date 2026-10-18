@@ -262,10 +262,12 @@
       <summary>Diseño para imprimir en 3D</summary>
       <p class="mold-lead">La maceta se imprime de pie, con el fondo en la cama. Ajusta el diseño mirándolo en 3D y descárgalo cuando te guste.</p>
       <div class="grid2">
+        <label class="f" style="grid-column:1/-1"><span>Pared impresa</span><select id="pWall"><option value="auto" selected>Recomendada según el tamaño</option><option value="1.7">1,7 mm · 4 líneas</option><option value="2.1">2,1 mm · 5 líneas</option><option value="2.5">2,5 mm · 6 líneas</option><option value="2.9">2,9 mm · 7 líneas</option><option value="3.4">3,4 mm · 8 líneas</option><option value="4.2">4,2 mm · 10 líneas</option><option value="plantilla">Como la plantilla de arcilla</option></select><small class="hint" id="pWallHint"></small></label>
         <label class="f" style="grid-column:1/-1"><span>Labio</span><select id="pLip"><option value="recto" selected>Sin labio · borde recto (sin soporte)</option><option value="bisel">Labio en bisel de 55° (sin soporte)</option><option value="diseno">Labio como el diseño (necesita soporte)</option></select></label>
-        <label class="f" style="grid-column:1/-1"><span>Patas</span><select id="pFeet"><option value="encaje" selected>Aparte, con encaje en el fondo (sin soporte)</option><option value="pegadas">Pegadas a la maceta (soporte bajo el fondo)</option></select></label>
+        <label class="f" style="grid-column:1/-1"><span>Patas</span><select id="pFeet"><option value="presion" selected>Aparte, a presión con espigas · sin pegamento</option><option value="encaje">Aparte, con cabeza para pegar</option><option value="pegadas">Pegadas a la maceta (soporte bajo el fondo)</option></select></label>
+        <label class="f" style="grid-column:1/-1"><span>Ajuste de las espigas</span><select id="pFit"><option value="suave">Suave · nervios de 0,15 mm</option><option value="medio" selected>Medio · nervios de 0,25 mm</option><option value="firme">Firme · nervios de 0,35 mm</option></select></label>
       </div>
-      <p class="mold-lead" style="margin-top:8px">Encaje: cada pata lleva arriba una cabeza en chaflán de 2,5 mm que entra en su hueco del fondo; se pega con cianoacrilato o epoxi y queda centrada sola. Mueve «Armado ↔ Desarmado» para verlo.</p>
+      <p class="mold-lead" style="margin-top:8px">A presión, como un LEGO Technic: espigas de Ø 4 mm con nervios que se aplastan al entrar en agujeros de Ø 4,2 mm (3 mm en el fondo y 3 mm en la pata), dos por pata cuando caben. Mete las espigas en el fondo y encaja las patas: no hace falta pegamento. Imprime primero una pata y sus espigas: si queda floja, pasa a «Firme»; si cuesta meterla, a «Suave». Mueve «Armado ↔ Desarmado» para verlo.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnPrint3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnPrintStl" type="button">Descargar STL</button></div>
       <div id="printOut" class="mold-out"></div>
     </details>
@@ -463,7 +465,10 @@
     if(mat==='clay'&&s.type==='round') s.flare=0;
     s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
-    s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; s.pLip=$('pLip').value; s.pFeet=$('pFeet').value; if(s.printable||s.obj==='mesa'&&s.mode==='mold') s.seal=$('pSeal').value;
+    s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; s.pLip=$('pLip').value; s.pFeet=$('pFeet').value; s.pFit=$('pFit').value; s.tClay=s.t;
+    { const pw=$('pWall').value; s.pT=pw==='auto'?printWall(s):pw==='plantilla'?s.t:(+pw||2.5); s.pBase=Math.max(3,Math.round(s.pT*13)/10,s.feet>0&&s.pFeet!=='pegadas'?PIN.hp+1.2:0); }
+    if(s.printable) s.t=s.pT;   // Impresión 3D: pared de plástico, no la placa de arcilla
+    if(s.printable||s.obj==='mesa'&&s.mode==='mold') s.seal=$('pSeal').value;
     if(s.printable&&s.pLip==='recto'&&s.rim!=='kittate'){ s.rimDesign=s.rim; s.rim='kittate'; }   // sin labio: borde recto
     if(s.type==='rect'&&s.corner==='sumiiri') s.foot='bloque';   // en la esquina entrante cuadrada no cabe una pata corrida
     s.lipX=s.rim==='sotoen'?s.lip:0;                      // outward growth at the rim
@@ -1201,12 +1206,87 @@
     return out;
   }
   // Sólido cerrado de una cinta: entre las alturas lo[k] y hi[k] en cada muestra (triángulos sueltos, x/y/z en mm).
-  function ribbonTris(o,i,lo,hi){
+  // ---------- Patas a presión (Impresión 3D) ----------
+  // Como un LEGO Technic: espigas sueltas de Ø 4 mm con 4 nervios de aplastamiento que entran a presión en agujeros
+  // ciegos de Ø 4,2 mm, 3 mm en el fondo de la maceta y 3 mm en la cara de arriba de la pata. Los nervios se aplastan al
+  // meterlas y absorben la tolerancia de la impresora (el núcleo queda con holgura y deja salir el aire). Todo se imprime
+  // sin soportes: maceta y patas con la cara del agujero en la cama (el fondo de cada agujero es un puente corto) y las
+  // espigas de pie. Dos espigas por pata cuando caben (así no gira); en patas chicas, una.
+  const PIN={d:4,hole:4.2,hp:3,hf:3,gap:0.2,ch:0.3,rib:{suave:0.15,medio:0.25,firme:0.35}};
+  // si la pata es baja o delgada: agujero de 2 mm en la pata y, si aún no cabe, espiga de Ø 3 mm (en este orden)
+  const PIN_CF=[{d:4,hole:4.2,hf:3},{d:4,hole:4.2,hf:2},{d:3,hole:3.2,hf:2},{d:3,hole:3.2,hf:1.6}];
+  // pared recomendada para imprimir (mm): como las macetas de plástico (1,5 a 3,5 mm según el tamaño) y siempre un
+  // múltiplo de la línea de 0,42 mm de la boquilla de 0,4, así la pared sale maciza solo con perímetros
+  const printWall=s=>{ const m=Math.max(s.L,s.W,s.H); return m<100?1.7:m<180?2.1:m<280?2.5:m<380?2.9:3.4; };
+  const circleXZ=(c,r,n=32)=>Array.from({length:n},(_,i)=>{ const a=i/n*2*Math.PI; return [c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)]; });
+  // Sitio de las espigas: {pins:[{c,fid,d,hole,hf}], byF: Map(pata → [{c,a,b,d,hole,hf}])}; a..b es el tramo de la cinta
+  // cuya cara de arriba rodea el agujero
+  function pinPlan(s,outline,holes){
+    const pins=[], byF=new Map(), FR=footRibbons(s);
+    const inP=(p,L)=>{ let c=false; for(let i=0,j=L.length-1;i<L.length;j=i++){ const a=L[i], b=L[j]; if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]) c=!c; } return c; };
+    const sd=(p,a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], l=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l)); return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dy*t); };
+    const dist=(p,L)=>{ let m=Infinity; for(let i=0;i<L.length;i++){ const d=sd(p,L[i],L[(i+1)%L.length]); if(d<m) m=d; } return m; };
+    const X=(a,b,c,d)=>{ const r1=[b[0]-a[0],b[1]-a[1]], r2=[d[0]-c[0],d[1]-c[1]], den=r1[0]*r2[1]-r1[1]*r2[0]; if(Math.abs(den)<1e-12) return false; const t=((c[0]-a[0])*r2[1]-(c[1]-a[1])*r2[0])/den, w=((c[0]-a[0])*r1[1]-(c[1]-a[1])*r1[0])/den; return t>1e-6&&t<1-1e-6&&w>1e-6&&w<1-1e-6; };
+    const simple=L=>{ const n=L.length; for(let a=0;a<n;a++) for(let b=a+2;b<n;b++){ if(a===0&&b===n-1) continue; if(X(L[a],L[(a+1)%n],L[b],L[(b+1)%n])) return false; } return true; };
+    // el agujero del fondo: dentro del fondo, lejos del borde, de los drenajes y alambres y de las otras espigas
+    const potOK=(c,rH)=>inP(c,outline)&&dist(c,outline)>=rH+1.5&&holes.every(h=>Math.hypot(c[0]-h.c[0],c[1]-h.c[1])>=h.r+rH+1.5)&&pins.every(p=>Math.hypot(c[0]-p.c[0],c[1]-p.c[1])>=rH+p.hole/2+2);
+    const keep=(k,list,cf)=>{ list=list.map(q=>Object.assign({},q,cf)); byF.set(k,list); list.forEach(q=>pins.push(Object.assign({fid:k},q))); };
+    if(FR) FR.forEach((r,k)=>{
+      // a lo largo del eje de la cinta: la pata debe medir ahí al menos el agujero + 1,2 mm de alto y dejar 0,9 mm de
+      // pared a cada lado; el tramo a..b de la cara de arriba que rodea el agujero tiene que ser un polígono simple
+      const m=r.o.length, C=r.o.map((p,j)=>[(p[0]+r.i[j][0])/2,(p[1]+r.i[j][1])/2]), S=[0];
+      for(let j=1;j<m;j++) S.push(S[j-1]+Math.hypot(C[j][0]-C[j-1][0],C[j][1]-C[j-1][1]));
+      const tot=S[m-1];
+      for(const cf of PIN_CF){ const rH=cf.hole/2, need=cf.hf+1.2, cand=[];
+        for(let j=1;j<m-1;j++){ const sc=S[j]; if(sc<rH+1.2||sc>tot-rH-1.2) continue;
+          let a=j; while(a>0&&S[a]>sc-rH-1) a--; let b=j; while(b<m-1&&S[b]<sc+rH+1) b++;
+          let ok=true; for(let q=a;q<=b;q++) if(r.dep[q]<need) ok=false; if(!ok) continue;
+          const Pg=[...r.o.slice(a,b+1),...r.i.slice(a,b+1).reverse()];
+          if(!simple(Pg)||!inP(C[j],Pg)||dist(C[j],Pg)<rH+0.9||!potOK(C[j],rH)) continue;
+          cand.push({c:C[j],sc,a,b}); }
+        if(!cand.length) continue;
+        const f=cand[0], l=cand[cand.length-1];
+        keep(k,l.sc-f.sc>=2*rH+4&&f.b<l.a?[f,l]:[cand[cand.length>>1]],cf); break; } });
+    else { const f=footSize(s.L,s.W), e=f*0.2;
+      blockFeet(s).forEach(([x,z],k)=>{ for(const cf of PIN_CF){ const rH=cf.hole/2; if(s.feet<cf.hf+1.2) continue;
+        const cs=(f>=15?[[x-e,z-e],[x+e,z+e]]:f>=2*rH+2?[[x,z]]:[]).filter(c=>potOK(c,rH)); if(cs.length){ keep(k,cs.map(c=>({c})),cf); break; } } }); }
+    return {pins,byF};
+  }
+  // espiga: núcleo de Ø d con 4 nervios triangulares de alto h, chaflán de 0,3 mm en las dos puntas
+  function pinTris(c,y0,y1,h,d=PIN.d){
+    const n=72, rc=d/2, w=0.3*4/d, T=[], R=k=>{ const th=k/n*2*Math.PI; let e2=Infinity; for(let j=0;j<4;j++){ let e=Math.abs(th-j*Math.PI/2); e=Math.min(e,2*Math.PI-e); e2=Math.min(e2,e); } return rc+h*Math.max(0,1-e2/w); };
+    const ring=(y,dr)=>Array.from({length:n},(_,k)=>{ const th=k/n*2*Math.PI, r=R(k)-dr; return [c[0]+r*Math.cos(th),y,c[1]+r*Math.sin(th)]; });
+    const Rs=[ring(y0,PIN.ch),ring(y0+PIN.ch,0),ring(y1-PIN.ch,0),ring(y1,PIN.ch)], tri=(a,b,e)=>T.push(...a,...b,...e);
+    for(let q=0;q<3;q++) for(let k=0;k<n;k++){ const k2=(k+1)%n, A=Rs[q], B=Rs[q+1]; tri(A[k],A[k2],B[k2]); tri(A[k],B[k2],B[k]); }
+    [[Rs[0],y0],[Rs[3],y1]].forEach(([Rg,y])=>{ const cc=[c[0],y,c[1]]; for(let k=0;k<n;k++) tri(cc,Rg[(k+1)%n],Rg[k]); });
+    return T;
+  }
+  // agujeros ciegos {c, hole, hf} en una cara horizontal y = y1, hacia abajo: pared y fondo de cada uno
+  function holeWalls(H,y1,tri,quad,P){ H.forEach(h=>{ const Ci=circleXZ(h.c,h.hole/2), yb=y1-h.hf; Ci.forEach((p,q)=>{ const n2=Ci[(q+1)%Ci.length]; quad(P(p,y1),P(n2,y1),P(n2,yb),P(p,yb)); }); for(let q=1;q<Ci.length-1;q++) tri(P(Ci[0],yb),P(Ci[q],yb),P(Ci[q+1],yb)); }); }
+  const jit2D=THREE=>{ let jq=0; return L=>L.map(([px,pz])=>{ jq=(jq*9301+49297)%233280; const j1=(jq/233280-0.5)*2e-5; jq=(jq*9301+49297)%233280; return new THREE.Vector2(px+j1,pz+(jq/233280-0.5)*2e-5); }); };
+  // pata de bloque con agujeros ciegos en la cara de arriba (y1)
+  function blindBlockTris(THREE,x,z,f,y0,y1,H){
+    const T=[], P=(p,y)=>[p[0],y,p[1]], tri=(a,b,c)=>T.push(...a,...b,...c), quad=(a,b,c,d)=>{ tri(a,b,c); tri(a,c,d); };
+    const Q=[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], Cs=H.map(h=>circleXZ(h.c,h.hole/2)), all=Q.concat(...Cs), J=jit2D(THREE);
+    tri(P(Q[0],y0),P(Q[2],y0),P(Q[1],y0)); tri(P(Q[0],y0),P(Q[3],y0),P(Q[2],y0));
+    for(let k=0;k<4;k++){ const a=Q[k], b=Q[(k+1)%4]; quad(P(a,y0),P(b,y0),P(b,y1),P(a,y1)); }
+    THREE.ShapeUtils.triangulateShape(J(Q),Cs.map(J)).forEach(t=>tri(P(all[t[0]],y1),P(all[t[1]],y1),P(all[t[2]],y1)));
+    holeWalls(H,y1,tri,quad,P);
+    return T;
+  }
+  // HH (opcional, patas a presión): {THREE, holes:[{c,a,b,hole,hf}]}: agujeros ciegos en la cara de arriba; el tramo a..b
+  // de esa cara se triangula con su agujero y el resto sigue en cuadriláteros
+  function ribbonTris(o,i,lo,hi,HH){
     const T=[], P=(p,y)=>[p[0],y,p[1]], tri=(a,b,c)=>T.push(...a,...b,...c), quad=(a,b,c,d)=>{ tri(a,b,c); tri(a,c,d); }, n=o.length;
+    const skip=a=>!!HH&&HH.holes.some(h=>a>=h.a&&a<h.b);
     for(let a=0;a<n-1;a++){ const b=a+1;
       quad(P(o[a],hi[a]),P(o[b],hi[b]),P(o[b],lo[b]),P(o[a],lo[a])); quad(P(i[a],hi[a]),P(i[a],lo[a]),P(i[b],lo[b]),P(i[b],hi[b]));
-      quad(P(o[a],lo[a]),P(o[b],lo[b]),P(i[b],lo[b]),P(i[a],lo[a])); quad(P(o[a],hi[a]),P(i[a],hi[a]),P(i[b],hi[b]),P(o[b],hi[b])); }
+      quad(P(o[a],lo[a]),P(o[b],lo[b]),P(i[b],lo[b]),P(i[a],lo[a])); if(!skip(a)) quad(P(o[a],hi[a]),P(i[a],hi[a]),P(i[b],hi[b]),P(o[b],hi[b])); }
     [0,n-1].forEach(k=>quad(P(o[k],hi[k]),P(i[k],hi[k]),P(i[k],lo[k]),P(o[k],lo[k])));
+    if(HH){ const J=jit2D(HH.THREE);
+      HH.holes.forEach(h=>{ const y=hi[h.a], Pg=[...o.slice(h.a,h.b+1),...i.slice(h.a,h.b+1).reverse()], Ci=circleXZ(h.c,h.hole/2), all=Pg.concat(Ci);
+        HH.THREE.ShapeUtils.triangulateShape(J(Pg),[J(Ci)]).forEach(t=>tri(P(all[t[0]],y),P(all[t[1]],y),P(all[t[2]],y))); });
+      HH.holes.forEach(h=>holeWalls([h],hi[h.a],tri,quad,P)); }
     return T;
   }
   // Encaje de las patas impresas aparte (Impresión 3D): en la cara inferior de la maceta, un hueco de 2,8 mm con
@@ -1326,7 +1406,7 @@
     const glossy=['azul','oribe','crema','seiji'].includes(s.finish);
     const mat=new THREE.MeshStandardMaterial({color:F.body,roughness:glossy?0.25:0.85,metalness:0,side:THREE.DoubleSide});
     const dark=new THREE.MeshStandardMaterial({color:F.dark,roughness:glossy?0.3:0.9,side:THREE.DoubleSide});
-    const ext=halfExt(s,R,H,ft,s.flare), Hc=Math.max(4,clay?H-ft-s.t:b.core), int=halfInt(s,R-s.t,Hc,s.flare);
+    const ext=halfExt(s,R,H,ft,s.flare), Hc=Math.max(4,s.printable?H-ft-(s.pBase||s.t):clay?H-ft-s.t:b.core), int=halfInt(s,R-s.t,Hc,s.flare);
     const ring=(x,y)=>{ const dl=R-x; return ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),n).map(([px,pz])=>[px,H-y,pz]); };
     const pos=[], idx=[];
     const band=(A,B)=>{ const o=pos.length/3; A.concat(B).forEach(p=>pos.push(p[0],p[1],p[2])); for(let i=0;i<n;i++){ const j=(i+1)%n; idx.push(o+i,o+j,o+n+i,o+j,o+n+j,o+n+i); } };
@@ -1342,7 +1422,9 @@
     let jq=0; const jit=()=>{ jq=(jq*9301+49297)%233280; return (jq/233280-0.5)*2e-5; }, J=L=>L.map(([x,z])=>new THREE.Vector2(x+jit(),z+jit()));
     const capH=(A,y,HL=HO)=>{ const C=A.map(p=>[p[0],p[2]]), tr=THREE.ShapeUtils.triangulateShape(J(C),HL.map(J)), o=pos.length/3; C.concat(...HL).forEach(([x,z])=>pos.push(x,y,z)); tr.forEach(t=>idx.push(o+t[0],o+t[1],o+t[2])); };
     // versión para imprimir con las patas aparte (sepF): cada pata lleva una cabeza en chaflán que entra en su hueco del fondo
-    const sepF=s.printable&&s.pFeet!=='pegadas'&&ft>0, PK=sepF?footJoints(s,E[E.length-1].map(p=>[p[0],p[2]]),HO?[...P.drains.map(c=>({c,r:P.dr})),...P.wires.map(c=>({c,r:P.wr}))]:[]):null;
+    const sepF=s.printable&&s.pFeet!=='pegadas'&&ft>0, PK=sepF&&s.pFeet==='encaje'?footJoints(s,E[E.length-1].map(p=>[p[0],p[2]]),HO?[...P.drains.map(c=>({c,r:P.dr})),...P.wires.map(c=>({c,r:P.wr}))]:[]):null;
+    // patas a presión: agujeros ciegos para las espigas en el fondo y en la cara de arriba de cada pata
+    const PP=sepF&&s.pFeet==='presion'?pinPlan(s,E[E.length-1].map(p=>[p[0],p[2]]),[...P.drains.map(c=>({c,r:P.dr})),...P.wires.map(c=>({c,r:P.wr}))]):null, PH=PP?PP.pins.map(p=>circleXZ(p.c,p.hole/2)):[];
     surface(E,ext);
     const dd=L=>L.filter((p,i)=>{ const q=L[(i+L.length-1)%L.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>1e-6; });
     // Impresión 3D: el logotipo va GRABADO 1 mm en la cara de abajo. Esa cara apoya en la cama, así que un relieve no la
@@ -1350,14 +1432,16 @@
     const SLp=s.printable?computeSeal(s):null, SD=1, cl=new Map();
     const cln=L=>{ if(!cl.has(L)){ const o=[]; L.forEach(p=>{ const q=o[o.length-1]; if(!q||Math.hypot(p[0]-q[0],p[1]-q[1])>0.03) o.push(p); }); while(o.length>3&&Math.hypot(o[0][0]-o[o.length-1][0],o[0][1]-o[o.length-1][1])<=0.03) o.pop(); cl.set(L,o); } return cl.get(L); };
     const SR=SLp?SLp.regions.map(r=>({L:cln(r.L),d:r.d,kids:r.kids.map(cln)})):null;
-    if(HO||PK&&PK.length||SR) capH(E[E.length-1],ft,[...(HO||[]),...(PK?PK.map(p=>p.D):[]),...(SR?SR.filter(r=>r.d===0).map(r=>r.L):[])]); else cap(E[E.length-1],ft,pos,idx);
+    if(HO||PK&&PK.length||SR||PH.length) capH(E[E.length-1],ft,[...(HO||[]),...(PK?PK.map(p=>p.D):[]),...(SR?SR.filter(r=>r.d===0).map(r=>r.L):[]),...PH]); else cap(E[E.length-1],ft,pos,idx);
     G.userData.bridges=0;
-    if(SR){ const areaH=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
+    { const areaH=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
       const flatH=(L,holes,y)=>{ const o=pos.length/3; [L,...holes].forEach(h=>h.forEach(([x,z])=>pos.push(x,y,z))); THREE.ShapeUtils.triangulateShape(J(L),holes.map(J)).forEach(t=>idx.push(o+t[0],o+t[1],o+t[2])); };
       const wallH=(L,y0,y1)=>{ const o=pos.length/3, m=L.length; L.forEach(([x,z])=>pos.push(x,y0,z)); L.forEach(([x,z])=>pos.push(x,y1,z)); for(let i=0;i<m;i++){ const j=(i+1)%m; idx.push(o+i,o+j,o+m+i,o+j,o+m+j,o+m+i); } };
       // cada contorno lleva su pared; el relleno del logotipo (profundidad par) es el techo del grabado y los huecos de
       // las letras (impar) quedan como islas en la cara de abajo
-      SR.forEach(r=>{ wallH(r.L,ft,ft+SD); if(r.d%2===0){ flatH(r.L,r.kids,ft+SD); G.userData.bridges+=areaH(r.L)-r.kids.reduce((t,k)=>t+areaH(k),0); } else flatH(r.L,r.kids,ft); }); }
+      // agujero de cada espiga: 3 mm hacia dentro del fondo; su techo es un puente de 4,2 mm
+      PH.forEach(h=>{ wallH(h,ft,ft+PIN.hp); flatH(h,[],ft+PIN.hp); G.userData.bridges+=areaH(h); });
+      if(SR) SR.forEach(r=>{ wallH(r.L,ft,ft+SD); if(r.d%2===0){ flatH(r.L,r.kids,ft+SD); G.userData.bridges+=areaH(r.L)-r.kids.reduce((t,k)=>t+areaH(k),0); } else flatH(r.L,r.kids,ft); }); }
     if(PK){ const area=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
       const flat=(L,holes,y)=>{ const o=pos.length/3; [L,...holes].forEach(h=>h.forEach(([x,z])=>pos.push(x,y,z))); THREE.ShapeUtils.triangulateShape(J(L),holes.map(J)).forEach(t=>idx.push(o+t[0],o+t[1],o+t[2])); };
       const band=(A,B2,y0,y1)=>{ const o=pos.length/3, m=A.length; A.forEach(([x,z])=>pos.push(x,y0,z)); B2.forEach(([x,z])=>pos.push(x,y1,z)); for(let i=0;i<m;i++){ const j=(i+1)%m; idx.push(o+i,o+j,o+m+i,o+j,o+m+j,o+m+i); } };
@@ -1404,12 +1488,15 @@
       const BF=blockFeet(s);   // patas de bloque: mismas posiciones que usa el molde de vaciado
       // cemento con estilo de pata: las cintas de footRibbons (las mismas que forman los huecos de la placa del molde)
       const FR=(!clay||s.printable)&&footRibbons(s), topF=sepF?ft:ft+0.3, tag=k=>{ if(sepF){ const o=G.children[G.children.length-1]; o.userData.foot=true; o.userData.fid=k; } };
-      if(FR) FR.forEach((r,k)=>{ const T=ribbonTris(r.o,r.i,r.dep.map(d=>ft-d),r.dep.map(()=>topF)), gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); gg.computeVertexNormals(); G.add(new THREE.Mesh(gg,dark)); tag(k); });
-      else if(!useAla||s.printable) BF.forEach(([x,z],k)=>{ box(f,ft,f,x,ft/2,z); tag(k); });
+      if(FR) FR.forEach((r,k)=>{ const HP=PP&&PP.byF.get(k); if(HP) G.userData.bridges+=HP.reduce((t,h)=>t+Math.PI*(h.hole/2)**2,0); const T=ribbonTris(r.o,r.i,r.dep.map(d=>ft-d),r.dep.map(()=>topF),HP?{THREE,holes:HP}:null), gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); gg.computeVertexNormals(); G.add(new THREE.Mesh(gg,dark)); tag(k); });
+      else if(!useAla||s.printable) BF.forEach(([x,z],k)=>{ const HP=PP&&PP.byF.get(k);
+        if(HP){ const T=blindBlockTris(THREE,x,z,f,0,topF,HP), gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); gg.computeVertexNormals(); G.add(new THREE.Mesh(gg,dark)); G.userData.bridges+=HP.reduce((t,h)=>t+Math.PI*(h.hole/2)**2,0); }
+        else box(f,ft,f,x,ft/2,z); tag(k); });
       // cabeza de encaje de cada pata: de la huella entera (a la altura del fondo) a la huella menos 1,75 mm, 2,5 mm más arriba
       if(PK) PK.forEach(p=>{ const P2=[], I2=[], m=p.ib.length; p.ib.forEach(([x,z])=>P2.push(x,ft-0.2,z)); p.it.forEach(([x,z])=>P2.push(x,ft+2.5,z)); for(let i=0;i<m;i++){ const j=(i+1)%m; I2.push(i,j,m+i,j,m+j,m+i); }
         const cap2=(L,off)=>{ const D=L.map((q,i)=>[q,i]).filter(([q,i])=>{ const r=L[(i+L.length-1)%L.length]; return Math.hypot(q[0]-r[0],q[1]-r[1])>1e-6; }); THREE.ShapeUtils.triangulateShape(J(D.map(d=>d[0])),[]).forEach(t=>I2.push(off+D[t[0]][1],off+D[t[1]][1],off+D[t[2]][1])); };
         cap2(p.ib,0); cap2(p.it,m); const gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(P2,3)); gg.setIndex(I2); gg.computeVertexNormals(); G.add(new THREE.Mesh(gg,dark)); tag(p.k); });
+      else if(s.printable){ /* Impresión 3D: las patas son las cintas o los bloques de arriba */ }
       else if(N){ /* alas del polígono, arriba */ }
       else if(s.type==='rect'){
         const inset=s.corner==='sumiiri'?s.c*0.75:0, lenB=2*leg+s.c*0.6;
@@ -1419,6 +1506,9 @@
           else box(f,ft,f,BF[ci][0],ft/2,BF[ci][1]);
         });
       } else { const k=s.type==='round'?3:4; for(let i=0;i<k;i++){ const a=(k===3?Math.PI/2:Math.PI/4)+i*2*Math.PI/k; ribbon(sOf(lb*Math.cos(a),wb*Math.sin(a)),2*leg,archPts(2*leg,ft,s.foot)); } }
+      // espigas a presión: en el visor, metidas en su pata (al desarmar quedan con las patas, asomando 3 mm)
+      if(PP){ const rib=PIN.rib[s.pFit]||PIN.rib.medio, pm=new THREE.MeshStandardMaterial({color:0xe9dcc0,roughness:0.6,side:THREE.DoubleSide});
+        PP.pins.forEach((p,j)=>{ const T=pinTris(p.c,ft-p.hf+PIN.gap,ft+PIN.hp-PIN.gap,rib*p.d/4,p.d), gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); gg.computeVertexNormals(); const m=new THREE.Mesh(gg,pm); m.userData.foot=true; m.userData.pin=true; m.userData.fid='e'+j; G.add(m); }); }
     }
     // paneles decorativos: el mismo contorno de la plantilla (panelSubpaths), extruido sobre cada pared o lado
     if(s.panel&&(s.type==='rect'||SHP(s))&&!(opt.stl&&PAN.mode!=='relieve')){
@@ -1464,7 +1554,7 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pLip','Labio',1],['pFeet','Patas',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base. Mesa: en relieve bajo la cubierta. Míralo con «Fondo».'],['pSeal','Variante',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base. Mesa: en relieve bajo la cubierta. Míralo con «Fondo».'],['pSeal','Variante',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     let sec='';
@@ -1490,6 +1580,7 @@
     V3F.forEach(([id])=>{ const src=$(id), el=$('v3_'+id); if(!el) return; if(src.type==='checkbox') el.checked=src.checked; else if(document.activeElement!==el||el.value==='') el.value=src.value; el.disabled=src.disabled; });
     // cada sección del panel se ve solo donde aplica: Impresión 3D en su sección; el molde en Molde 3D y en Cemento
     const md=document.body.dataset.mode||'clay'; $('v3fields').querySelectorAll('[data-sec]').forEach(el=>{ const ob=$('pObj').value, sc=el.dataset.sec, on=sc==='print'?md==='print'&&ob!=='mesa':sc==='mold'?(md==='mold'&&ob!=='mesa')||md==='cement':sc==='obj'?md==='print'||md==='mold':sc==='marca'?md==='print'||md==='mold'&&ob==='mesa':sc==='mesa'?(md==='print'||md==='mold')&&ob==='mesa':true; el.style.display=on?'':'none'; });
+    { const e=$('v3_t'); if(e) e.closest('label').style.display=md==='print'?'none':''; }   // en Impresión 3D manda «Pared impresa»
     $('v3finish').value=$('finish').value;
   }
   function dims3(s,b){
@@ -1498,7 +1589,7 @@
     L.push(`Boca    ${s.type==='round'?'Ø '+cm(s.L):two?cm(s.L)+' × '+cm(s.W):cm(s.L)+' e/caras'} cm`);
     if(s.flare>0) L.push(`Fondo   ${two?cm(s.L-2*s.flare)+' × '+cm(s.W-2*s.flare):cm(s.L-2*s.flare)} cm`);
     L.push(`Alto    ${cm(s.H)} cm · patas ${cm(s.feet)} cm`);
-    if(s.printable){ L.push(`Pared   ${cm(s.t)} cm · fondo ${cm(s.t)} cm`,`Hondo útil ${cm(s.H-s.feet-s.t)} cm`,`Labio   ${s.pLip==='recto'?'sin labio':s.pLip==='bisel'?'en bisel de 55°':'como el diseño'}`,`Patas   ${s.feet>0?(s.pFeet==='pegadas'?'pegadas':'aparte, con encaje'):'sin patas'}`,(()=>{ const sl=computeSeal(s); return `Logotipo ${sl?sl.name.toLowerCase()+' · '+cm(sl.w)+' cm · grabado 1 mm':'sin logotipo'}`; })()); return L.join('\n'); }
+    if(s.printable){ L.push(`Pared   ${String(Math.round(s.t*10)/10).replace('.',',')} mm (${Math.round(s.t/0.42)} líneas) · fondo ${String(s.pBase).replace('.',',')} mm`,`Hondo útil ${cm(s.H-s.feet-s.pBase)} cm`,`Labio   ${s.pLip==='recto'?'sin labio':s.pLip==='bisel'?'en bisel de 55°':'como el diseño'}`,`Patas   ${s.feet>0?(s.pFeet==='pegadas'?'pegadas':s.pFeet==='presion'?'aparte, a presión con espigas ('+s.pFit+')':'aparte, cabeza para pegar'):'sin patas'}`,(()=>{ const sl=computeSeal(s); return `Logotipo ${sl?sl.name.toLowerCase()+' · '+cm(sl.w)+' cm · grabado 1 mm':'sin logotipo'}`; })()); return L.join('\n'); }
     L.push(clay?`Pared   placa ${cm(s.t)} cm · cocida ≈ ${cm(s.t*kf)} cm`:`Pared   ${cm(s.t)} cm · fondo ${cm(s.base)} cm`);
     L.push(`Hondo útil ${cm(clay?s.H-s.feet-s.t*kf:b.core)} cm`);
     if(clay) L.push(`En crudo ${cm(b.L)}${two?' × '+cm(b.W):''} × ${cm(b.H)} cm (×${b.k.toFixed(3).replace('.',',')})`);
@@ -1588,7 +1679,7 @@
     const dims=s.type==='round'?`Ø ${cm(s.L)} × ${cm(s.H)} cm`:`${cm(s.L)} × ${cm(s.W)} × ${cm(s.H)} cm`;
     $('v3title').textContent=`${current?current.name:shapeName(s)} · ${dims}`;
     if(mesaOn){ $('v3title').textContent=`Mesa ${{4:'cuadrada',6:'hexagonal',8:'octogonal'}[s.tN]} · ${cm(s.tW)} × ${cm(s.tH)} cm · con ${current?current.name.toLowerCase():'la maceta'}`; $('v3msg').textContent=s.mode==='mold'?'Molde de silicona: la mesa impresa es la madre (boca abajo, pegada al piso de la caja); la silicona la cubre y en ese molde se cuela el cemento. A la derecha, la mesa de cemento terminada.':'Mesa para imprimir boca abajo en una sola pieza, sin soportes. Arrastra para girar; «Fondo» la muestra por debajo.'; }
-    if(!moldOn&&!mesaOn) $('v3msg').textContent=s.printable?'Maceta para imprimir de pie. Con «Desarmado» se ven las patas aparte, con la cabeza que entra en su hueco del fondo (botón «Fondo» para ver los huecos). Arrastra para girar.':'Arrastra para girar · rueda o pellizco para acercar · clic derecho para desplazar';
+    if(!moldOn&&!mesaOn) $('v3msg').textContent=s.printable?(s.pFeet==='presion'?'Maceta para imprimir de pie. Con «Desarmado» se ven las patas aparte con sus espigas a presión, que entran en los agujeros del fondo (botón «Fondo» para verlos). Arrastra para girar.':'Maceta para imprimir de pie. Con «Desarmado» se ven las patas aparte, con la cabeza que entra en su hueco del fondo (botón «Fondo» para ver los huecos). Arrastra para girar.'):'Arrastra para girar · rueda o pellizco para acercar · clic derecho para desplazar';
   }
   /* ---------- Exportar STL para impresión 3D ----------
      Sale de la MISMA malla del visor (potGroup con {stl:true}): cuerpo, patas y panel en relieve, sin árbol ni sustrato,
@@ -1654,14 +1745,14 @@
     if(!THREE){ say('Preparando el STL…'); try{ THREE=await import('three'); }catch(e){ say('No se pudo generar el STL: hace falta conexión a internet la primera vez.'); return; } }
     await prepareSeal(last3.s);
     const {s,b}=last3, what=$('stlWhat').value;
-    let T; let potSz=null; let bridges=0, nJ=0, nF=0;
+    let T; let potSz=null; let bridges=0, nJ=0, nF=0, nP=0;
     if(what==='maceta') T=meshTris(THREE,potGroup(THREE,s,b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}),v=>[v.x,-v.z,v.y]);   // Y arriba → Z arriba
     else if(what==='imprimir'){
       // de pie con el fondo en la cama; las patas aparte, apoyadas en su cara de pegado (así ninguna cuelga), en fila al lado
-      const G=potGroup(THREE,Object.assign({},s,{printable:true}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(o=>o.userData.foot);
+      const G=potGroup(THREE,Object.assign({},s,{printable:true,t:s.pT}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(o=>o.userData.foot);
       bridges=G.userData.bridges||0; feet.forEach(o=>G.remove(o)); T=meshTris(THREE,G,v=>[v.x,-v.z,v.y]); const B=bbox(T); for(let i=2;i<T.length;i+=3) T[i]-=B.mn[2]; potSz=[B.mx[0]-B.mn[0],B.mx[1]-B.mn[1],B.mx[2]-B.mn[2]];   // sin patas, el fondo va en la cama
       // las patas en filas delante de la maceta o en columnas a su lado: se elige lo que cabe en la cama
-      const byF=new Map(); feet.forEach(o=>{ const k=o.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(o); }); nF=byF.size; nJ=Math.max(0,feet.length-nF);
+      const byF=new Map(); feet.forEach(o=>{ const k=o.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(o); }); nP=feet.filter(o=>o.userData.pin).length; nF=byF.size-nP; nJ=Math.max(0,feet.length-nP-nF);
       const FT=[...byF.values()].map(g=>{ const P=meshTris(THREE,g,v=>[v.x,v.z,-v.y]), {mn,mx}=bbox(P); return {P,mn,w:mx[0]-mn[0],h:mx[1]-mn[1]}; });
       const lay=side=>{ const pos=[]; let a=0, b2=0, line=0; const span=side?Math.max(B.mx[1]-B.mn[1],100):Math.max(B.mx[0]-B.mn[0],100), e=[B.mx[0],B.mx[1]];
         FT.forEach(f=>{ const along=side?f.h:f.w, across=side?f.w:f.h; if(a+along>span&&a>0){ a=0; b2+=line+6; line=0; } const x=side?B.mx[0]+8+b2:B.mn[0]+a, y=side?B.mn[1]+a:B.mx[1]+8+b2; pos.push([x,y]); e[0]=Math.max(e[0],x+f.w); e[1]=Math.max(e[1],y+f.h); a+=along+6; line=Math.max(line,across); });
@@ -1691,7 +1782,7 @@
       // voladizos y filamento aproximado (PLA 1,24 g/cm³; 3 perímetros y capas sólidas ≈ 1,2 mm de cáscara; 15 % de relleno)
       let area=0; for(const [a,b2,c] of R.F){ const A=[R.V[3*a],R.V[3*a+1],R.V[3*a+2]], B2=[R.V[3*b2],R.V[3*b2+1],R.V[3*b2+2]], C=[R.V[3*c],R.V[3*c+1],R.V[3*c+2]], u=[B2[0]-A[0],B2[1]-A[1],B2[2]-A[2]], v=[C[0]-A[0],C[1]-A[1],C[2]-A[2]]; area+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
       const shell=Math.min(R.volume,area*1.2), grams=Math.round((shell+0.15*(R.volume-shell))/1000*1.24), ov=Math.max(0,overhangCheck(R.V,R.F,45).area-bridges*1.05);   // los techos de los huecos de encaje son puentes cortos, no voladizos
-      if(what==='imprimir') notes.push(ov<100?(nF?`sin soportes: de pie con el fondo en la cama; las ${nF} patas van al lado, apoyadas en su cabeza de encaje${nJ<nF?' (las que no llevan encaje, en su cara de pegado)':''}; después cada una entra en su hueco del fondo y se pega con cianoacrilato o epoxi`:'sin soportes: de pie con el fondo en la cama'):`aún tiene ${mm(ov/10)} cm² de voladizo: activa soportes solo ahí`);
+      if(what==='imprimir') notes.push(ov<100?(nP?`sin soportes: de pie con el fondo en la cama; al lado las ${nF} patas, con los agujeros hacia la cama, y las ${nP} espigas de pie. Armado sin pegamento: mete cada espiga a presión en su agujero del fondo y encaja las patas (ajuste ${s.pFit})`:nF?`sin soportes: de pie con el fondo en la cama; las ${nF} patas van al lado, apoyadas en su cabeza de encaje${nJ<nF?' (las que no llevan encaje, en su cara de pegado)':''}; después cada una entra en su hueco del fondo y se pega con cianoacrilato o epoxi`:'sin soportes: de pie con el fondo en la cama'):`aún tiene ${mm(ov/10)} cm² de voladizo: activa soportes solo ahí`);
       else notes.push(ov<100?'se imprime de pie sin soportes':`de pie necesita soportes en ${mm(ov/10)} cm² (bajo el fondo y el labio): actívalos solo desde la cama, o elige «Maceta para imprimir (sin soportes)»`);
       notes.push(`≈ ${grams} g de PLA o PETG con 15 % de relleno y 3 perímetros${s.mat==='cement'?' (pared de cemento: bájala a 0,4–0,6 cm en «Grosor de pared» para ahorrar filamento)':''}`);
       if(what==='imprimir'){ const sl=computeSeal(s); notes.push(sl?`${sl.name.toLowerCase()} de Legado de ${cm(sl.w)} cm grabado 1 mm en la base`:'sin logotipo'); }
@@ -2252,12 +2343,13 @@
 
   // Guardia de proporciones: rango recomendado de cada medida según el tamaño de la maceta (mm terminados).
   let lastFix=[];
-  function propGuard(s,clay){
+  function propGuard(s,clay,skipT){
     const short=Math.min(s.L,s.W), hb=s.H-s.feet, R={}, msgs=[], fix=[], hints={}, c1=v=>Math.round(v)/10;
     R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[12,Math.min(40,Math.max(20,s.L*0.13))];
     if(s.rim!=='kittate'){ const hi=clay?Math.max(s.t*0.6,Math.min(s.t*1.5,short*0.07)):Math.max(5,Math.min(s.t,short*0.08)); R.lip=[clay?Math.min(s.t*0.5,hi):3,hi]; }
     if(s.feet>0) R.feet=[Math.max(3,s.H*0.07),Math.max(5,s.H*0.3)];
     if(!$('flare').disabled) R.flare=[0,Math.max(2,Math.min(hb*0.3,short*0.12))];
+    if(skipT) delete R.t;   // Impresión 3D: la pared la da «Pared impresa»
     const NAME={t:clay?'El grosor de placa':'La pared',lip:'El labio',feet:'La altura de patas',flare:'La inclinación'};
     const WHY={t:clay?'una placa fuera de ese rango se alabea o se raja al secar':'una pared fuera de ese rango se rompe o pesa de más',lip:'un labio mayor que 1,5 veces la pared se agrieta o se desconcha; uno muy fino no se nota',feet:'unas patas desproporcionadas hacen que la maceta se vea zancuda o aplastada',flare:'demasiada inclinación deja el fondo pequeño y la maceta inestable'};
     Object.entries(R).forEach(([id,[lo,hi]])=>{ const v=s[id], bad=v<lo-0.5||v>hi+0.5; hints[id]={txt:`recomendado ${cm(lo)} a ${cm(hi)}`,bad};
@@ -2269,6 +2361,8 @@
     $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('bedXY').disabled=s.printer!=='otra'; $('clayOpts').hidden=!clay; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
     $('shrinkF').hidden=!clay; $('baseF').hidden=clay; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pSealF').hidden=!(s.mode==='print'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'; if(s.mode==='print'){ $('clayOpts').hidden=true; $('shrinkF').hidden=true; }
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
+    { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable;
+      $('pWallHint').textContent=`${f1(s.pT)} mm = ${ln} líneas de 0,42 mm: con ${Math.ceil(ln/2)} perímetros por cara sale maciza, sin relleno. Fondo de ${f1(s.pBase)} mm. Las macetas de plástico comunes tienen de 1,5 a 3,5 mm.`; }
     $('flareLabel').innerHTML='Inclinación <b>cm</b>/lado';
     $('pageRule').textContent=`@page{size:${s.paper} landscape;margin:0}`;
     let areaW=paper.w-2*MARGIN, areaH=paper.h-2*MARGIN-FOOT;
@@ -2283,7 +2377,7 @@
       if(rc>MACH.RMAX) warns.push(`El plato-guía llega a ${cm(rc)} cm del eje y el brazo de la máquina alcanza ${cm(MACH.RMAX)} cm (plato de 32 × 24). Reduce el largo o construye la máquina con plato de 40 × 28 y rieles de 45 cm.`);
       if(s.H>MACH.HMAX) warns.push(`Maceta de ${cm(s.H)} cm de alto: el portaperfil admite láminas hasta ${cm(MACH.HMAX)} cm sobre el plato-guía. Sube el par de rieles o baja el alto.`);
     }
-    const guard=propGuard(s,clay); guard.msgs.forEach(m=>warns.push(m)); lastFix=guard.fix;
+    const guard=propGuard(s.printable?Object.assign({},s,{t:s.tClay}):s,clay,s.printable); guard.msgs.forEach(m=>warns.push(m)); lastFix=guard.fix;
     const placed=[];
     // Lámina única: todas las piezas enteras sobre una sola hoja del tamaño que haga falta, con la ficha y la regla dentro.
     if(single){
@@ -2383,7 +2477,7 @@
     { const kf=1-s.shrink/100, set=(id,v)=>{ $('h_'+id).textContent=v; }; $('h_flare').textContent='';
       if(clay&&s.printable){
         set('L',`interior ${cm(s.L-2*s.t)} · medidas terminadas, el plástico no encoge`); set('W',s.type==='round'?'igual al diámetro':SHP(s)?'igual: medida entre caras':`interior ${cm(s.W-2*s.t)}`);
-        set('H',`hondo útil ${cm(s.H-s.feet-s.t)}`); set('t','pared y fondo impresos'); set('shrink',''); set('feet',s.feet>0?(s.pFeet==='pegadas'?'pegadas a la maceta':'aparte, con encaje'):''); set('lip',s.pLip==='recto'?'sin labio (elegido en «Labio»)':'');
+        set('H',`hondo útil ${cm(s.H-s.feet-s.pBase)}`); set('t','pared y fondo impresos'); set('shrink',''); set('feet',s.feet>0?(s.pFeet==='pegadas'?'pegadas a la maceta':s.pFeet==='presion'?'aparte, a presión con espigas':'aparte, cabeza para pegar'):''); set('lip',s.pLip==='recto'?'sin labio (elegido en «Labio»)':'');
       } else if(clay){
         set('L',`boca en crudo ${cm(b.L)} · fondo en crudo ${cm(b.Lb)} · interior cocido ${cm(s.L-2*s.t*kf)}`);
         set('W',s.type==='round'?'igual al diámetro':SHP(s)?'igual: medida entre caras':`boca en crudo ${cm(b.W)} · fondo en crudo ${cm(b.Wb)} · interior cocido ${cm(s.W-2*s.t*kf)}`);
@@ -2548,11 +2642,13 @@
     let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three'); await prepareSeal(s);
     if(s.obj==='mesa'){ const P=[Object.assign({name:s.mode==='mold'?'Madre (la mesa, boca abajo)':'Mesa (boca abajo)'},solidStats(tablePrintTris(THREE,s)))]; if(s.mode==='mold'){ const C=tableCup(s); P.push(Object.assign({name:'Caja de vertido',key:'caja'},solidStats(C.T))); } return P; }
     if(s.mode==='mold'){ await prepareSeal(s); const MD=buildMold(THREE,s,b); return MD.parts.map(pt=>Object.assign({name:pt.name,key:pt.key},solidStats(moldPrintTris(pt,s)))); }
-    const G=potGroup(THREE,Object.assign({},s,{printable:true}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(o=>o.userData.foot);
+    const G=potGroup(THREE,Object.assign({},s,{printable:true,t:s.pT}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(o=>o.userData.foot);
     feet.forEach(o=>G.remove(o)); const out=[Object.assign({name:'Maceta'},solidStats(meshTris(THREE,G,v=>[v.x,-v.z,v.y])))];
-    if(feet.length){ const byF=new Map(); feet.forEach(o=>{ const k=o.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(o); });
+    const pins=feet.filter(o=>o.userData.pin), legs=feet.filter(o=>!o.userData.pin);
+    if(pins.length){ const P=pins.map(o=>{ const g=new THREE.Group(); g.add(o); return solidStats(meshTris(THREE,g,v=>[v.x,v.z,-v.y])); }); out.push({name:`Espigas a presión ×${P.length}`,key:'kit',V:P.reduce((t,p)=>t+p.V,0),A:P.reduce((t,p)=>t+p.A,0),size:P[0].size,n:P.length}); }
+    if(legs.length){ const byF=new Map(); legs.forEach(o=>{ const k=o.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(o); });
       const P=[...byF.values()].map(g=>solidStats(meshTris(THREE,g,v=>[v.x,v.z,-v.y])));
-      out.push({name:`Patas con encaje ×${P.length}`,V:P.reduce((t,p)=>t+p.V,0),A:P.reduce((t,p)=>t+p.A,0),size:[Math.max(...P.map(p=>p.size[0])),Math.max(...P.map(p=>p.size[1])),Math.max(...P.map(p=>p.size[2]))],n:P.length}); }
+      out.push({name:`Patas ×${P.length}`,V:P.reduce((t,p)=>t+p.V,0),A:P.reduce((t,p)=>t+p.A,0),size:[Math.max(...P.map(p=>p.size[0])),Math.max(...P.map(p=>p.size[1])),Math.max(...P.map(p=>p.size[2]))],n:P.length}); }
     return out; }
   const hm=h=>{ const t=Math.round(h*60); return `${Math.floor(t/60)} h ${String(t%60).padStart(2,'0')} min`; };
   const n1=x=>String(Math.round(x*10)/10).replace('.',','), usd=x=>'$'+x.toFixed(2).replace('.',',');
@@ -2724,10 +2820,10 @@
     const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
     if(s.mode==='mold'){ await prepareSeal(s); buildMold(THREE,s,b).parts.forEach(pt=>add(pt.name,moldPrintTris(pt,s),pt.key)); return out; }
-    const G=potGroup(THREE,Object.assign({},s,{printable:true}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(q=>q.userData.foot);
+    const G=potGroup(THREE,Object.assign({},s,{printable:true,t:s.pT}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(q=>q.userData.foot);
     feet.forEach(q=>G.remove(q)); add('Maceta (de pie)',meshTris(THREE,G,v=>[v.x,-v.z,v.y]));
     const byF=new Map(); feet.forEach(q=>{ const k=q.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(q); });
-    [...byF.values()].forEach((g,i)=>add(`Pata ${i+1} (cabeza abajo)`,meshTris(THREE,g,v=>[v.x,v.z,-v.y])));
+    let np=0, nl=0; [...byF.values()].forEach(g=>{ const T=meshTris(THREE,g,v=>[v.x,v.z,-v.y]); if(g.children[0].userData.pin) add(`Espiga ${++np} (de pie)`,T,'kit'); else add(`Pata ${++nl} (${s.pFeet==='presion'?'agujeros':'cabeza'} abajo)`,T); });
     return out;
   }
   async function export3MF(outId){
@@ -2744,7 +2840,7 @@
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
   $('btnPrintStl').addEventListener('click',()=>{ $('stlWhat').value='imprimir'; exportSTL(); });
-  ['pLip','pFeet','pSeal'].forEach(id=>$(id).addEventListener('input',render));
+  ['pLip','pFeet','pSeal','pWall','pFit'].forEach(id=>$(id).addEventListener('input',render));
   $('btnMoldTop').addEventListener('click',showMold);
   $('v3exp').addEventListener('input',()=>{ const f=V3&&V3.pot&&V3.pot.userData.setExplode; if(f) f(+$('v3exp').value); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'?'cement':MODE)));
