@@ -2371,9 +2371,11 @@
   // k = 1/(1 − encogimiento) y con una reserva de PL.spare mm sobre el borde (se recorta en cuero).
   // Coordenadas de la maceta agrandada: Y arriba, cara inferior en Y = 0, boca en Hb·k. Las cajas se arman ya en
   // coordenadas de impresión (z arriba, piso en la cama). El yeso no se imprime: va al visor y a las cantidades.
-  const PL={thick:40,spare:12,wall:5,natch:8,draft:3,plate:2,floor:4,floorB:10,clr:0.3};
+  // plinth: zócalo del fondo (mm): la silueta del pie de la maceta sube del fondo y entra en el cuerpo (o entre las
+  // mitades), así las piezas embonan y no se corren al cerrar el molde
+  const PL={thick:40,spare:12,wall:5,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3};
   function buildPlaster(THREE,s,b){
-    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH=s.pThick||PL.thick, Y0=PL.plate, ftk=s.feet*k;
+    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
     const sK=Object.assign({},s,{c:s.c*k,lobes:0});
     const adder=()=>{ const T=[]; const tri=(a,b2,c)=>T.push(a[0],a[1],a[2],b2[0],b2[1],b2[2],c[0],c[1],c[2]); return {T,tri,quad:(a,b2,c,d)=>{ tri(a,b2,c); tri(a,c,d); }}; };
     const dedup=L=>L.filter((p,i)=>{ const q=L[(i+L.length-1)%L.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>0.02; });
@@ -2384,8 +2386,8 @@
     // anillos de la maceta agrandada, de la reserva (arriba) a Y0: el perfil real de halfExt por k (cinturón en chaflán,
     // como en cemento, para que el modelo se imprima sin soportes)
     const ext=halfExt(Object.assign({},s,{printable:true,pLip:'diseno'}),s.W/2,s.H,s.feet,s.flare), ringAt=x=>{ const dl=s.W/2-x; return ringPts(sK,Math.max(4,(s.L-2*dl)*k),Math.max(4,(s.W-2*dl)*k),n); };
-    const rings=[{loop:ringAt(ext[0][0]),Y:Ytop},...ext.map(([x,y])=>({loop:ringAt(x),Y:Math.max(Y0,(Hb-y)*k)}))];
-    rings[rings.length-1].Y=Y0;
+    const rings=[{loop:ringAt(ext[0][0]),Y:Ytop},...ext.map(([x,y])=>({loop:ringAt(x),Y:Math.max(0,(Hb-y)*k)}))];
+    rings[rings.length-1].Y=0; rings.push({loop:rings[rings.length-1].loop,Y:Y0});   // zócalo: la silueta del pie sigue PB mm bajo la cara inferior
     let Xm=0, Z0=0; rings.forEach(r=>r.loop.forEach(([x,z])=>{ Xm=Math.max(Xm,Math.abs(x)); Z0=Math.max(Z0,Math.abs(z)); }));
     const X=Xm+TH, U=Ytop-Y0, Ym=(Ytop+Y0)/2, hF=Z0+TH, W2=PL.wall;
     const bottom=rings[rings.length-1].loop, parts=[], plaster=[], notes=[...(s.plasterNotes||[])], boxes=[];
@@ -2435,15 +2437,16 @@
     }
     // --- caja del fondo: la cara inferior en positivo (placa de 2 mm con la silueta, patas en tronco de pirámide con 3° de
     //     salida y sello en relieve), reflejada en z: el fondo de yeso se voltea sobre su lado largo para usarlo
-    { const S=adder(), Mo=adder(), F=PL.floor, Zc=hF, outer=rect(-X-W2,-Zc-W2,X+W2,Zc+W2), top=F+Y0+ftk+TH, mz=([x,z])=>[x,-z], zt=F+Y0;
+    { const S=adder(), Mo=adder(), F=PL.floor, Zc=hF, outer=rect(-X-W2,-Zc-W2,X+W2,Zc+W2), top=F+PB+ftk+TH, mz=([x,z])=>[x,-z], zt=F+PB;
       prism(S,outer,[],0,F,id); prism(S,outer,[rect(-X+0.3,-Zc+0.3,X-0.3,Zc-0.3)],F-0.3,top,id);
-      prism(Mo,bottom.map(mz),[],F-0.3,zt,id);
+      // zócalo de PB mm con la silueta del pie (0,3 mm menos, para entrar en el cuerpo) y encima patas y sello
+      prism(Mo,bottom.map(([x,z])=>{ const r=Math.hypot(x,z)||1, f=Math.max(0,r-PL.clr)/r; return [x*f,-z*f]; }),[],F-0.3,zt,id);
       const fsz=footSize(s.L,s.W)*k, tp=Math.max(4,fsz-2*ftk*Math.tan(PL.draft*Math.PI/180));
       if(s.feet>0) blockFeet(s).forEach(([x,z])=>{ const c=mz([x*k,z*k]), sq=h=>[[c[0]-h/2,c[1]-h/2],[c[0]+h/2,c[1]-h/2],[c[0]+h/2,c[1]+h/2],[c[0]-h/2,c[1]+h/2]], lo=sq(fsz), hi=sq(tp);
         for(let j=0;j<4;j++){ const q=(j+1)%4; Mo.quad([lo[j][0],lo[j][1],zt-0.3],[lo[q][0],lo[q][1],zt-0.3],[hi[q][0],hi[q][1],zt+ftk],[hi[j][0],hi[j][1],zt+ftk]); }
         fill2D(Mo,lo,[],(u,v)=>[u,v,zt-0.3]); fill2D(Mo,hi,[],(u,v)=>[u,v,zt+ftk]); });
       if(seal) seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(Mo,r.L.map(([x,z])=>[x*k,-z*k]),r.kids.map(K=>K.map(([x,z])=>[x*k,-z*k])),zt-0.3,zt+MOLD.SEAL_DEPTH,id));
-      pushBox('cajaC',one?'Caja 2: fondo (patas y logotipo)':'Caja C: fondo (patas y logotipo)','yeso-caja-fondo',S.T,Mo.T,0x9c8fbe,(2*X*2*Zc*(Y0+ftk+TH))/1e6,one?'Caja 2 → fondo del molde':'Caja C → fondo'); }
+      pushBox('cajaC',one?'Caja 2: fondo (patas y logotipo)':'Caja C: fondo (patas y logotipo)','yeso-caja-fondo',S.T,Mo.T,0x9c8fbe,(2*X*2*Zc*(PB+ftk+TH))/1e6,one?'Caja 2 → fondo del molde':'Caja C → fondo'); }
     // --- cajas que no caben en la cama de la impresora: trozos iguales con espigas de unión (como en el molde rígido).
     //     splitToFit trabaja en coordenadas de maceta (Y arriba, corta por x o z): se le pasa (x, z_impresión, y) con 'ground'
     //     y con el lado largo en x (si el largo va en y, la pieza se gira 90° antes): el corte por x es el camino probado
@@ -2469,9 +2472,10 @@
       for(let j=0;j<4;j++){ const a=R[j], c=R[(j+1)%4]; A.quad([a[0],Y0,a[1]],[c[0],Y0,c[1]],[c[0],Ytop,c[1]],[a[0],Ytop,a[1]]); }
       plaster.push({key:'yesoCuerpo',name:'Cuerpo',T:A.T,explode:[0,U+30,0]}); }
     else [[1,'A'],[-1,'B']].forEach(([sg,nm])=>{ const A=adder(); halfBlock(A,sg,hF); plaster.push({key:'yeso'+nm,name:`Mitad ${nm}`,T:A.T,explode:[0,0,sg*(hF+25)]}); });
-    { const A=adder(), yb=-(TH+ftk+Y0); prism(A,rect(-X,-hF,X,hF),[bottom],0,Y0,XZ); prism(A,rect(-X,-hF,X,hF),[],yb,0.2,XZ); plaster.push({key:'yesoC',name:'Fondo',T:A.T,explode:[0,-(TH+ftk+40),0]}); }
+    { const A=adder(), yb=-(TH+ftk+PB); prism(A,bottom,[],Y0,0,XZ); prism(A,rect(-X,-hF,X,hF),[],yb,Y0+0.2,XZ); plaster.push({key:'yesoC',name:'Fondo',T:A.T,explode:[0,-(TH+ftk+40),0]}); }
     const V={}; plaster.forEach(p=>{ V[p.key]=vol(p.T)/1000; }); const litres=Object.values(V).reduce((t,v)=>t+v,0)/1000, f1=x=>x.toFixed(1).replace('.',',');
     notes.push(`Yeso cerámico: ≈ ${f1(litres*0.9)} kg con ${f1(litres*0.63)} L de agua en total. Yeso líquido por caja: ${boxes.map(bx=>bx.label.split(' →')[0]+' '+f1(parts.find(p=>p.key===bx.key)?.pour??(V['yeso'+bx.key.slice(4)]||0)/1000)+' L').join(', ')}. Mezcla 100 de yeso por 63–70 de agua, espolvoreando el yeso sobre el agua.`);
+    notes.push(`El fondo lleva un zócalo de  mm con la silueta del pie de la maceta, que entra en el cuerpo y traba las piezas en su sitio; encima van los huecos de las patas y el sello.`);
     notes.push(`La maceta va agrandada un ${(Math.round((k-1)*1000)/10).toString().replace('.',',')} % (encogimiento del ${Math.round((1-1/k)*100)} %) y lleva ${PL.spare} mm de reserva sobre el borde: recorta el borde en cuero por esa marca.`);
     return {k,one,parts,plaster,boxes,V,litres,notes,seal,X,Z0,hF,U,Ytop,Y0,ftk};
   }
@@ -2516,7 +2520,7 @@
       open+=R.open; files.push({name:`${String(i+1).padStart(2,'0')}-${pt.file}.stl`,data:new Uint8Array(stlBinary(R.V,R.F))}); rows.push({name:pt.name,size,fits,ov:overhangCheck(R.V,R.F,45).area}); });
     const kg=f1(PM.litres*0.9), agua=f1(PM.litres*0.63), pour=key=>f1((PM.parts.find(p=>p.key===key)||{}).pour||0);
     const L=[`MOLDE DE YESO PARA BARBOTINA — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
-      PM.one?'El molde de yeso tiene dos piezas: el CUERPO (un bloque con el hueco de toda la maceta, abierto por la boca y por abajo) y el FONDO (patas y logotipo). Se imprimen DOS CAJAS, una por pieza: cada caja lleva dentro, en positivo, lo que su pieza debe copiar. Cuelas yeso en la caja, fragua, lo sacas y esa es la pieza. Como la maceta se abre hacia la boca, sale del cuerpo hacia arriba sin partir el molde.'
+      PM.one?`El molde de yeso tiene dos piezas: el CUERPO (un bloque con el hueco de toda la maceta, abierto por la boca y por abajo) y el FONDO (patas y logotipo, sobre un zócalo de  mm con la silueta del pie que entra en el cuerpo y lo traba). Se imprimen DOS CAJAS, una por pieza: cada caja lleva dentro, en positivo, lo que su pieza debe copiar. Cuelas yeso en la caja, fragua, lo sacas y esa es la pieza. Como la maceta se abre hacia la boca, sale del cuerpo hacia arriba sin partir el molde.`
             :'El molde de yeso tiene tres piezas: las mitades A y B del cuerpo (se abren hacia los lados; con panza o cinturón la maceta no saldría de un bloque de una pieza) y el FONDO (patas y logotipo). Se imprimen TRES CAJAS, una por pieza: cada caja lleva dentro, en positivo, lo que su pieza debe copiar. Cuelas yeso en la caja, fragua, lo sacas y esa es la pieza.',
       'Las cajas se guardan para hacer más moldes.',
       `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer) y lleva ${PL.spare} mm de reserva sobre el borde para recortarlo en cuero.`,
@@ -2533,8 +2537,8 @@
         `  4. Caja C: igual con ${pour('cajaC')} L. Sale el FONDO. Para usarlo se voltea sobre su lado largo: los huecos de las patas y el logotipo quedan hacia arriba, y el logotipo se lee derecho.`]),
       `  ${PM.one?4:5}. Deja secar las piezas 7–10 días en lugar ventilado (o 2–3 días a 40 °C) antes de usarlas: el yeso húmedo no absorbe la barbotina.`,
       '','B. COLAR UNA MACETA (cada vez)',
-      PM.one?'  1. Pon el fondo con los huecos hacia arriba y el cuerpo encima, con las caras exteriores a ras; aprieta con dos correas. La boca de la maceta queda arriba.'
-            :'  1. Pon el fondo con los huecos hacia arriba, cierra encima las mitades A y B (los topes en sus huecos) y aprieta con dos correas. La boca de la maceta queda arriba.',
+      PM.one?'  1. Pon el fondo con los huecos hacia arriba y el cuerpo encima: el zócalo del fondo entra en el hueco de abajo del cuerpo y lo centra; aprieta con dos correas. La boca de la maceta queda arriba.'
+            :'  1. Pon el fondo con los huecos hacia arriba y cierra encima las mitades A y B: el zócalo del fondo entra entre las dos y las centra, y los topes de B entran en los huecos de A; aprieta con dos correas. La boca de la maceta queda arriba.',
       '  2. Llena de barbotina hasta el borde de la reserva. Rellena a medida que baje el nivel.',
       '  3. Espera 15–25 min según el grosor que quieras (6–8 mm). Vacía la barbotina volcando el molde despacio y déjalo boca abajo 10 min para que escurra.',
       PM.one?'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo). Recorta la reserva por la marca del borde, haz los agujeros de drenaje y alambre y alisa con esponja.'
