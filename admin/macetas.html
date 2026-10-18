@@ -254,7 +254,7 @@
         <label class="f"><span>Calado</span><select id="tFret"><option value="rombos" selected>Rombos</option><option value="no">Sin calado</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Patas</span><select id="tFoot"><option value="voluta" selected>De voluta (cabriolé)</option><option value="recta">Rectas</option></select></label>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ghost" id="btnTableFit" type="button">Ajustar a la maceta</button><button class="btn" id="btnTableStl" type="button">Descargar STL de la mesa</button><button class="btn" id="btnTableMold" type="button">Descargar molde de silicona (ZIP)</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ghost" id="btnTableFit" type="button">Ajustar a la maceta</button><button class="btn" id="btnTableStl" type="button">Descargar STL de la mesa</button><button class="btn" id="btnTableMold" type="button">Descargar molde de silicona (ZIP)</button><button class="btn" id="btnTable3mf" type="button">Abrir en Bambu Studio (3MF)</button></div>
       <div id="tableOut" class="mold-out"></div>
     </details>
     <details class="gloss" id="printBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
@@ -265,7 +265,7 @@
         <label class="f" style="grid-column:1/-1"><span>Patas</span><select id="pFeet"><option value="encaje" selected>Aparte, con encaje en el fondo (sin soporte)</option><option value="pegadas">Pegadas a la maceta (soporte bajo el fondo)</option></select></label>
       </div>
       <p class="mold-lead" style="margin-top:8px">Encaje: cada pata lleva arriba una cabeza en chaflán de 2,5 mm que entra en su hueco del fondo; se pega con cianoacrilato o epoxi y queda centrada sola. Mueve «Armado ↔ Desarmado» para verlo.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnPrintStl" type="button">Descargar STL para imprimir</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnPrint3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnPrintStl" type="button">Descargar STL</button></div>
       <div id="printOut" class="mold-out"></div>
     </details>
     <details class="gloss" id="moldBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
@@ -278,7 +278,7 @@
         <label class="f"><span>Pared del molde <b>cm</b></span><input id="moldWall" type="number" step="0.1" min="0.3" max="1" value="0.4"></label>
         <label class="f"><span>Núcleo</span><select id="moldCore"><option value="hueco" selected>Hueco (ahorra filamento)</option><option value="macizo">Macizo</option></select></label>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold" type="button">Descargar molde (ZIP)</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnMold" type="button">STL sueltos (ZIP)</button></div>
       <div id="moldOut" class="mold-out"></div>
     </details>
     <details class="gloss" id="calcBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
@@ -2183,7 +2183,7 @@
       ...(hw.dowels?[`${hw.dowels} espigas de unión impresas (Ø ${hw.dowSizes.join(' y ')} × 1,6 cm, una de repuesto de cada medida) para juntar los trozos de las piezas partidas, más cianoacrilato o epoxi.`]:[])];
     const L=[];
     L.push(`MOLDE DE VACIADO PARA IMPRESIÓN 3D — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
-      'La maceta se cuela BOCA ABAJO. Kit 100 % impreso. Cada STL ya viene orientado para imprimir sin soportes.','Los STL están en milímetros, la unidad que esperan los laminadores; las medidas de esta lista van en centímetros.',`Sello en el fondo: ${sealTxt}.`,'','PIEZAS');
+      'La maceta se cuela BOCA ABAJO. Kit 100 % impreso. Cada STL ya viene orientado para imprimir sin soportes.','Bambu Studio no abre el ZIP: descomprímelo (clic derecho → Extraer todo) y arrastra los STL a Bambu Studio, o usa el botón «Abrir en Bambu Studio (3MF)», que trae todas las piezas en un solo archivo.','Los STL están en milímetros, la unidad que esperan los laminadores; las medidas de esta lista van en centímetros.',`Sello en el fondo: ${sealTxt}.`,'','PIEZAS');
     rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm · ${r.ov<100?'sin soportes':'voladizo de '+mmc(r.ov/10)+' cm²: activa soportes solo ahí'}${r.fits?'':'  ← no cabe en la '+s.bedName+' ('+mmc(s.bedX)+' × '+mmc(s.bedY)+' × '+mmc(s.bedZ)+' cm): córtala en el laminador (herramienta Cortar, con conectores)'}`));
     L.push('','KIT Y MATERIALES',...kitLines.map(h=>'  - '+h),'',
       'IMPRESIÓN',`  Pensado para la ${s.bedName} (${mmc(s.bedX)} × ${mmc(s.bedY)} × ${mmc(s.bedZ)} cm). PLA o PETG; ABS y ASA no, porque piden cámara cerrada y cama más caliente. Capa 0,2 mm. Ajustes por pieza (en Bambu Studio: clic derecho sobre la pieza → ajustes del objeto): gajos con 3 perímetros y 15 % de relleno; placa de patas y base con núcleo con 2 perímetros y 8 % (solo apoyan y forman una cara del molde: así pesan un tercio menos); pasadores y cuñas con 100 %.`,'  Sin soportes: cada STL ya viene orientado (los gajos de pie sobre su cara inferior, la base con el núcleo hacia arriba, la placa con la cara exterior abajo) y ninguna cara cuelga a menos de 45° de la horizontal. El nervio, la ranura, los taludes bajo el labio y los agujeros en gota están a 55° o más, con margen. Deja «Soportes» desactivado en Bambu Studio; si una pieza dice «activa soportes», hazlo solo en esa zona.','  Lija las caras que tocan el mortero y séllalas con barniz o laca si quieres un acabado liso.','',
@@ -2199,7 +2199,7 @@
       '  8. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad.');
     if(MD.notes.length) L.push('','NOTAS',...MD.notes.map(t=>'  - '+t));
     files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')});
-    download(zipStore(files),`molde-${slug(nm)}-${dims}.zip`);
+    download(await zipFiles(files),`molde-${slug(nm)}-${dims}.zip`);
     const big=rows.filter(r=>!r.fits), shell=big.some(r=>r.key.startsWith('ext')&&s.moldParts===2), other=big.filter(r=>!r.key.startsWith('ext')||s.moldParts===4);
     out.innerHTML=`<table>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm</td><td class="${r.fits?'ok':'no'}">${r.fits?'cabe':'cortar'}</td><td class="${r.ov<100?'ok':'no'}">${r.ov<100?'sin soportes':'voladizo '+mmc(r.ov/10)+' cm²'}</td></tr>`).join('')}</table>`
       +`<div><b>Sello:</b> ${esc(sealTxt)}</div>`
@@ -2613,12 +2613,74 @@
       '  - Para gastar menos silicona: el hueco bajo la cubierta es lo que más llena. Puedes pegar dentro, sobre la madre, un bloque de relleno (cartón pluma o un taco impreso) que deje 1 cm de silicona alrededor, o hacer el molde a pincel en capas con una funda de yeso.',
       '  - La caja es reutilizable; un molde de silicona rinde decenas de coladas.'];
     files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')});
-    download(zipStore(files),`molde-silicona-mesa-${tag}.zip`);
+    download(await zipFiles(files),`molde-silicona-mesa-${tag}.zip`);
     say(`Molde de silicona de la mesa: madre ${mm(size[0])} × ${mm(size[1])} cm y caja ${mm(csz[0])} × ${mm(csz[1])} × ${mm(csz[2])} cm (${fitsBed(csz,s)&&fitsBed(size,s)?'caben':'alguna no cabe'} en la ${s.bedName}). Silicona ≈ ${Math.round(sil*1.15)} ml; mortero ≈ ${String(Math.round(mort*100)/100).replace('.',',')} L por mesa.${s.tApT<12||s.tLeg<20?' Para cemento sube el faldón a 1,2 cm y las patas a 2 cm.':''}`);
   }
   $('btnTableStl').addEventListener('click',()=>exportTable('stl')); $('btnTableMold').addEventListener('click',()=>exportTable('mold'));
   $('btnTableFit').addEventListener('click',()=>{ if(!last3) return; const {s}=last3, need=Math.max(s.L,s.W)/10+4, maxW=Math.min(s.bedX,s.bedY)/10*Math.cos(Math.PI/s.tN)-0.5; $('tW').value=Math.min(need,Math.floor(maxW*2)/2); render(); });
   ['pObj','tSides','tW','tH','tTop','tApron','tApT','tLeg','tFret','tFoot'].forEach(id=>$(id).addEventListener('input',()=>{ $('tableOut').textContent=''; render(); }));
+  // ---------- 3MF para Bambu Studio ----------
+  // Bambu Studio no abre ZIP: lee STL, 3MF, OBJ o STEP. El 3MF (su formato nativo) junta todas las piezas en un solo
+  // archivo que se abre con doble clic, cada una con su nombre (y su ajuste recomendado en el nombre), acomodadas en
+  // filas dentro de la cama elegida. Mallas de stlOrient: caras hacia afuera y volumen positivo, como pide 3MF.
+  // ZIP comprimido con CompressionStream («deflate-raw») si el navegador lo tiene; si no, sin compresión.
+  async function zipFiles(files){
+    if(typeof CompressionStream==='undefined') return zipStore(files);
+    const enc=new TextEncoder(), parts=[], central=[], d=new Date(); let off=0;
+    const dosT=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1), dosD=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+    for(const fl of files){
+      const nm=enc.encode(fl.name), data=fl.data; let crc=0xFFFFFFFF; for(let i=0;i<data.length;i++) crc=CRC_T[(crc^data[i])&255]^(crc>>>8); crc=(crc^0xFFFFFFFF)>>>0;
+      const comp=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
+      const set=(dv,list)=>list.forEach(([o,v,z])=>z===4?dv.setUint32(o,v,true):dv.setUint16(o,v,true));
+      const lh=new DataView(new ArrayBuffer(30)); set(lh,[[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,8,2],[10,dosT,2],[12,dosD,2],[14,crc,4],[18,comp.length,4],[22,data.length,4],[26,nm.length,2],[28,0,2]]);
+      parts.push(new Uint8Array(lh.buffer),nm,comp);
+      const ch=new DataView(new ArrayBuffer(46)); set(ch,[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,8,2],[12,dosT,2],[14,dosD,2],[16,crc,4],[20,comp.length,4],[24,data.length,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]]);
+      central.push(new Uint8Array(ch.buffer),nm); off+=30+nm.length+comp.length; }
+    const cd=central.reduce((t,a)=>t+a.length,0), end=new DataView(new ArrayBuffer(22));
+    [[0,0x06054b50,4],[4,0,2],[6,0,2],[8,files.length,2],[10,files.length,2],[12,cd,4],[16,off,4],[20,0,2]].forEach(([o,v,z])=>z===4?end.setUint32(o,v,true):end.setUint16(o,v,true));
+    return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});
+  }
+  // objs: [{name, V, F}] ya orientados para imprimir (Z arriba). Se centran y se acomodan en filas con 10 mm de holgura.
+  async function make3MF(objs,s,title){
+    const esc3=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'), f=x=>(Math.round(x*1000)/1000).toString();
+    let x=0, y=0, row=0; const W=s.bedX, res=[], items=[];
+    objs.forEach((o,k)=>{ const {mn,mx}=bbox(o.V), w=mx[0]-mn[0], d=mx[1]-mn[1];
+      if(x>0&&x+w>W){ x=0; y+=row+10; row=0; }
+      const tx=x-mn[0], ty=y-mn[1], tz=-mn[2]; x+=w+10; row=Math.max(row,d);
+      const vs=[], ts=[]; for(let i=0;i<o.V.length;i+=3) vs.push(`<vertex x="${f(o.V[i])}" y="${f(o.V[i+1])}" z="${f(o.V[i+2])}"/>`);
+      o.F.forEach(([a,b2,c])=>ts.push(`<triangle v1="${a}" v2="${b2}" v3="${c}"/>`));
+      res.push(`<object id="${k+1}" name="${esc3(o.name)}" type="model"><mesh><vertices>${vs.join('')}</vertices><triangles>${ts.join('')}</triangles></mesh></object>`);
+      items.push(`<item objectid="${k+1}" transform="1 0 0 0 1 0 0 0 1 ${f(tx)} ${f(ty)} ${f(tz)}"/>`); });
+    const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="es-EC" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">${esc3(title)}</metadata><metadata name="Designer">Legado Bonsai</metadata><resources>${res.join('')}</resources><build>${items.join('')}</build></model>`;
+    const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>';
+    const rels='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
+    const enc=new TextEncoder(), z=await zipFiles([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(rels)},{name:'3D/3dmodel.model',data:enc.encode(model)}]);
+    return new Blob([z],{type:'model/3mf'});
+  }
+  // Piezas tal como se imprimen en la sección actual (maceta con patas aparte, molde, mesa o madre + caja), con nombre
+  // y, si está la casilla «Ajustes recomendados», el ajuste de cada una en el nombre.
+  async function exportPieces(s,b){
+    let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three');
+    const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&REC[key]; return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
+    const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F}); };
+    if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
+    if(s.mode==='mold'){ await prepareSeal(s); buildMold(THREE,s,b).parts.forEach(pt=>add(pt.name,moldPrintTris(pt,s),pt.key)); return out; }
+    const G=potGroup(THREE,Object.assign({},s,{printable:true}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(q=>q.userData.foot);
+    feet.forEach(q=>G.remove(q)); add('Maceta (de pie)',meshTris(THREE,G,v=>[v.x,-v.z,v.y]));
+    const byF=new Map(); feet.forEach(q=>{ const k=q.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(q); });
+    [...byF.values()].forEach((g,i)=>add(`Pata ${i+1} (cabeza abajo)`,meshTris(THREE,g,v=>[v.x,v.z,-v.y])));
+    return out;
+  }
+  async function export3MF(outId){
+    if(!last3) return; const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
+    out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
+    const P=await exportPieces(s,b), what=s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='mold'?'molde':'maceta-para-imprimir';
+    const nm=(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const blob=await make3MF(P,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`);
+    download(blob,`${what}-${nm}.3mf`);
+    out.textContent=`Listo: ${what.replace(/-/g,' ')} en 3MF con ${P.length} pieza${P.length>1?'s':''} (${(blob.size/1048576).toFixed(1).replace('.',',')} MB). Ábrelo con doble clic en Bambu Studio (o Archivo → Importar). Si no caben en una cama, agrega otra cama con «+» y pulsa «Organizar» (tecla A). Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.`;
+  }
+  $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
   $('btnPrintStl').addEventListener('click',()=>{ $('stlWhat').value='imprimir'; exportSTL(); });
