@@ -335,6 +335,7 @@
         <label class="f"><span>Precio <b>USD/kg</b></span><input id="cPrice" type="number" step="0.5" min="0" value="25"></label>
         <label class="f"><span>Relleno <b>%</b></span><input id="cInfill" type="number" step="5" min="0" max="100" value="15"></label>
         <label class="f"><span>Perímetros</span><input id="cWalls" type="number" step="1" min="1" max="8" value="3"></label>
+        <label class="f"><span>Patrón de relleno</span><select id="cPattern"><option value="grid" selected>Rejilla / giroide (normal)</option><option value="lightning">Lightning (solo soportes bajo las superficies)</option></select><small class="hint">Lightning gasta ≈ 30 % de lo que gasta la rejilla a la misma densidad. La base con núcleo lo usa siempre con «Ajustes recomendados».</small></label>
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="cRec" checked><span>Ajustes recomendados por pieza: placa de patas al 8 % y base con núcleo al 5 % en relleno «lightning» (su interior solo sostiene el perfil: el laminador pone los soportes verticales donde hacen falta), 2 perímetros, pasadores y cuñas al 100 %, caja de vertido al 10 % con 2 perímetros</span></label>
         <label class="f"><span>Altura de capa <b>mm</b></span><select id="cLayer"><option value="0.12">0,12 · fino</option><option value="0.16">0,16</option><option value="0.2" selected>0,20 · estándar</option><option value="0.28">0,28 · rápido</option></select></label>
         <label class="f"><span>Luz <b>USD/kWh</b></span><input id="cKwh" type="number" step="0.005" min="0" value="0.10"></label>
@@ -3342,11 +3343,12 @@
   // 11 mm³/s + relleno a 20 mm³/s (a capa de 0,2 mm; proporcional a la altura de capa) + 2,5 s por capa (cambio de capa,
   // retracción y viajes) + 6 min por cama (calentar y calibrar). Filamento de 1,75 mm (2,405 mm² de sección).
   const FIL={PLA:1.24,PETG:1.27};
-  function calcOpts(){ return {rec:$('cRec').checked,mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2,kwh:Math.max(0,+$('cKwh').value||0),W:Math.max(0,+$('cW').value||0)}; }
+  function calcOpts(){ return {rec:$('cRec').checked,pattern:$('cPattern').value,mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2,kwh:Math.max(0,+$('cKwh').value||0),W:Math.max(0,+$('cW').value||0)}; }
   function solidStats(T){ const R=stlOrient(T), {mn,mx}=bbox(R.V); let A=0;
     for(const [a,b2,c] of R.F){ const u=[R.V[3*b2]-R.V[3*a],R.V[3*b2+1]-R.V[3*a+1],R.V[3*b2+2]-R.V[3*a+2]], v=[R.V[3*c]-R.V[3*a],R.V[3*c+1]-R.V[3*a+1],R.V[3*c+2]-R.V[3*a+2]]; A+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
     return {V:Math.abs(R.volume),A,size:[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]}; }
-  function estimate(p,o){ const shell=Math.min(p.V,p.A*o.walls*0.42), inf=Math.max(0,p.V-shell)*o.infill/100, vol=shell+inf, k=o.layer/0.2;
+  // relleno «lightning»: ramas solo bajo las superficies; gasta ≈ 30 % de lo que gasta la rejilla a la misma densidad (medido en Bambu Studio sobre piezas como estas)
+  function estimate(p,o){ const shell=Math.min(p.V,p.A*o.walls*0.42), inf=Math.max(0,p.V-shell)*o.infill/100*(o.pattern==='lightning'?0.3:1), vol=shell+inf, k=o.layer/0.2;
     return {g:vol/1000*FIL[o.mat], m:vol/2.405/1000, h:(shell/(11*k)+inf/(20*k)+p.size[2]/o.layer*2.5)/3600}; }
   // piezas que se imprimen en la sección actual: la maceta (y sus patas aparte) o las piezas del molde
   async function printPieces(s,b){
@@ -3367,9 +3369,9 @@
   // totales: camas = área de apoyo de las piezas / 70 % de la cama (al menos una); 6 min de preparación por cama
   // Ajustes recomendados por pieza (casilla «Ajustes recomendados»): las placas solo apoyan y forman una cara, así que van
   // livianas; pasadores y cuñas trabajan a presión y van macizos. Bambu Studio los admite por objeto (clic derecho → Ajustes).
-  const REC={feet:{infill:8,walls:2},base:{infill:5,walls:2,note:'lightning'},madre:{infill:10,walls:3},cajaA:{infill:6,walls:3},cajaB:{infill:6,walls:3},cajaAB:{infill:6,walls:3},cajaC:{infill:6,walls:3},cajaCuerpo:{infill:6,walls:3},sprig:{infill:6,walls:3},kit:{infill:100,walls:3},caja:{infill:10,walls:2}};
+  const REC={feet:{infill:8,walls:2},base:{infill:5,walls:2,pattern:'lightning'},madre:{infill:10,walls:3},cajaA:{infill:6,walls:3},cajaB:{infill:6,walls:3},cajaAB:{infill:6,walls:3},cajaC:{infill:6,walls:3},cajaCuerpo:{infill:6,walls:3},sprig:{infill:6,walls:3},kit:{infill:100,walls:3},caja:{infill:10,walls:2}};
   const pieceOpts=(p,o)=>o.rec&&REC[p.key]?Object.assign({},o,REC[p.key]):o;
-  function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
+  function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
     const fit=rows.every(r=>((r.size[0]<=s.bedX+0.5&&r.size[1]<=s.bedY+0.5)||(r.size[0]<=s.bedY+0.5&&r.size[1]<=s.bedX+0.5))&&r.size[2]<=s.bedZ+0.5);
     const kwh=h*o.W/1000, luz=kwh*o.kwh; // luz = potencia media × horas (incluye la preparación de camas) × tarifa
@@ -3413,7 +3415,7 @@
   }
   $('btnCalc').addEventListener('click',calcThis); $('btnCalcAll').addEventListener('click',calcAll);
   $('printer').addEventListener('change',()=>{ const w={a2l:150,a1:110,mini:70}[$('printer').value]; if(w) $('cW').value=w; });
-  ['cMat','cPrice','cInfill','cWalls','cLayer','cRec','cKwh','cW'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
+  ['cMat','cPrice','cInfill','cWalls','cLayer','cRec','cKwh','cW','cPattern'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
   // ---------- Mesa de exhibición: exportar (Impresión 3D: STL; Molde 3D: kit de silicona) ----------
   // Impresa boca abajo: (x, Y, z) → (x, z, Ht − Y), una rotación (no espeja).
   function tablePrintTris(THREE,s){ const TS=tableSolids(THREE,s), T=[]; TS.solids.forEach(S=>{ for(let i=0;i<S.length;i+=3) T.push(S[i],S[i+2],TS.Ht-S[i+1]); }); return T; }
