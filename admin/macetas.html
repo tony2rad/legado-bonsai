@@ -1897,7 +1897,7 @@
   //    la maceta se alisa con espátula apoyada en el marco. Si una pata cruza el borde del marco se ensancha el marco.
   //  · Pasadores y cuñas impresos solo con s.moldBolt = 0; las espigas de los trozos siempre van en la pieza «kit».
   // Drenajes y agujeros del alambre se forman con postes del propio núcleo.
-  const MOLD={FS:6,CLR:0.3,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:2,
+  const MOLD={FS:6,CLR:0.3,ROOF:55,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:2,
     PIN:{w:7.6,t:4.8,head:16,headL:5,grip:12,slotL:9,slotW:3.4,tip:4},WEDGE:{L:36,h0:3,h1:8.5,t:3}};
   // Sello de la marca en la cara inferior: logotipos originales de assets/img/logo, tamaño proporcional al ancho de la
   // maceta (ratio) entre un mínimo legible en cemento y un máximo. Si no cabe, se cae al emblema; si tampoco, no va.
@@ -2222,7 +2222,7 @@
       // dos aguas de 55° (se imprime sin soportes; arriba queda un puente angosto de 8 mm). Placa, núcleo y cavidad forman
       // un solo sólido cerrado, así stlOrient no confunde la cavidad con un sólido.
       const xAtY=Y=>{ for(let i=0;i<int.length-1;i++){ const Ya=H-int[i][1], Yb=H-int[i+1][1]; if(Y<=Ya+1e-9&&Y>=Yb-1e-9){ const t=(Ya-Y)/((Ya-Yb)||1); return int[i][0]+(int[i+1][0]-int[i][0])*t; } } return int[int.length-1][0]; };
-      const Yr=Yt+w, cx=Y=>Math.min(xAtY(Math.min(Y,H))-w,Math.tan(35*Math.PI/180)*(Y-Yr)), cav=[];
+      const Yr=Yt+w, cx=Y=>Math.min(xAtY(Math.min(Y,H))-w,Math.tan((90-MOLD.ROOF)*Math.PI/180)*(Y-Yr)), cav=[];
       if(s.moldCore!=='macizo'&&cx(H+TB)>=4){
         const Ys=[H+TB,H]; for(let Y=H-2;Y>Yr;Y-=2) Ys.push(Y);
         let prev=null; for(const Y of Ys){ const x=cx(Y); if(x>=4){ cav.push({loop:ringC(x),Y}); prev=Y; continue; }
