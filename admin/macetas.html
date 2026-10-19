@@ -334,6 +334,9 @@
         <label class="f"><span>Perímetros</span><input id="cWalls" type="number" step="1" min="1" max="8" value="3"></label>
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="cRec" checked><span>Ajustes recomendados por pieza: placas de patas y base al 8 % con 2 perímetros (no cargan esfuerzo), pasadores y cuñas al 100 %, caja de vertido al 10 % con 2 perímetros</span></label>
         <label class="f"><span>Altura de capa <b>mm</b></span><select id="cLayer"><option value="0.12">0,12 · fino</option><option value="0.16">0,16</option><option value="0.2" selected>0,20 · estándar</option><option value="0.28">0,28 · rápido</option></select></label>
+        <label class="f"><span>Luz <b>USD/kWh</b></span><input id="cKwh" type="number" step="0.005" min="0" value="0.10"></label>
+        <label class="f"><span>Potencia media de la impresora <b>W</b></span><input id="cW" type="number" step="10" min="0" value="150"></label>
+        <p class="mold-lead" style="grid-column:1/-1;margin:0">Luz: tarifa residencial de Ecuador (pliego de ARCONEL, categoría general, por bloques del consumo mensual): 0,091 USD/kWh hasta 50 kWh y sube ≈ 0,002 por bloque de 50 hasta 0,105 entre 351 y 500 kWh; de 501 a 700 es 0,1285 y de 701 a 1000, 0,145. La impresora se suma al consumo de la casa, así que cuenta el bloque más alto que alcances ese mes (más alumbrado público, basura y bomberos, ≈ 10 % extra en la planilla). Potencia media con PLA: A2L ≈ 150 W (pico 1000 W los primeros minutos, calentando la cama), A1 ≈ 110 W, A1 mini ≈ 70 W, P1S/X1C ≈ 160 W. Un enchufe medidor da la cifra real de tu máquina.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCalc" type="button">Calcular este diseño</button><button class="btn ghost" id="btnCalcAll" type="button">Tabla de los 23 modelos</button></div>
       <div id="calcOut" class="calc-out"></div>
@@ -3213,7 +3216,7 @@
   // 11 mm³/s + relleno a 20 mm³/s (a capa de 0,2 mm; proporcional a la altura de capa) + 2,5 s por capa (cambio de capa,
   // retracción y viajes) + 6 min por cama (calentar y calibrar). Filamento de 1,75 mm (2,405 mm² de sección).
   const FIL={PLA:1.24,PETG:1.27};
-  function calcOpts(){ return {rec:$('cRec').checked,mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2}; }
+  function calcOpts(){ return {rec:$('cRec').checked,mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2,kwh:Math.max(0,+$('cKwh').value||0),W:Math.max(0,+$('cW').value||0)}; }
   function solidStats(T){ const R=stlOrient(T), {mn,mx}=bbox(R.V); let A=0;
     for(const [a,b2,c] of R.F){ const u=[R.V[3*b2]-R.V[3*a],R.V[3*b2+1]-R.V[3*a+1],R.V[3*b2+2]-R.V[3*a+2]], v=[R.V[3*c]-R.V[3*a],R.V[3*c+1]-R.V[3*a+1],R.V[3*c+2]-R.V[3*a+2]]; A+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
     return {V:Math.abs(R.volume),A,size:[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]}; }
@@ -3243,14 +3246,15 @@
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
     const fit=rows.every(r=>((r.size[0]<=s.bedX+0.5&&r.size[1]<=s.bedY+0.5)||(r.size[0]<=s.bedY+0.5&&r.size[1]<=s.bedX+0.5))&&r.size[2]<=s.bedZ+0.5);
-    return {rows,g,m,h,beds,cost:g/1000*o.price,fit}; }
+    const kwh=h*o.W/1000, luz=kwh*o.kwh; // luz = potencia media × horas (incluye la preparación de camas) × tarifa
+    return {rows,g,m,h,beds,cost:g/1000*o.price,kwh,luz,total:g/1000*o.price+luz,fit}; }
   async function calcThis(){
     if(!last3) return; const out=$('calcOut'); out.textContent='Calculando…'; await ensureAuto(); await new Promise(r=>setTimeout(r,20));
     const {s,b}=last3, o=calcOpts(), t=totals(await printPieces(s,b),s,o), mm=x=>n1(x/10);
     out.innerHTML=`<div class="calc-wrap"><table><tr><th>Pieza</th><th>cm</th><th>Ajuste</th><th>g</th><th>m</th><th>Tiempo</th><th>USD</th></tr>`
       +t.rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${mm(r.size[0])}×${mm(r.size[1])}×${mm(r.size[2])}</td><td>${r.set}</td><td>${Math.round(r.g)}</td><td>${n1(r.m)}</td><td>${hm(r.h)}</td><td>${usd(r.g/1000*o.price)}</td></tr>`).join('')
       +`<tr class="tot"><td>Total · ${t.beds} cama${t.beds>1?'s':''}</td><td></td><td></td><td>${Math.round(t.g)}</td><td>${n1(t.m)}</td><td>${hm(t.h)}</td><td>${usd(t.cost)}</td></tr></table></div>`
-      +`<p class="mold-lead">${esc(s.bedName)} · ${o.mat} · ${o.rec?'ajustes por pieza (resto: ':''}relleno ${o.infill} % · ${o.walls} perímetros${o.rec?')':''} · capa ${String(o.layer).replace('.',',')} mm. El total suma 6 min de preparación por cama${t.fit?'':'. Alguna pieza no cabe en la cama: hay que partirla o elegir otra impresora'}. ${(k=>k<1?`Un rollo de 1 kg no alcanza: hacen falta ${n1(t.g/1000)} kg`:`Un rollo de 1 kg rinde para ${k} ${s.mode==='mold'?(k===1?'molde como este':'moldes como este'):(k===1?'maceta como esta':'macetas como esta')}`)(Math.floor(1000/Math.max(1,t.g)))}.</p>`;
+      +`<p class="mold-lead"><b>Luz</b> ≈ ${n1(t.kwh)} kWh → ${usd(t.luz)} (${o.W} W × ${hm(t.h)} a ${String(o.kwh).replace('.',',')} USD/kWh) · <b>material + luz</b> ≈ ${usd(t.total)}.</p><p class="mold-lead">${esc(s.bedName)} · ${o.mat} · ${o.rec?'ajustes por pieza (resto: ':''}relleno ${o.infill} % · ${o.walls} perímetros${o.rec?')':''} · capa ${String(o.layer).replace('.',',')} mm. El total suma 6 min de preparación por cama${t.fit?'':'. Alguna pieza no cabe en la cama: hay que partirla o elegir otra impresora'}. ${(k=>k<1?`Un rollo de 1 kg no alcanza: hacen falta ${n1(t.g/1000)} kg`:`Un rollo de 1 kg rinde para ${k} ${s.mode==='mold'?(k===1?'molde como este':'moldes como este'):(k===1?'maceta como esta':'macetas como esta')}`)(Math.floor(1000/Math.max(1,t.g)))}.</p>`;
   }
   async function calcAll(){
     const out=$('calcOut'), sel=$('preset'), keep=sel.value, o=calcOpts(), ids=[...sel.options].map(x=>x.value).filter(v=>v!=='custom'), rows=[];
@@ -3259,11 +3263,11 @@
       rows.push({name:p?p.name:ids[i],style:p?p.style:'',dims:s.type==='round'?`Ø${n1(s.L/10)}×${n1(s.H/10)}`:`${n1(s.L/10)}×${n1(s.W/10)}×${n1(s.H/10)}`,t}); }
     sel.value=keep; sel.dispatchEvent(new Event('change'));
     const mold=last3.s.mode==='mold'||!!last3.s.plasterMode, what=last3.s.plasterMode?'Molde de yeso (cajas)':mold?(last3.s.skinMode?'Contramolde para silicona (madre, carcasa, base, placa y kit)':'Molde de vaciado (kit completo)'):'Maceta impresa (con patas aparte)';
-    const csv=['Modelo;Estilo;Medidas cm;Gramos;Metros;Horas;Camas;Costo USD;Cabe en la cama'].concat(rows.map(r=>[r.name,r.style,r.dims,Math.round(r.t.g),n1(r.t.m),n1(r.t.h),r.t.beds,r.t.cost.toFixed(2).replace('.',','),r.t.fit?'sí':'no'].join(';'))).join('\r\n');
-    const sum=rows.reduce((t,r)=>({g:t.g+r.t.g,h:t.h+r.t.h,c:t.c+r.t.cost}),{g:0,h:0,c:0});
-    out.innerHTML=`<p class="mold-lead"><b>${what}</b> · ${esc(last3.s.bedName)} · ${o.mat} · relleno ${o.infill} % · ${o.walls} perímetros · capa ${String(o.layer).replace('.',',')} mm</p><div class="calc-wrap"><table><tr><th>Modelo</th><th>cm</th><th>g</th><th>Tiempo</th><th>USD</th></tr>`
-      +rows.map(r=>`<tr${r.t.fit?'':' class="nofit"'}><td>${esc(r.name)}</td><td>${r.dims}</td><td>${Math.round(r.t.g)}</td><td>${hm(r.t.h)}</td><td>${usd(r.t.cost)}</td></tr>`).join('')
-      +`<tr class="tot"><td>Los ${rows.length}</td><td></td><td>${n1(sum.g/1000)} kg</td><td>${hm(sum.h)}</td><td>${usd(sum.c)}</td></tr></table></div><p class="mold-lead">En gris, los que no caben en la cama sin partir${mold?' (el molde los parte solo)':''}.</p><button class="btn ghost" id="btnCsv" type="button">Descargar tabla (CSV)</button>`;
+    const csv=['Modelo;Estilo;Medidas cm;Gramos;Metros;Horas;Camas;Filamento USD;kWh;Luz USD;Total USD;Cabe en la cama'].concat(rows.map(r=>[r.name,r.style,r.dims,Math.round(r.t.g),n1(r.t.m),n1(r.t.h),r.t.beds,r.t.cost.toFixed(2).replace('.',','),n1(r.t.kwh),r.t.luz.toFixed(2).replace('.',','),r.t.total.toFixed(2).replace('.',','),r.t.fit?'sí':'no'].join(';'))).join('\r\n');
+    const sum=rows.reduce((t,r)=>({g:t.g+r.t.g,h:t.h+r.t.h,c:t.c+r.t.cost,k:t.k+r.t.kwh,l:t.l+r.t.luz}),{g:0,h:0,c:0,k:0,l:0});
+    out.innerHTML=`<p class="mold-lead"><b>${what}</b> · ${esc(last3.s.bedName)} · ${o.mat} · relleno ${o.infill} % · ${o.walls} perímetros · capa ${String(o.layer).replace('.',',')} mm · luz ${o.W} W a ${String(o.kwh).replace('.',',')} USD/kWh</p><div class="calc-wrap"><table><tr><th>Modelo</th><th>cm</th><th>g</th><th>Tiempo</th><th>Filamento</th><th>kWh</th><th>Luz</th><th>Total</th></tr>`
+      +rows.map(r=>`<tr${r.t.fit?'':' class="nofit"'}><td>${esc(r.name)}</td><td>${r.dims}</td><td>${Math.round(r.t.g)}</td><td>${hm(r.t.h)}</td><td>${usd(r.t.cost)}</td><td>${n1(r.t.kwh)}</td><td>${usd(r.t.luz)}</td><td>${usd(r.t.total)}</td></tr>`).join('')
+      +`<tr class="tot"><td>Los ${rows.length}</td><td></td><td>${n1(sum.g/1000)} kg</td><td>${hm(sum.h)}</td><td>${usd(sum.c)}</td><td>${n1(sum.k)}</td><td>${usd(sum.l)}</td><td>${usd(sum.c+sum.l)}</td></tr></table></div><p class="mold-lead">En gris, los que no caben en la cama sin partir${mold?' (el molde los parte solo)':''}.</p><button class="btn ghost" id="btnCsv" type="button">Descargar tabla (CSV)</button>`;
     $('btnCsv').addEventListener('click',()=>download(new Blob(['﻿'+csv],{type:'text/csv'}),`material-y-tiempo-${mold?'moldes':'macetas'}.csv`));
   }
   // Consumo estimado en el recuadro «Medidas» del visor (Impresión 3D y Molde 3D): filamento, tiempo, camas y costo con
@@ -3277,12 +3281,13 @@
     el.textContent=base+'\nConsumo  calculando…'; clearTimeout(estT);
     estT=setTimeout(async()=>{ try{
       const t=totals(await printPieces(s,b),s,o);
-      estKey=key; estTxt=`Filamento ≈ ${Math.round(t.g)} g de ${o.mat} (${n1(t.m)} m)\nTiempo   ≈ ${hm(t.h)} · ${t.beds} cama${t.beds>1?'s':''}\nCosto    ≈ ${usd(t.cost)} (${o.rec&&s.mode==='mold'?'ajustes por pieza':o.infill+' % de relleno'})`;
+      estKey=key; estTxt=`Filamento ≈ ${Math.round(t.g)} g de ${o.mat} (${n1(t.m)} m)\nTiempo   ≈ ${hm(t.h)} · ${t.beds} cama${t.beds>1?'s':''}\nCosto    ≈ ${usd(t.cost)} (${o.rec&&s.mode==='mold'?'ajustes por pieza':o.infill+' % de relleno'})\nLuz      ≈ ${n1(t.kwh)} kWh · ${usd(t.luz)} (${o.W} W, ${String(o.kwh).replace('.',',')} USD/kWh)\nTotal    ≈ ${usd(t.total)} material + luz`;
       if(last3&&last3.s===s) $('v3dims').textContent=base+'\n'+estTxt;
     }catch(e){} },600);
   }
   $('btnCalc').addEventListener('click',calcThis); $('btnCalcAll').addEventListener('click',calcAll);
-  ['cMat','cPrice','cInfill','cWalls','cLayer','cRec'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
+  $('printer').addEventListener('change',()=>{ const w={a2l:150,a1:110,mini:70}[$('printer').value]; if(w) $('cW').value=w; });
+  ['cMat','cPrice','cInfill','cWalls','cLayer','cRec','cKwh','cW'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
   // ---------- Mesa de exhibición: exportar (Impresión 3D: STL; Molde 3D: kit de silicona) ----------
   // Impresa boca abajo: (x, Y, z) → (x, z, Ht − Y), una rotación (no espeja).
   function tablePrintTris(THREE,s){ const TS=tableSolids(THREE,s), T=[]; TS.solids.forEach(S=>{ for(let i=0;i<S.length;i+=3) T.push(S[i],S[i+2],TS.Ht-S[i+1]); }); return T; }
