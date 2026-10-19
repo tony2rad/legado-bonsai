@@ -2294,7 +2294,7 @@
         const bp=parts.pop(); const sp1=splitToFit(THREE,Object.assign({},bp,{cutAt:0,axis:0,forceN:true}),s,null); let pcs=sp1?sp1.parts:[bp]; if(sp1) dowR0.push(...sp1.dowels);
         if(split===4){ const q=[]; for(const hpc of pcs){ const sp2=splitToFit(THREE,Object.assign({},hpc,{cutAt:0,axis:2,forceN:true}),s,null); if(sp2){ q.push(...sp2.parts); dowR0.push(...sp2.dowels); } else q.push(hpc); } pcs=q; }
         const nm=split===4?'cuarto':'mitad', nms=split===4?'cuartos':'mitades';
-        pcs.forEach((pc,i)=>{ const bb=bbox(pc.T), cxp=(bb.mn[0]+bb.mx[0])/2, czp=(bb.mn[2]+bb.mx[2])/2; pc.name=`Base con núcleo · ${nm} ${i+1} de ${pcs.length}`; pc.file=`molde-base-nucleo-${nm}-${i+1}de${pcs.length}`; pc.piece=i; pc.sep=[Math.sign(cxp)*10,0,Math.sign(czp)*10]; });
+        pcs.forEach((pc,i)=>{ const bb=bbox(pc.T), cxp=(bb.mn[0]+bb.mx[0])/2, czp=(bb.mn[2]+bb.mx[2])/2; pc.name=`Base con núcleo · ${nm} ${i+1} de ${pcs.length}`; pc.file=`molde-base-nucleo-${nm}-${i+1}de${pcs.length}`; pc.piece=i; pc.sep=[Math.sign(cxp)*22,0,Math.sign(czp)*22]; });
         parts.push(...pcs);
         notes.push(`Base con núcleo en ${pcs.length} ${nms} con piso: cada ${nm} lleva su trozo de placa con ranura y su hueco propio; ${dowR0.length} espigas de unión Ø 4 mm en las juntas y ${pegDefs.length} espigas de ${split===4?'drenaje y alambre':'drenaje'} que se meten desde arriba en los agujeros de las juntas y las traban. Los gajos atornillados abrazan la base por la ranura: no hace falta pegar.`);
       }
