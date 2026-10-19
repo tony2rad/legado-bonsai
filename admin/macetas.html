@@ -291,8 +291,11 @@
       <summary>Relieves: molde de sprig</summary>
       <p class="mold-lead">Dragones, pinos, árboles, montañas y medallones se hacen aparte, con un <b>molde de sprig</b>: una cajita impresa con el relieve en positivo, yeso encima, y del molde de yeso salen las figuras de arcilla que se pegan a la maceta en cuero. Sirve para cualquier maceta y cualquier pared. El dibujo se convierte en relieve por alturas con bordes en talud; con tu impresora, líneas de menos de 0,5 mm y relieves de más de 4 mm no se definen bien.</p>
       <div class="grid2">
-        <label class="f"><span>Motivo</span><select id="spMotif"><option value="none" selected>Ninguno</option><option value="pasochoa">Pasochoa (montaña)</option><option value="pino">Pino</option><option value="emblema">Emblema Legado</option><option value="logotipo">Logotipo vertical</option><option value="svg">SVG propio (archivo)</option><option value="img">Imagen en gris (archivo)</option></select></label>
-        <label class="f"><span>Archivo SVG o imagen</span><input id="spFile" type="file" accept=".svg,image/svg+xml,image/png,image/jpeg"></label>
+        <label class="f"><span>Motivo</span><select id="spMotif"><option value="none" selected>Ninguno</option><optgroup label="Biblioteca (dibujados aquí)"><option value="dragon">Dragón</option><option value="montanas">Montañas y nubes</option><option value="pasochoa">Pasochoa (grabado)</option><option value="pino">Pino</option><option value="bambu">Bambú</option><option value="ciruelo">Ciruelo en flor</option><option value="grulla">Grulla</option><option value="koi">Carpa koi</option><option value="loto">Loto</option><option value="crisantemo">Crisantemo (medallón)</option><option value="nubes">Nubes (banda)</option><option value="olas">Olas seigaiha (banda)</option><option value="greca">Greca (banda)</option></optgroup><optgroup label="Marca"><option value="kanji">家族の木 (kanji)</option><option value="texto">Texto propio</option><option value="emblema">Emblema Legado</option><option value="logotipo">Logotipo vertical</option></optgroup><optgroup label="Archivo propio"><option value="svg">SVG propio (archivo)</option><option value="img">Imagen en gris (archivo)</option></optgroup></select></label>
+        <label class="f" id="spTextL" hidden><span>Texto del relieve</span><input id="spText" type="text" value="Legado Bonsái" maxlength="40"></label>
+        <label class="f" id="spFileL" hidden><span>Archivo SVG o imagen</span><input id="spFile" type="file" accept=".svg,image/svg+xml,image/png,image/jpeg"></label>
+        <label class="f"><span>Detalle</span><select id="spSoft"><option value="fino">Fino (líneas 0,5 mm; surcos marcados)</option><option value="medio" selected>Medio (bordes en talud de 1 mm)</option><option value="suave">Suave (fotos y degradados)</option></select></label>
+        <div class="f" style="grid-column:1/-1"><img id="spPrev" alt="" hidden style="max-width:220px;max-height:120px;border:1px solid var(--line);border-radius:6px;background:#fff"></div>
         <label class="f"><span>Ancho del relieve <b>mm</b></span><input id="spW" type="number" step="5" min="20" max="200" value="60"></label>
         <label class="f"><span>Profundidad <b>mm</b></span><input id="spD" type="number" step="0.5" min="0.5" max="6" value="2"></label>
         <label class="f"><span>Marco</span><select id="spFrame"><option value="none" selected>Sin marco</option><option value="oval">Medallón ovalado</option><option value="rect">Rectángulo</option></select></label>
@@ -517,7 +520,7 @@
       if(s.panel&&PAN.where==='todas'){ s.plasterNotes.push('Panel solo en las paredes largas: en las cortas quedaría enganchado al abrir las mitades.'); PAN.where='largas'; }
       s.studs=$('pDeco').value; if(s.studs==='panel'){ s.panel=true; PAN.where='largas'; PAN.mode='relieve'; } else if(s.panel){ s.plasterNotes.push('El panel decorativo solo se moldea en yeso eligiendo «Panel liso con marco» en Detalles; si no, tállalo o aplícalo en cuero.'); s.panel=false; }
       if(s.studs==='rivets'&&s.body!=='cinturon') s.plasterNotes.push('Remaches: sin cinturón van como una fila de tachones a media altura.');
-      s.sprig={motif:$('spMotif').value,w:Math.max(20,Math.min(200,+$('spW').value||60)),d:Math.max(0.5,Math.min(6,+$('spD').value||2)),frame:$('spFrame').value,curve:$('spCurve').value==='pot',inv:$('spInv').checked}; }
+      s.sprig={motif:$('spMotif').value,w:Math.max(20,Math.min(200,+$('spW').value||60)),d:Math.max(0.5,Math.min(6,+$('spD').value||2)),frame:$('spFrame').value,curve:$('spCurve').value==='pot',inv:$('spInv').checked,soft:({fino:0.4,medio:0.6,suave:1.6})[$('spSoft').value]||0.8,text:$('spText').value.trim()}; }
     s.pLip=$('pLip').value; s.pFeet=$('pFeet').value; s.pFit=$('pFit').value; s.pIn=$('pIn').value; s.inSeal=$('pSeal').value==='none'?'C':$('pSeal').value; s.tClay=s.t;
     { const pw=$('pWall').value; s.pT=pw==='auto'?printWall(s):pw==='plantilla'?s.t:(+pw||2.5); s.pBase=Math.max(3,Math.round(s.pT*13)/10,s.feet>0&&s.pFeet!=='pegadas'?PIN.hp+1.2:0); }
     if(s.printable) s.t=s.pT;   // Impresión 3D: pared de plástico, no la placa de arcilla
@@ -1617,7 +1620,7 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spText','Relieve: texto'],['spSoft','Relieve: detalle',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     let sec='';
@@ -1900,7 +1903,7 @@
     new SVGLoader().parse(txt).paths.forEach(p=>SVGLoader.createShapes(p).forEach(sh=>{ const e=sh.extractPoints(8); loops.push(e.shape.map(v=>[v.x,v.y])); e.holes.forEach(h=>loops.push(h.map(v=>[v.x,v.y]))); }));
     return SEAL_ART[key]={loops,vb:ART[key].vb};
   }
-  async function prepareSeal(s){ if(s.sprig&&s.sprig.motif!=='none'){ try{ await loadSprigArt(s.sprig.motif); }catch(e){} } const ks=[s.seal,s.printable&&s.pIn!=='none'?s.inSeal:null].filter(k=>k&&k!=='none'&&SEALS[k]); if(!ks.length) return; try{ for(const k of ks) await loadSealArt(SEALS[k].art); await loadSealArt('emblema'); }catch(e){} }
+  async function prepareSeal(s){ if(s.sprig&&s.sprig.motif!=='none'){ try{ await loadSprigArt(s.sprig.motif,s.sprig.text); }catch(e){} } const ks=[s.seal,s.printable&&s.pIn!=='none'?s.inSeal:null].filter(k=>k&&k!=='none'&&SEALS[k]); if(!ks.length) return; try{ for(const k of ks) await loadSealArt(SEALS[k].art); await loadSealArt('emblema'); }catch(e){} }
   // Sitio y contornos del sello en la cara inferior (mm, maceta derecha). Lo usan la placa del molde, la maceta del
   // visor y su STL, así los tres coinciden. Se guarda en caché por medidas: la búsqueda del sitio no es instantánea.
   const SEAL_CACHE=new Map();
@@ -2385,24 +2388,167 @@
   // una cajita impresa con el relieve en positivo → molde de yeso pequeño → se aprieta arcilla, se saca la figura y se pega
   // a la maceta en cuero con barbotina (dragones, pinos, árboles, montañas, medallones: cualquier maceta y cualquier pared,
   // sin contrasalidas en el molde principal). El relieve se arma por ALTURAS: el dibujo (SVG de la biblioteca o propio, o
-  // una imagen en gris) se rasteriza a una rejilla de ~0,4–0,8 mm, se suaviza (bordes en talud de ~2 mm, para que salga
+  // una imagen en gris) se rasteriza a una rejilla de 0,3–0,8 mm (lado mayor / 240), se suaviza (bordes en talud de ~2 mm, para que salga
   // del yeso y de la arcilla) y se levanta `d` mm; opcionalmente con marco (óvalo o rectángulo) y curvado al radio de la
   // pared en macetas redondas u ovaladas. Límite de la impresora: líneas < 0,5 mm y relieves > 4 mm no se definen bien.
-  const SPRIG_LIB={pasochoa:{file:'../assets/img/ilustraciones/montana-principal.svg',name:'Pasochoa'},pino:{file:'../assets/img/ilustraciones/guia-arbol.svg',name:'Pino'},emblema:{file:'../assets/img/logo/legado-emblema-negro.svg',name:'Emblema'},logotipo:{file:'../assets/img/logo/legado-logo-vertical-negro.svg',name:'Logotipo vertical'}};
+  // Biblioteca de relieves DIBUJADOS EN CÓDIGO (SVG generado al vuelo; el texto se escribe en un canvas): tinta negra = lo
+  // más alto, blanco = fondo, grises = alturas intermedias; degradados radiales = volúmenes redondeados; líneas blancas
+  // dentro de la tinta = surcos (escamas, nervaduras). Pensados para 2 mm de relieve con la boquilla de 0,4: líneas de
+  // 3,5–8 unidades en lienzos de 400–600 (≈ 0,6–1,5 mm a 60–120 mm de ancho).
+  const SPRIG_ART={};
+  (function(){
+    const f1=v=>Math.round(v*10)/10, pt=(x,y)=>f1(x)+','+f1(y);
+    // Catmull-Rom por los puntos P, n muestras por tramo → [{x,y,tx,ty,u}] (tangente unitaria, u = 0..1 a lo largo)
+    function spline(P,n){ const out=[], m=P.length-1;
+      for(let i=0;i<m;i++){ const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(m,i+2)], last=i===m-1;
+        for(let k=0;k<=(last?n:n-1);k++){ const t=k/n,t2=t*t,t3=t2*t;
+          const x=0.5*(2*p1[0]+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3);
+          const y=0.5*(2*p1[1]+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
+          const dx=0.5*((-p0[0]+p2[0])+2*(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t+3*(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t2);
+          const dy=0.5*((-p0[1]+p2[1])+2*(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t+3*(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t2);
+          const L=Math.hypot(dx,dy)||1; out.push({x,y,tx:dx/L,ty:dy/L,u:(i+t)/m}); } }
+      return out; }
+    // tubo: contorno cerrado a ±w(u) de la espina (normal = tangente girada 90°)
+    const tube=(S,wf)=>{ const L=[],R=[]; S.forEach(s=>{ const w=wf(s.u),nx=-s.ty,ny=s.tx; L.push(pt(s.x+nx*w,s.y+ny*w)); R.push(pt(s.x-nx*w,s.y-ny*w)); }); return 'M'+L.join('L')+'L'+R.reverse().join('L')+'Z'; };
+    // hoja / pétalo: lente apuntada desde la base (bx,by) en el ángulo a, largo len y medio ancho wd
+    const lens=(bx,by,a,len,wd)=>{ const dx=Math.cos(a),dy=Math.sin(a),px=-dy,py=dx,mx=bx+dx*len*0.5,my=by+dy*len*0.5,tx=bx+dx*len,ty=by+dy*len; return `M${pt(bx,by)}Q${pt(mx+px*wd,my+py*wd)} ${pt(tx,ty)}Q${pt(mx-px*wd,my-py*wd)} ${pt(bx,by)}Z`; };
+    const ln=(x0,y0,x1,y1,c,w)=>`<line x1="${f1(x0)}" y1="${f1(y0)}" x2="${f1(x1)}" y2="${f1(y1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+    const svg=(w,h,body,defs='')=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><defs>${defs}</defs><rect width="${w}" height="${h}" fill="#fff"/>${body}</svg>`;
+    const rg=(id,c0,c1)=>`<radialGradient id="${id}"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></radialGradient>`;
+    const lg=(id,c0,c1)=>`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient>`;
+    // nube ruyi: círculos con volumen, rizos en espiral y cola
+    const cloud=(cx,cy,s,fill,curl)=>{ let d=''; [[0,0,32],[-40,10,24],[38,12,26],[-12,-24,20],[20,-20,18],[-66,20,14],[64,22,15]].forEach(([x,y,r])=>d+=`<circle cx="${f1(cx+x*s)}" cy="${f1(cy+y*s)}" r="${f1(r*s)}" fill="${fill}"/>`);
+      if(curl) [[0,0,22],[-40,10,15],[38,12,16]].forEach(([x,y,r0])=>{ let p=''; for(let k=0;k<=40;k++){ const a=k/40*Math.PI*2.6,r=r0*(1-k/48); p+=(k?'L':'M')+pt(cx+x*s+Math.cos(a)*r*s,cy+y*s+Math.sin(a)*r*s); } d+=`<path d="${p}" fill="none" stroke="#fff" stroke-width="${f1(3.5*s)}" stroke-linecap="round"/>`; });
+      d+=`<path d="M${pt(cx+80*s,cy+24*s)}q${f1(40*s)},${f1(4*s)} ${f1(90*s)},${f1(-14*s)}" fill="none" stroke="${curl?'#555':fill}" stroke-width="${f1(9*s)}" stroke-linecap="round"/>`; return d; };
+
+    // Dragón chino: espina en S con cuerpo que adelgaza, placas del vientre, espinas del lomo, cuatro garras, cabeza con
+    // cuernos, bigotes y melena, perla en llamas y nubes en las esquinas
+    SPRIG_ART.dragon=()=>{ const S=spline([[112,122],[190,72],[262,122],[292,216],[362,246],[414,190],[448,120],[472,70]],16), wf=u=>6+27*Math.pow(1-u,0.7); let b='';
+      const leg=(u,sg)=>{ let k=0; while(k<S.length-1&&S[k].u<u) k++; const s=S[k],w=wf(s.u),nx=-s.ty*sg,ny=s.tx*sg, p1=[s.x+nx*(w+22)+s.tx*8,s.y+ny*(w+22)+s.ty*8], p2=[p1[0]+nx*20-s.tx*16,p1[1]+ny*20-s.ty*16];
+        let d=`<polyline points="${pt(s.x,s.y)} ${pt(p1[0],p1[1])} ${pt(p2[0],p2[1])}" fill="none" stroke="#333" stroke-width="${f1(Math.max(9,w*0.7))}" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${f1(s.x+nx*w*0.9)}" cy="${f1(s.y+ny*w*0.9)}" r="${f1(w*0.6)}" fill="#333"/>`;
+        for(let c=-1;c<=1;c++){ const a=Math.atan2(p2[1]-p1[1],p2[0]-p1[0])+c*0.6; d+=ln(p2[0],p2[1],p2[0]+Math.cos(a)*19,p2[1]+Math.sin(a)*19,'#000',5.5); } return d; };
+      b+=cloud(70,290,0.7,'#aaa')+cloud(400,290,0.6,'#aaa');
+      b+=leg(0.2,1)+leg(0.25,-1)+leg(0.62,1)+leg(0.67,-1);
+      for(let i=3;i<S.length-6;i+=5){ const s=S[i],w=wf(s.u),nx=-s.ty,ny=s.tx,h=9+w*0.5; b+=`<polygon points="${pt(s.x+nx*w*0.8-s.tx*6,s.y+ny*w*0.8-s.ty*6)} ${pt(s.x+nx*(w+h)+s.tx*3,s.y+ny*(w+h)+s.ty*3)} ${pt(s.x+nx*w*0.8+s.tx*7,s.y+ny*w*0.8+s.ty*7)}" fill="#333"/>`; }
+      b+=`<path d="${tube(S,wf)}" fill="#666"/><path d="${tube(S,u=>wf(u)*0.62)}" fill="#222"/><path d="${tube(S,u=>wf(u)*0.28)}" fill="#000"/>`;
+      for(let i=6;i<S.length-3;i+=5){ const s=S[i],w=wf(s.u)*0.9,nx=-s.ty,ny=s.tx; b+=ln(s.x+nx*w,s.y+ny*w,s.x-nx*w,s.y-ny*w,'#aaa',3); }
+      const s0=S[0],hx=-s0.tx,hy=-s0.ty,up=s0.tx>0?-1:1,nx=-s0.ty*up,ny=s0.tx*up,K=1.35,H=(a,c)=>[s0.x+hx*a*K+nx*c*K,s0.y+hy*a*K+ny*c*K],pl=P=>P.map(p=>pt(p[0],p[1])).join(' ');
+      for(let i=0;i<5;i++){ const c=20-i*10,p0=H(-2,c),p1=H(-30-Math.abs(c)*0.4,c*1.7); b+=ln(p0[0],p0[1],p1[0],p1[1],'#333',7); }
+      b+=`<polygon points="${pl([H(-6,20),H(28,19),H(50,12),H(62,14),H(66,4),H(56,-5),H(30,-16),H(-6,-18)])}" fill="#111"/><polygon points="${pl([H(26,-13),H(58,-16),H(70,-26),H(40,-25)])}" fill="#333"/><polygon points="${pl([H(62,14),H(70,20),H(66,8)])}" fill="#111"/>`;
+      const e=H(26,7); b+=`<circle cx="${f1(e[0])}" cy="${f1(e[1])}" r="8" fill="#fff"/><circle cx="${f1(e[0])}" cy="${f1(e[1])}" r="4" fill="#000"/>`;
+      const q=(a0,c0,a1,c1,a2,c2,w,col)=>{ const p0=H(a0,c0),p1=H(a1,c1),p2=H(a2,c2); return `<path d="M${pt(p0[0],p0[1])}Q${pt(p1[0],p1[1])} ${pt(p2[0],p2[1])}" fill="none" stroke="${col||'#000'}" stroke-width="${w}" stroke-linecap="round"/>`; };
+      b+=q(6,16,-14,40,-46,46,7)+q(14,12,-2,34,-30,44,5)+q(64,6,100,0,88,-52,4)+q(62,-2,102,14,94,46,4);
+      const pr=H(100,-30); b+=`<circle cx="${f1(pr[0])}" cy="${f1(pr[1])}" r="17" fill="url(#gp)"/>`;
+      for(let i=0;i<3;i++){ const a=-2.4+i*0.8,p0=[pr[0]+Math.cos(a)*18,pr[1]+Math.sin(a)*18],p1=[pr[0]+Math.cos(a-0.5)*38,pr[1]+Math.sin(a-0.5)*38],p2=[pr[0]+Math.cos(a+0.25)*30,pr[1]+Math.sin(a+0.25)*30]; b+=`<path d="M${pt(p0[0],p0[1])}Q${pt(p2[0],p2[1])} ${pt(p1[0],p1[1])}" fill="none" stroke="#444" stroke-width="4.5" stroke-linecap="round"/>`; }
+      return svg(480,330,b,rg('gp','#000','#888')); };
+
+    // Montañas y nubes: dos cordilleras con pendiente (degradado), crestas, neblina en bandas, sol y pinos en la ladera
+    SPRIG_ART.montanas=()=>{ let b='';
+      b+=`<polygon points="0,235 70,150 120,185 200,75 265,160 320,120 400,185 480,210 480,320 0,320" fill="url(#gb)"/>`;
+      [[200,75,140,190],[200,75,250,150],[320,120,290,160],[70,150,105,195]].forEach(p=>b+=ln(...p,'#fff',5));
+      for(let i=0;i<4;i++){ const y=212+i*14,x0=40+i*30,L=120+((i*53)%90); b+=`<rect x="${x0}" y="${y}" width="${L}" height="7" rx="3.5" fill="#fff"/><rect x="${x0+L+60}" y="${y+4}" width="${90+((i*37)%70)}" height="7" rx="3.5" fill="#fff"/>`; }
+      b+=`<polygon points="0,320 0,265 60,215 130,250 190,205 250,245 330,215 410,265 480,250 480,320" fill="url(#gf)"/>`;
+      [[60,215,90,255],[190,205,170,240],[330,215,305,250],[410,265,380,290]].forEach(p=>b+=ln(...p,'#fff',5));
+      b+=`<circle cx="400" cy="80" r="26" fill="#555"/><path d="M300,60 q10,-10 20,0 M330,45 q10,-10 20,0" fill="none" stroke="#222" stroke-width="4" stroke-linecap="round"/>`;
+      [[150,252],[262,248],[282,254],[350,236]].forEach(([x,y])=>b+=`<polygon points="${x},${y-34} ${x-12},${y-10} ${x+12},${y-10}" fill="#000"/><polygon points="${x},${y-24} ${x-15},${y} ${x+15},${y}" fill="#000"/><rect x="${x-2}" y="${y}" width="4" height="9" fill="#000"/>`);
+      return svg(480,320,b,lg('gb','#555','#bbb')+lg('gf','#000','#666')); };
+
+    // Bambú: tres cañas con nudos y hojas en lente
+    SPRIG_ART.bambu=()=>{ let b=''; const st=[[70,26,-0.03,20],[165,20,0.02,45],[255,14,-0.015,70]];
+      const leaf=(x,y,a,L,w)=>`<path d="${lens(x,y,a,L,w)}" fill="#222"/>`+ln(x,y,x+Math.cos(a)*L*0.85,y+Math.sin(a)*L*0.85,'#888',2.5);
+      st.forEach(([x,w,k,top],si)=>{ const X=y=>x+(y-250)*k, seg=[{x:X(470),y:470,tx:0,ty:-1,u:0},{x:X(top),y:top,tx:0,ty:-1,u:1}];
+        b+=`<path d="${tube(seg,()=>w/2)}" fill="#555"/><path d="${tube(seg,()=>w*0.2)}" fill="#111"/>`;
+        let j=0; for(let y=470-((si*23)%40);y>top+10;y-=74+si*6,j++){ b+=`<rect x="${f1(X(y)-w/2-2)}" y="${y-9}" width="${w+4}" height="9" rx="2" fill="#000"/>`+ln(X(y)-w/2-3,y,X(y)+w/2+3,y,'#fff',4);
+          if(y<440&&(j+si)%2===0){ const sg=(j+si)%4===0?1:-1,bx=X(y)+sg*w/2,A=sg>0?[-0.55,-0.15,0.3]:[Math.PI+0.55,Math.PI+0.15,Math.PI-0.3]; A.forEach((a,i)=>b+=leaf(bx,y-5,a,[88,72,60][i],[9,8,7][i])); } }
+        [[-0.9,70,8],[-1.35,80,8],[-1.8,70,8],[-2.3,60,7]].forEach(([a,L,wd])=>b+=leaf(X(top),top+2,a+(si-1)*0.2,L,wd)); });
+      return svg(320,480,b); };
+
+    // Ciruelo en flor: rama que adelgaza, ramita, flores de cinco pétalos redondeados y capullos
+    SPRIG_ART.ciruelo=()=>{ let b=''; const main=spline([[20,330],[110,262],[190,240],[290,165],[370,150],[460,70]],10), sub=spline([[195,238],[230,160],[250,100],[262,40]],10);
+      b+=`<path d="${tube(main,u=>11-7*u)}" fill="#333"/><path d="${tube(main,u=>5-3*u)}" fill="#000"/><path d="${tube(sub,u=>5-3*u)}" fill="#333"/><path d="${tube(sub,u=>2.2-1.2*u)}" fill="#000"/>`;
+      const bloom=(x,y,r,rot)=>{ let d=''; for(let i=0;i<5;i++){ const a=rot+i*Math.PI*2/5; d+=`<circle cx="${f1(x+Math.cos(a)*r)}" cy="${f1(y+Math.sin(a)*r)}" r="${f1(r*0.95)}" fill="url(#gpet)"/>`; } return d+`<circle cx="${x}" cy="${y}" r="${f1(r*0.45)}" fill="#000"/>`; };
+      [[150,236,14,0.3],[235,180,16,1],[305,150,15,0.6],[345,120,13,0],[255,100,13,0.8],[420,95,15,0.4],[262,45,12,0.2],[385,160,11,1.2],[60,300,12,0.5]].forEach(p=>b+=bloom(...p));
+      [[100,250],[215,215],[330,160],[440,80],[245,130],[300,185]].forEach(([x,y])=>b+=`<circle cx="${x}" cy="${y}" r="7" fill="#333"/>`);
+      return svg(480,360,b,rg('gpet','#000','#777')); };
+
+    // Grulla en vuelo: cola, patas, alas con plumas marcadas, cuerpo, cuello, cabeza con corona
+    SPRIG_ART.grulla=()=>{ let b='';
+      b+=`<polygon points="165,215 105,235 95,262 172,248" fill="#000"/>`+ln(190,245,105,300,'#333',4)+ln(198,250,118,312,'#333',4);
+      [[2.3,170],[2.46,165],[2.62,155],[2.78,142],[2.94,125]].forEach(([a,L])=>{ b+=`<path d="${lens(222,232,a,L,19)}" fill="#444"/>`+ln(222+Math.cos(a)*L*0.3,232+Math.sin(a)*L*0.3,222+Math.cos(a)*L*0.92,232+Math.sin(a)*L*0.92,'#fff',3.5); });
+      b+=`<path d="${lens(222,232,2.62,110,30)}" fill="#444"/>`;
+      b+=`<ellipse cx="232" cy="222" rx="80" ry="38" transform="rotate(-8 232 222)" fill="url(#gcr)"/>`;
+      [[-2.5,210],[-2.34,208],[-2.18,200],[-2.02,188],[-1.86,172],[-1.7,150]].forEach(([a,L])=>{ b+=`<path d="${lens(238,208,a,L,20)}" fill="#222"/>`+ln(238+Math.cos(a)*L*0.3,208+Math.sin(a)*L*0.3,238+Math.cos(a)*L*0.92,208+Math.sin(a)*L*0.92,'#fff',3.5); });
+      b+=`<path d="${lens(238,208,-2.1,130,34)}" fill="#222"/>`;
+      const nk=spline([[288,206],[330,160],[372,125],[405,105]],10); b+=`<path d="${tube(nk,u=>10-3*u)}" fill="#333"/><path d="${tube(nk,u=>5-1.5*u)}" fill="#000"/>`;
+      b+=`<ellipse cx="413" cy="100" rx="17" ry="11" fill="#111"/><polygon points="426,96 462,99 426,104" fill="#000"/><circle cx="416" cy="98" r="3" fill="#fff"/><circle cx="404" cy="91" r="4.5" fill="#000"/>`;
+      return svg(480,360,b,rg('gcr','#000','#666')); };
+
+    // Carpa koi: cuerpo con escamas (arcos claros), cola, aletas, ojo, barbillas y ondas
+    SPRIG_ART.koi=()=>{ let b=''; const body='M420,150 C390,95 320,78 250,90 C190,100 140,125 100,150 C140,175 190,200 250,210 C320,222 390,205 420,150 Z';
+      [[60,250,40],[80,250,60],[420,60,36],[420,60,56]].forEach(([x,y,r])=>b+=`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#aaa" stroke-width="5"/>`);
+      b+=`<polygon points="104,150 40,88 30,118 66,150 30,182 40,212" fill="#444"/>`; [[104,150,44,100],[104,150,38,150],[104,150,44,200]].forEach(p=>b+=ln(...p,'#fff',3.5));
+      b+=`<polygon points="296,90 252,42 206,94" fill="#444"/>`+ln(252,42,250,90,'#fff',3.5)+ln(275,66,262,90,'#fff',3.5);
+      b+=`<path d="${body}" fill="url(#gk)"/><clipPath id="ck"><path d="${body}"/></clipPath><g clip-path="url(#ck)">`;
+      for(let col=0;col<13;col++){ const x=125+col*20; for(let r=0;r<8;r++){ const y=92+r*17+(col%2?8:0); b+=`<path d="M${x},${y-10} A10,10 0 0 0 ${x},${y+10}" fill="none" stroke="#fff" stroke-width="3.5"/>`; } }
+      b+='</g>';
+      b+=`<ellipse cx="330" cy="205" rx="34" ry="12" transform="rotate(25 330 205)" fill="#444"/><circle cx="385" cy="128" r="9" fill="#fff"/><circle cx="387" cy="128" r="4.5" fill="#000"/>`;
+      b+=`<path d="M418,158 q14,10 22,26 M416,142 q16,-4 30,-14" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>`;
+      return svg(480,300,b,rg('gk','#000','#666')); };
+
+    // Loto: hoja con nervaduras, flor en tres coronas de pétalos y capullo
+    SPRIG_ART.loto=()=>{ let b=''; const pet=(x,y,a,L,w,col)=>`<path d="${lens(x,y,a,L,w)}" fill="${col}"/>`;
+      b+=ln(150,360,140,290,'#444',9)+ln(300,360,300,228,'#444',9)+ln(405,360,400,205,'#444',8);
+      b+=`<circle cx="130" cy="205" r="92" fill="url(#gl)"/>`; for(let i=0;i<14;i++){ const a=i/14*Math.PI*2; b+=ln(130,205,130+Math.cos(a)*90,205+Math.sin(a)*90,'#fff',3.5); } b+=`<polygon points="130,205 170,292 207,250" fill="#fff"/><circle cx="130" cy="205" r="9" fill="#000"/>`;
+      [-2.2,-1.75,-1.35,-0.95,-0.55].forEach(a=>b+=pet(300,232,a,95,17,'#777')); [-2.0,-1.55,-1.1,-0.7].forEach(a=>b+=pet(300,236,a,85,18,'#333')); [-1.85,-1.35,-0.85].forEach(a=>b+=pet(300,240,a,70,20,'#000'));
+      [-1.85,-1.5,-1.15].forEach((a,i)=>b+=pet(400,210,a,60,11,i===1?'#000':'#444'));
+      return svg(480,360,b,rg('gl','#333','#999')); };
+
+    // Crisantemo: medallón de tres coronas de pétalos y centro con puntos
+    SPRIG_ART.crisantemo=()=>{ let b=''; const cx=200,cy=200, ring=(n,L,w,col,rot)=>{ for(let i=0;i<n;i++){ const a=rot+i*Math.PI*2/n; b+=`<path d="${lens(cx,cy,a,L,w)}" fill="${col}"/>`+ln(cx+Math.cos(a)*L*0.3,cy+Math.sin(a)*L*0.3,cx+Math.cos(a)*L*0.9,cy+Math.sin(a)*L*0.9,'#fff',2.5); } };
+      ring(16,170,24,'#888',0); ring(14,135,24,'#444',0.22); ring(10,96,22,'#111',0); b+=`<circle cx="${cx}" cy="${cy}" r="24" fill="#000"/>`; for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; b+=`<circle cx="${f1(cx+Math.cos(a)*13)}" cy="${f1(cy+Math.sin(a)*13)}" r="3.5" fill="#fff"/>`; }
+      return svg(400,400,b); };
+
+    // Banda de nubes ruyi
+    SPRIG_ART.nubes=()=>svg(600,220,cloud(120,110,1,'url(#gc)',1)+cloud(330,100,1.05,'url(#gc)',1)+cloud(520,118,0.9,'url(#gc)',1),rg('gc','#000','#777'));
+
+    // Banda de olas seigaiha: filas de semicírculos concéntricos, cada fila tapa la de arriba
+    SPRIG_ART.olas=()=>{ let b='<clipPath id="cw"><rect width="600" height="200"/></clipPath><g clip-path="url(#cw)">'; const R=44;
+      for(let row=-1;row<8;row++){ const y=row*R*0.62,off=(row%2)?R:0; for(let i=-1;i<9;i++){ const x=i*2*R+off; b+=`<circle cx="${x}" cy="${f1(y)}" r="${R}" fill="#fff"/>`; for(let k=0;k<4;k++) b+=`<circle cx="${x}" cy="${f1(y)}" r="${R-k*10}" fill="none" stroke="#000" stroke-width="5"/>`; } }
+      return svg(600,200,b+'</g>'); };
+
+    // Banda de greca (meandro)
+    SPRIG_ART.greca=()=>{ let d=''; for(let i=0;i<10;i++){ const x=i*60; d+=`M${x},92 H${x+60} M${x+6},92 V26 H${x+50} V74 H${x+20} V44 H${x+36} V60`; }
+      return svg(600,120,`<rect y="8" width="600" height="6" fill="#000"/><rect y="106" width="600" height="6" fill="#000"/><path d="${d}" fill="none" stroke="#000" stroke-width="8"/>`); };
+
+    // Texto en canvas (kanji de la marca o texto propio)
+    function textArt(txt,font){ const cv=document.createElement('canvas'), fs=200, g=cv.getContext('2d'); g.font=`700 ${fs}px ${font}`; const w=Math.ceil(g.measureText(txt).width+fs*0.4), h=Math.ceil(fs*1.35); cv.width=w; cv.height=h;
+      const g2=cv.getContext('2d'); g2.fillStyle='#fff'; g2.fillRect(0,0,w,h); g2.font=`700 ${fs}px ${font}`; g2.fillStyle='#000'; g2.textBaseline='middle'; g2.fillText(txt,fs*0.2,h/2); return cv; }
+    SPRIG_ART.kanji=()=>textArt('家族の木','"Yu Mincho","MS Mincho","Hiragino Mincho ProN","Noto Serif JP",serif');
+    SPRIG_ART.texto=t=>textArt((t||'').trim()||'Legado Bonsái','"Bricolage Grotesque",Georgia,serif');
+  })();
+  // Biblioteca: `art` = dibujado en código (SPRIG_ART), `file` = SVG del repo; `w` = ancho sugerido en mm; `text` = admite texto propio
+  const SPRIG_LIB={dragon:{art:'dragon',name:'Dragón',w:120},montanas:{art:'montanas',name:'Montañas y nubes',w:90},pasochoa:{file:'../assets/img/ilustraciones/montana-principal.svg',name:'Pasochoa',w:80},pino:{file:'../assets/img/ilustraciones/guia-arbol.svg',name:'Pino',w:60},bambu:{art:'bambu',name:'Bambú',w:50},ciruelo:{art:'ciruelo',name:'Ciruelo en flor',w:90},grulla:{art:'grulla',name:'Grulla',w:90},koi:{art:'koi',name:'Carpa koi',w:90},loto:{art:'loto',name:'Loto',w:90},crisantemo:{art:'crisantemo',name:'Crisantemo (medallón)',w:60},nubes:{art:'nubes',name:'Nubes (banda)',w:150},olas:{art:'olas',name:'Olas seigaiha (banda)',w:150},greca:{art:'greca',name:'Greca (banda)',w:150},kanji:{art:'kanji',name:'家族の木 (kanji de la marca)',w:100},texto:{art:'texto',name:'Texto propio',w:100,text:true},emblema:{file:'../assets/img/logo/legado-emblema-negro.svg',name:'Emblema',w:50},logotipo:{file:'../assets/img/logo/legado-logo-vertical-negro.svg',name:'Logotipo vertical',w:60}};
   const SPRIG={img:{},custom:null,customName:'',ver:0}, SPRIG_CACHE=new Map();
-  async function loadSprigArt(motif){ if(motif==='svg'||motif==='img') return SPRIG.custom; const L=SPRIG_LIB[motif]; if(!L) return null; if(SPRIG.img[motif]) return SPRIG.img[motif];
-    const im=new Image(); await new Promise((ok,err)=>{ im.onload=ok; im.onerror=err; im.src=L.file; }); return SPRIG.img[motif]=im; }
+  const sprigKey=cfg=>cfg.motif+((SPRIG_LIB[cfg.motif]||{}).text?'|'+(cfg.text||''):'');
+  const sprigImg=cfg=>(cfg.motif==='svg'||cfg.motif==='img')?SPRIG.custom:SPRIG.img[sprigKey(cfg)];
+  async function loadSprigArt(motif,text){ if(motif==='svg'||motif==='img') return SPRIG.custom; const L=SPRIG_LIB[motif]; if(!L) return null; const key=sprigKey({motif,text}); if(SPRIG.img[key]) return SPRIG.img[key];
+    if(L.art){ const a=SPRIG_ART[L.art](text); if(typeof a!=='string') return SPRIG.img[key]=a;
+      const im=new Image(); await new Promise((ok,err)=>{ im.onload=ok; im.onerror=err; im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(a); }); return SPRIG.img[key]=im; }
+    const im=new Image(); await new Promise((ok,err)=>{ im.onload=ok; im.onerror=err; im.src=L.file; }); return SPRIG.img[key]=im; }
+  // vista previa del motivo en el panel
+  async function sprigPreview(){ const m=$('spMotif').value, box=$('spPrev'); $('spTextL').hidden=!(SPRIG_LIB[m]||{}).text; $('spFileL').hidden=!(m==='svg'||m==='img');
+    if(m==='none'){ box.hidden=true; return; } try{ const im=await loadSprigArt(m,$('spText').value); if(!im){ box.hidden=true; return; } box.src=im instanceof HTMLCanvasElement?im.toDataURL():im.src; box.hidden=false; }catch(e){ box.hidden=true; } }
   const sprigName=cfg=>cfg.motif==='svg'||cfg.motif==='img'?(SPRIG.customName||'propio'):(SPRIG_LIB[cfg.motif]||{}).name||cfg.motif;
   // campo de alturas 0..1 del relieve: el dibujo en una rejilla de celda c, tinta = alto (o al revés con inv), suavizado
   // en dos pasadas (talud de ~2 mm) y, con marco, recortado al óvalo o al rectángulo con un borde en relieve
   function sprigField(cfg,im){
-    const key=[cfg.motif,cfg.w,cfg.inv,cfg.frame,SPRIG.ver,im&&(im.naturalWidth||im.width)].join('|'); if(SPRIG_CACHE.has(key)) return SPRIG_CACHE.get(key);
-    const iw=im&&(im.naturalWidth||im.width)||300, ih=im&&(im.naturalHeight||im.height)||300, asp=ih/iw, W=cfg.w, Hh=Math.max(10,W*asp), c=Math.max(0.4,Math.max(W,Hh)/160), nx=Math.round(W/c)+1, ny=Math.round(Hh/c)+1;
+    const key=[cfg.motif,cfg.text,cfg.w,cfg.inv,cfg.frame,cfg.soft,SPRIG.ver,im&&(im.naturalWidth||im.width)].join('|'); if(SPRIG_CACHE.has(key)) return SPRIG_CACHE.get(key);
+    const iw=im&&(im.naturalWidth||im.width)||300, ih=im&&(im.naturalHeight||im.height)||300, asp=ih/iw, W=cfg.w, Hh=Math.max(10,W*asp), c=Math.max(0.3,Math.max(W,Hh)/240), nx=Math.round(W/c)+1, ny=Math.round(Hh/c)+1;
     const cv=document.createElement('canvas'); cv.width=nx; cv.height=ny; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,nx,ny); if(im){ try{ g.drawImage(im,0,0,nx,ny); }catch(e){} }
     const px=g.getImageData(0,0,nx,ny).data, v=new Float32Array(nx*ny);
     for(let i=0;i<nx*ny;i++){ const lum=(0.299*px[4*i]+0.587*px[4*i+1]+0.114*px[4*i+2])/255; v[i]=cfg.inv?lum:1-lum; }
     // suavizado (caja) en dos pasadas: ~1 mm de radio cada una → bordes en talud, sin picos
-    const rb=Math.max(1,Math.round(1/c)), tmp=new Float32Array(nx*ny);
+    const rb=Math.max(1,Math.round((cfg.soft||0.8)/c)), tmp=new Float32Array(nx*ny);
     for(let pass=0;pass<2;pass++){ for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ let s2=0,n=0; for(let dj=-rb;dj<=rb;dj++){ const jj=j+dj; if(jj<0||jj>=ny) continue; for(let di=-rb;di<=rb;di++){ const ii=i+di; if(ii<0||ii>=nx) continue; s2+=v[jj*nx+ii]; n++; } } tmp[j*nx+i]=s2/n; } v.set(tmp); }
     for(let i=0;i<nx*ny;i++) v[i]=Math.max(0,(v[i]-0.06)/0.94);
     if(cfg.frame&&cfg.frame!=='none'){ const a=W/2-1.5, b2=Hh/2-1.5, bw=3;
@@ -2546,7 +2692,7 @@
       pushBox('cajaC',one?'Caja 2: fondo (patas y logotipo)':'Caja C: fondo (patas y logotipo)','yeso-caja-fondo',S.T,Mo.T,0x9c8fbe,(2*X*2*Zc*(PB+ftk+TH))/1e6,one?'Caja 2 → fondo del molde':'Caja C → fondo'); }
     // --- caja de sprig: bandeja pequeña con el relieve en positivo (por alturas) y 20 mm de yeso encima
     let sprigInfo=null;
-    if(s.sprig&&s.sprig.motif!=='none'){ const cfg=s.sprig, im=(cfg.motif==='svg'||cfg.motif==='img')?SPRIG.custom:SPRIG.img[cfg.motif];
+    if(s.sprig&&s.sprig.motif!=='none'){ const cfg=s.sprig, im=sprigImg(cfg);
       if(im){ const fld=sprigField(cfg,im), Rc=cfg.curve&&(s.type==='round'||s.type==='oval')?Math.min(s.L,s.W)/2*k:0, F=3, mg=12, iw=fld.W+2*mg, ih=fld.Hh+2*mg;
         const MT=sprigTris(fld,cfg,F-0.3,Rc); let zmax=0; for(let i=2;i<MT.length;i+=3) zmax=Math.max(zmax,MT[i]); const top=zmax+20;
         const S=adder(); prism(S,rect(-iw/2-W2,-ih/2-W2,iw/2+W2,ih/2+W2),[],0,F,id); prism(S,rect(-iw/2-W2,-ih/2-W2,iw/2+W2,ih/2+W2),[rect(-iw/2+0.3,-ih/2+0.3,iw/2-0.3,ih/2-0.3)],F-0.3,top,id);
@@ -3331,6 +3477,9 @@
     const lista=beds.map((bd,k)=>`cama ${k+1}: ${bd.map(p=>p.name.split(' — ')[0].toLowerCase()).join(', ')}${bd[0]&&bd[0].big?' (no cabe en la cama: pártela en el laminador)':''}`).join(' · ');
     out.textContent=`${s.mode==='mold'&&s.obj!=='mesa'&&s.moldAuto&&s.autoBeds?`Molde automático: ${autoTxt(s)}, ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos). `:''}Listo: ${P.length} pieza${P.length>1?'s':''} en ${nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. Ábrelo con doble clic en Bambu Studio; si avisa «configuración no válida, carga solo los datos de geometría», pulsa OK: es normal con archivos que no hizo Bambu Studio. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.`;
   }
+  $('spMotif').addEventListener('change',()=>{ const L=SPRIG_LIB[$('spMotif').value]; if(L&&L.w) $('spW').value=L.w; sprigPreview(); render(); });
+  { let tm=0; $('spText').addEventListener('input',()=>{ clearTimeout(tm); tm=setTimeout(()=>{ SPRIG_CACHE.clear(); sprigPreview(); render(); },400); }); }
+  sprigPreview();
   $('spFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ SPRIG.custom=im; SPRIG.customName=f.name.replace(/\.[^.]+$/,''); SPRIG.ver++; SPRIG_CACHE.clear(); $('spMotif').value=/svg/i.test(f.type)||/\.svg$/i.test(f.name)?'svg':'img'; render(); }; im.onerror=()=>{ $('plasterOut').textContent='No se pudo leer el archivo: usa un SVG o una imagen PNG/JPG.'; }; im.src=URL.createObjectURL(f); });
   $('btnPlaster3mf').addEventListener('click',()=>export3MF('plasterOut')); $('btnPlaster').addEventListener('click',exportPlaster);
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
@@ -3345,7 +3494,7 @@
   $('v3play').addEventListener('click',()=>{ const ud=V3&&V3.pot&&V3.pot.userData; if(!ud||!ud.setProc) return; const t0=performance.now(); $('v3exp').value=1; ud.setExplode(1);
     const step=()=>{ const dt=(performance.now()-t0)/1000; if(dt<3){ const u=dt/3; $('v3proc').value=u; ud.setProc(u); } else if(dt<4.5){ $('v3proc').value=1; ud.setProc(1); const t=1-(dt-3)/1.5; $('v3exp').value=t; ud.setExplode(t); } else { $('v3exp').value=0; ud.setExplode(0); return; } requestAnimationFrame(step); }; step(); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'||MODE==='skin'?'cement':MODE)));
-  ['moldParts','sealKind','sealMode','moldWall','moldCore','printer','bedXY','skinT','pShrink','pThick','pSplit','pDeco','spMotif','spW','spD','spFrame','spCurve','spInv'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
+  ['moldParts','sealKind','sealMode','moldWall','moldCore','printer','bedXY','skinT','pShrink','pThick','pSplit','pDeco','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
