@@ -1628,7 +1628,7 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spText','Relieve: texto'],['spSoft','Relieve: detalle',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['moldJoin','Unión de los gajos',1],['moldPlate','Placa de patas',1],['moldBase','Base con núcleo',1],['moldClick','Clic y sellado de la placa'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['base','Fondo cemento cm (calculado por resistencia)'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spText','Relieve: texto'],['spSoft','Relieve: detalle',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['moldJoin','Unión de los gajos',1],['moldPlate','Placa de patas',1],['moldBase','Base con núcleo',1],['moldClick','Clic y sellado de la placa'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     let sec='';
@@ -2079,14 +2079,27 @@
       // la gota entera (no un círculo que la envuelva) a 0,8 mm o más de todo borde y dentro de un solo sólido
       const own=p=>secs.map((Ls,i)=>Ls.filter(L=>inPoly(p,L)).length%2?i:-1).filter(i=>i>=0), ua=ax===0?2:0;
       let res=[];
-      for(const r of [DOWEL.r,1.7,1.4]){ const R=r/Math.cos(55*Math.PI/180), cand=[];
-      for(let u=umn+R;u<=umx-R;u+=2){ let best=null; for(let v=vmn+r;v<=vmx-r;v+=0.1){ const o0=own([u,v]); if(o0.length!==1) continue;
-          const D=dowelLoop([u,v],up,r,10); let cl=Infinity; for(const q of D){ const oq=own(q); if(oq.length!==1||oq[0]!==o0[0]){ cl=-1; break; } for(const [a,b] of segs){ const dd=segDist(q,a,b); if(dd<cl) cl=dd; } }
+      // rejilla de los bordes de la sección (celdas de 4 mm): la distancia al borde más cercano se busca solo en las celdas vecinas
+      const GC=4, grid=new Map(), gk=(i,j)=>i*1000003+j;
+      segs.forEach((sg,si)=>{ const [a,b]=sg; for(let i=Math.floor(Math.min(a[0],b[0])/GC);i<=Math.floor(Math.max(a[0],b[0])/GC);i++) for(let j=Math.floor(Math.min(a[1],b[1])/GC);j<=Math.floor(Math.max(a[1],b[1])/GC);j++){ const k=gk(i,j); let L=grid.get(k); if(!L) grid.set(k,L=[]); L.push(si); } });
+      const nearD=(p,maxR)=>{ let best=maxR; const ci=Math.floor(p[0]/GC), cj=Math.floor(p[1]/GC); for(let ring=0;(ring-1)*GC<best;ring++){ for(let i=ci-ring;i<=ci+ring;i++) for(let j=cj-ring;j<=cj+ring;j++){ if(Math.max(Math.abs(i-ci),Math.abs(j-cj))!==ring) continue; const L=grid.get(gk(i,j)); if(!L) continue; for(const si of L){ const d=segDist(p,segs[si][0],segs[si][1]); if(d<best) best=d; } } } return best; };
+      for(const r of [DOWEL.r,1.7,1.4]){ const R=r/Math.cos(55*Math.PI/180), thr=r+0.8;
+      // mejor posición en la columna u (la más alejada de los bordes); solo se calculan las columnas que se usan: desde cada
+      // extremo hasta 12 columnas con candidato (antes se calculaban todas y solo se miraban esas). Mismo resultado.
+      const colMemo=new Map(), colBest=u=>{ if(colMemo.has(u)) return colMemo.get(u); let best=null; for(let v=vmn+r;v<=vmx-r;v+=0.1){
+          // filtro barato: el centro debe quedar a r + 0,8 mm de todo borde; si no, se salta lo que seguro tampoco cumple
+          // (la distancia cambia como mucho 1 mm por mm de avance), en pasos de la rejilla de 0,1 mm
+          const dc=nearD([u,v],80);
+          if(dc<thr){ v+=Math.max(0,Math.floor((thr-dc)/0.1)*0.1-0.1); continue; }
+          const o0=own([u,v]); if(o0.length===0){ v+=Math.max(0,Math.floor(dc/0.1)*0.1-0.1); continue; }   // fuera de todo sólido: hasta el borde más cercano sigue fuera
+          if(o0.length!==1) continue;
+          const D=dowelLoop([u,v],up,r,10); let cl=Infinity; for(const q of D){ const oq=own(q); if(oq.length!==1||oq[0]!==o0[0]){ cl=-1; break; } const dd=nearD(q,80); if(dd<cl) cl=dd; }
           if(cl>=0.8&&(!best||cl>best.cl)) best={u,v,r,cl,o:o0[0]}; }
-        if(best) cand.push(best); }
+        colMemo.set(u,best); return best; };
+      const us=[]; for(let u=umn+R;u<=umx-R;u+=2) us.push(u);
       const ok3=d=>{ for(const off of [-DOWEL.d-1,-5,-2,2,5,DOWEL.d+1]) for(const [qu,qv] of [[d.u,d.v],...dowelLoop([d.u,d.v],up,d.r-0.3,6)]){ const p=[0,qv,0]; p[ua]=qu; p[ax]=c+off; if(!insideSolid(solids[d.o],p)) return false; if(solids.some((S,i)=>i!==d.o&&insideSolid(S,p))) return false; } return true; };
-      const out=[]; const ends=[cand,cand.slice().reverse()];
-      for(const list of ends){ for(const d of list.slice(0,12)){ if(out.some(o=>Math.abs(o.u-d.u)<20)) continue; if(ok3(d)){ out.push(d); break; } } }
+      const out=[];
+      for(const order of [us,us.slice().reverse()]){ let k=0; for(const u of order){ if(k>=12) break; const d=colBest(u); if(!d) continue; k++; if(out.some(o=>Math.abs(o.u-d.u)<20)) continue; if(ok3(d)){ out.push(d); break; } } }
       if(out.length>res.length) res=out; if(res.length>=2) break; }
       return res.map(d=>[d.u,d.v,d.r]); });
     const pieces=[]; const bounds=[-Infinity,...cuts,Infinity];
@@ -2099,7 +2112,12 @@
     const nd=dows.reduce((t,d)=>t+d.length,0), rs=[].concat(...dows).map(d=>d[2]);
     return {parts:pieces,dowels:rs,n,note:pt.forceN?'':`${pt.name}: no cabe en la ${s.bedName}, va en ${n} trozos${nd?` con ${nd} espigas de unión (Ø ${[...new Set(rs.map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',',')))].join(' y ')} × ${String(DOWEL.len/10).replace('.',',')} cm, impresas con los pasadores)`:' (la placa es muy delgada para espigas: alinéalos por el faldón)'}. Pégalos sobre una mesa plana con cianoacrilato o epoxi y lija la junta del lado del mortero.`};
   }
-  function buildMold(THREE,s,b){
+  // Caché de buildMold y buildPlaster (últimos 4 diseños): el visor, el estimado del recuadro «Medidas», la calculadora y las
+  // descargas piden el mismo molde; armarlo con la base partida tarda varios segundos. La clave lleva el estado completo,
+  // el panel decorativo y qué logotipos ya están cargados (sin el arte, el molde sale sin sello y no debe quedar guardado).
+  const MOLD_CACHE=new Map(), cacheGet=(C,k,mk)=>{ if(C.has(k)){ const v=C.get(k); C.delete(k); C.set(k,v); return v; } const v=mk(); C.set(k,v); if(C.size>4) C.delete(C.keys().next().value); return v; };
+  function buildMold(THREE,s,b){ return cacheGet(MOLD_CACHE,JSON.stringify(['m',s,PAN,Object.keys(SEAL_ART).sort()]),()=>buildMoldRaw(THREE,s,b)); }
+  function buildMoldRaw(THREE,s,b){
     const R=s.W/2, H=s.H, ft=s.feet, Hb=H-ft, n=480, Tw=s.moldWall, NP=s.moldParts, TB=MOLD.TB, CLR=MOLD.CLR, FL=MOLD.FL;
     // contramolde (s.skin, mm): la cara interior del molde exterior se separa de la maceta el grosor de la piel de silicona
     // (perfil desplazado y esquinas con radio c + piel); base con núcleo y placa de patas solo crecen en su contorno.
@@ -2754,7 +2772,8 @@
   // plinth: zócalo del fondo (mm): la silueta del pie de la maceta sube del fondo y entra en el cuerpo (o entre las
   // mitades), así las piezas embonan y no se corren al cerrar el molde
   const PL={thick:40,spare:12,wall:5,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3,shell:3};
-  function buildPlaster(THREE,s,b){
+  function buildPlaster(THREE,s,b){ return cacheGet(MOLD_CACHE,JSON.stringify(['p',s,PAN,Object.keys(SEAL_ART).sort(),SPRIG.ver,Object.keys(SPRIG.img).sort(),!!SPRIG.custom]),()=>buildPlasterRaw(THREE,s,b)); }
+  function buildPlasterRaw(THREE,s,b){
     const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
     const sK=Object.assign({},s,{c:s.c*k,lobes:0});
     const adder=()=>{ const T=[]; const tri=(a,b2,c)=>T.push(a[0],a[1],a[2],b2[0],b2[1],b2[2],c[0],c[1],c[2]); return {T,tri,quad:(a,b2,c,d)=>{ tri(a,b2,c); tri(a,c,d); }}; };
