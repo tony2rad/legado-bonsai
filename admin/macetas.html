@@ -3787,13 +3787,13 @@
         if(p.y>fr.y) nf.push({x:fr.x,y:fr.y,w:fr.w,h:p.y-fr.y}); if(p.y+p.h<fr.y+fr.h) nf.push({x:fr.x,y:p.y+p.h,w:fr.w,h:fr.y+fr.h-p.y-p.h}); });
       bed.free=nf.filter((a,i)=>!nf.some((c,j)=>j!==i&&a.x>=c.x&&a.y>=c.y&&a.x+a.w<=c.x+c.w&&a.y+a.h<=c.y+c.h&&(j<i||a.x!==c.x||a.y!==c.y||a.w!==c.w||a.h!==c.h))); };
     list.forEach(o=>{
-      if(!((o.w+G<=W&&o.d+G<=D)||(o.d+G<=W&&o.w+G<=D))){ beds.push({items:[{o,rot:false,x:0,y:0}],free:[],big:true}); return; }
+      if(!((o.w+G<=W&&o.d+G<=D)||(o.d+G<=W&&o.w+G<=D))){ beds.push({items:[{o,rot:(o.w>s.bedX||o.d>s.bedY)&&o.d<=s.bedX&&o.w<=s.bedY,x:0,y:0}],free:[],big:true}); return; }
       for(const bed of beds){ if(bed.big) continue; const p=tryBed(bed,o); if(p){ place(bed,o,p); return; } }
       const bed=newBed(); place(bed,o,tryBed(bed,o)); beds.push(bed);
     });
     return beds.map(bed=>{
       const placed=bed.items.map(({o,rot,x,y})=>{ const V=o.V.slice(); if(rot) for(let i=0;i<V.length;i+=3){ const vx=V[i]; V[i]=-V[i+1]; V[i+1]=vx; }
-        const b2=bbox(V); for(let i=0;i<V.length;i+=3){ V[i]+=x-b2.mn[0]; V[i+1]+=y-b2.mn[1]; V[i+2]-=b2.mn[2]; } return {name:o.name,V,F:o.F,big:!!bed.big}; });
+        const b2=bbox(V); for(let i=0;i<V.length;i+=3){ V[i]+=x-b2.mn[0]; V[i+1]+=y-b2.mn[1]; V[i+2]-=b2.mn[2]; } return {name:o.name,V,F:o.F,set:o.set,big:!!bed.big}; });
       // centrar el grupo en la placa
       let mnx=Infinity,mny=Infinity,mxx=-Infinity,mxy=-Infinity; placed.forEach(p=>{ const b2=bbox(p.V); mnx=Math.min(mnx,b2.mn[0]); mny=Math.min(mny,b2.mn[1]); mxx=Math.max(mxx,b2.mx[0]); mxy=Math.max(mxy,b2.mx[1]); });
       const dx=s.bedX/2-(mnx+mxx)/2, dy=s.bedY/2-(mny+mxy)/2; placed.forEach(p=>{ for(let i=0;i<p.V.length;i+=3){ p.V[i]+=dx; p.V[i+1]+=dy; } });
@@ -3826,7 +3826,9 @@
     const best=(bed,it)=>{ let b=null; it.shapes.forEach(sh=>{ for(let y=0;y+sh.h<=NY;y++){ if(b&&y+sh.h>b.top) break; for(let x=0;x+sh.w<=NX;x++) if(fits(bed.g,sh,x,y)){ const top=y+sh.h; if(!b||top<b.top||(top===b.top&&x<b.x)) b={sh,x,y,top}; break; } if(b&&b.sh===sh) break; } }); return b; };
     const run=order=>{ const beds=[];
       list.slice().sort(order).forEach(it=>{
-        if(!it.shapes.length){ beds.push({items:[{o:it.o,V:rot(it.o.V,0),x:mc,y:mc}],big:true}); return; }
+        if(!it.shapes.length){ // no cabe con los márgenes: va sola, girada para que entre en la cama si alguna orientación lo permite (se centra después)
+          const Vs=[0,Math.PI/2].map(a=>rot(it.o.V,a)), sz=V=>{ const {mx}=bbox(V); return [mx[0],mx[1]]; }, over=V=>{ const [w,h]=sz(V); return Math.max(0,w-s.bedX)+Math.max(0,h-s.bedY); };
+          beds.push({items:[{o:it.o,V:over(Vs[1])<over(Vs[0])?Vs[1]:Vs[0],x:mc,y:mc}],big:true}); return; }
         for(const bed of beds){ if(bed.big) continue; const b=best(bed,it); if(b){ place(bed,it,b.sh,b.x,b.y); return; } }
         const bed=newBed(), bd=best(bed,it)||{sh:it.shapes[0],x:mc,y:mc}; place(bed,it,bd.sh,bd.x,bd.y); beds.push(bed); });
       return beds; };
@@ -3834,25 +3836,51 @@
     const S1=run((a,b2)=>b2.area-a.area), S2=run((a,b2)=>b2.long-a.long), SB=S2.length<S1.length?S2:S1, RB=planBedsRect(objs,s);
     if(RB.length<SB.length) return RB;
     return SB.map(bed=>{
-      const placed=bed.items.map(({o,V,x,y})=>{ const W=V.slice(); for(let i=0;i<W.length;i+=3){ W[i]+=x*C; W[i+1]+=y*C; } return {name:o.name,V:W,F:o.F,big:!!bed.big}; });
+      const placed=bed.items.map(({o,V,x,y})=>{ const W=V.slice(); for(let i=0;i<W.length;i+=3){ W[i]+=x*C; W[i+1]+=y*C; } return {name:o.name,V:W,F:o.F,set:o.set,big:!!bed.big}; });
       // centrar el grupo en la placa
       let mnx=Infinity,mny=Infinity,mxx=-Infinity,mxy=-Infinity; placed.forEach(p=>{ const b2=bbox(p.V); mnx=Math.min(mnx,b2.mn[0]); mny=Math.min(mny,b2.mn[1]); mxx=Math.max(mxx,b2.mx[0]); mxy=Math.max(mxy,b2.mx[1]); });
       const dx=s.bedX/2-(mnx+mxx)/2, dy=s.bedY/2-(mny+mxy)/2; placed.forEach(p=>{ for(let i=0;i<p.V.length;i+=3){ p.V[i]+=dx; p.V[i+1]+=dy; } });
       return placed; });
   }
   // objs: [{name, V, F}] ya colocados en la placa (planBeds).
+  // 3MF con formato de Bambu Studio: si la impresora elegida tiene perfil (A2L, A1, A1 mini), el archivo lleva la
+  // configuración completa del proyecto (admin/bambu/<impresora>.json: impresora, PLA Basic y 0,20 mm Standard, sacada de
+  // un 3MF del propio Bambu Studio, cama Textured PEI) y en Metadata/model_settings.config el relleno, patrón y paredes de
+  // cada pieza. Así Bambu abre el archivo sin el aviso «configuración no válida» y con todo listo para laminar. La malla va
+  // como la escribe Bambu: un objeto por archivo en 3D/Objects y un objeto envoltorio con su componente en 3dmodel.model.
+  const BBL_VER='02.08.02.61', BBL_CFG={};
+  async function bambuConfig(){ const k={a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]; if(!k) return null; if(BBL_CFG[k]) return BBL_CFG[k];
+    try{ const r=await fetch('bambu/'+k+'.json?v=1'); if(!r.ok) return null; const t=await r.text(); JSON.parse(t); BBL_CFG[k]=t; return t; }catch(e){ return null; } }
   async function make3MF(objs,s,title){
-    const esc3=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'), f=x=>(Math.round(x*1000)/1000).toString();
-    const res=[], items=[];
-    objs.forEach((o,k)=>{
-      const vs=[], ts=[]; for(let i=0;i<o.V.length;i+=3) vs.push(`<vertex x="${f(o.V[i])}" y="${f(o.V[i+1])}" z="${f(o.V[i+2])}"/>`);
-      o.F.forEach(([a,b2,c])=>ts.push(`<triangle v1="${a}" v2="${b2}" v3="${c}"/>`));
-      res.push(`<object id="${k+1}" name="${esc3(o.name)}" type="model"><mesh><vertices>${vs.join('')}</vertices><triangles>${ts.join('')}</triangles></mesh></object>`);
-      items.push(`<item objectid="${k+1}"/>`); });
-    const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="es-EC" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">${esc3(title)}</metadata><metadata name="Designer">Legado Bonsai</metadata><resources>${res.join('')}</resources><build>${items.join('')}</build></model>`;
-    const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>';
-    const rels='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
-    const enc=new TextEncoder(), z=await zipFiles([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(rels)},{name:'3D/3dmodel.model',data:enc.encode(model)}]);
+    const esc3=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'), f=x=>(Math.round(x*1000)/1000).toString(), enc=new TextEncoder();
+    const meshXML=o=>{ const vs=[], ts=[]; for(let i=0;i<o.V.length;i+=3) vs.push(`<vertex x="${f(o.V[i])}" y="${f(o.V[i+1])}" z="${f(o.V[i+2])}"/>`); o.F.forEach(([a,b2,c])=>ts.push(`<triangle v1="${a}" v2="${b2}" v3="${c}"/>`)); return `<mesh><vertices>${vs.join('')}</vertices><triangles>${ts.join('')}</triangles></mesh>`; };
+    const cfg=await bambuConfig();
+    if(!cfg){   // impresora sin perfil de Bambu: 3MF del núcleo de la especificación (Bambu avisa y carga solo la geometría)
+      const res=[], items=[];
+      objs.forEach((o,k)=>{ res.push(`<object id="${k+1}" name="${esc3(o.name)}" type="model">${meshXML(o)}</object>`); items.push(`<item objectid="${k+1}"/>`); });
+      const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="es-EC" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">${esc3(title)}</metadata><metadata name="Designer">Legado Bonsai</metadata><resources>${res.join('')}</resources><build>${items.join('')}</build></model>`;
+      const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>';
+      const rels='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
+      const z=await zipFiles([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(rels)},{name:'3D/3dmodel.model',data:enc.encode(model)}]);
+      return new Blob([z],{type:'model/3mf'}); }
+    const uid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16));
+    const NS='xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:BambuStudio="http://schemas.bambulab.com/package/2021" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" requiredextensions="p"';
+    const n=objs.length, files=[], wraps=[], items=[], rels=[], oc=[], inst=[], I='1 0 0 0 1 0 0 0 1 0 0 0';
+    objs.forEach((o,k)=>{ const sid=k+1, wid=n+k+1, path=`3D/Objects/object_${sid}.model`;
+      files.push({name:path,data:enc.encode(`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" ${NS}>\n <metadata name="BambuStudio:3mfVersion">1</metadata>\n <resources>\n  <object id="${sid}" p:UUID="${uid()}" type="model">${meshXML(o)}</object>\n </resources>\n <build/>\n</model>`)});
+      wraps.push(`  <object id="${wid}" p:UUID="${uid()}" type="model">\n   <components>\n    <component p:path="/${path}" objectid="${sid}" p:UUID="${uid()}" transform="${I}"/>\n   </components>\n  </object>`);
+      items.push(`  <item objectid="${wid}" p:UUID="${uid()}" transform="${I}" printable="1"/>`);
+      rels.push(` <Relationship Target="/${path}" Id="rel-${sid}" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>`);
+      const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${st.pattern==='lightning'?'lightning':'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>`:'';
+      oc.push(`  <object id="${wid}">\n    <metadata key="name" value="${esc3(o.name)}"/>\n    <metadata key="extruder" value="1"/>${sm}\n    <part id="${sid}" subtype="normal_part">\n      <metadata key="name" value="${esc3(o.name)}"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n    </part>\n  </object>`);
+      inst.push(`    <model_instance>\n      <metadata key="object_id" value="${wid}"/>\n      <metadata key="instance_id" value="0"/>\n      <metadata key="identify_id" value="${101+k}"/>\n    </model_instance>`); });
+    const day=new Date().toISOString().slice(0,10);
+    const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" ${NS}>\n <metadata name="Application">BambuStudio-${BBL_VER}</metadata>\n <metadata name="BambuStudio:3mfVersion">1</metadata>\n <metadata name="Title">${esc3(title)}</metadata>\n <metadata name="Designer">Legado Bonsai</metadata>\n <metadata name="CreationDate">${day}</metadata>\n <metadata name="ModificationDate">${day}</metadata>\n <resources>\n${wraps.join('\n')}\n </resources>\n <build p:UUID="${uid()}">\n${items.join('\n')}\n </build>\n</model>`;
+    const ms=`<?xml version="1.0" encoding="UTF-8"?>\n<config>\n${oc.join('\n')}\n  <plate>\n    <metadata key="plater_id" value="1"/>\n    <metadata key="plater_name" value=""/>\n    <metadata key="locked" value="false"/>\n${inst.join('\n')}\n  </plate>\n  <assemble>\n  </assemble>\n</config>`;
+    const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>\n <Default Extension="png" ContentType="image/png"/>\n <Default Extension="gcode" ContentType="text/x.gcode"/>\n</Types>';
+    const rel0='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>\n</Relationships>';
+    const relM=`<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n${rels.join('\n')}\n</Relationships>`;
+    const z=await zipFiles([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(rel0)},{name:'3D/3dmodel.model',data:enc.encode(model)},{name:'3D/_rels/3dmodel.model.rels',data:enc.encode(relM)},...files,{name:'Metadata/project_settings.config',data:enc.encode(cfg)},{name:'Metadata/model_settings.config',data:enc.encode(ms)}]);
     return new Blob([z],{type:'model/3mf'});
   }
   // Piezas tal como se imprimen en la sección actual (maceta con patas aparte, molde, mesa o madre + caja), con nombre
@@ -3860,7 +3888,7 @@
   async function exportPieces(s,b){
     let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three'); await prepareSeal(s);
     const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&REC[key]; return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
-    const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F}); };
+    const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F,set:pieceOpts({key},o)}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
     if(s.mode==='plaster'){ await prepareSeal(s); buildPlaster(THREE,s,b).parts.forEach(pt=>add(pt.name,plasterPrintTris(pt),pt.key)); return out; }
     if(s.mode==='mold'){ await prepareSeal(s); buildMold(THREE,s,b).parts.filter(pt=>!pt.noPrint).forEach(pt=>add(pt.name,moldPrintTris(pt,s),pt.key)); return out; }
