@@ -2787,7 +2787,7 @@
   // plinth: zócalo del fondo (mm): la silueta del pie de la maceta sube del fondo y entra en el cuerpo (o entre las
   // mitades), así las piezas embonan y no se corren al cerrar el molde
   // casco del cuerpo (borrador, molde de yeso): pared de 3 líneas de 0,42 mm, piso de 6 capas, nervios cada 40 mm
-  const CASCO={w:1.26,floor:1.2,t:1.2,d:12,gap:40,mouth:6,ring:2,grid:2};
+  const CASCO={w:1.26,floor:1.2,t:1.2,d:12,gap:40,mouth:10,ring:2,grid:2,bar:4,cell:10,clr:0.15,ringH:8};
   const PL={thick:40,spare:12,wall:5,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3,shell:3};
   function buildPlaster(THREE,s,b){ return cacheGet(MOLD_CACHE,JSON.stringify(['p',s,PAN,Object.keys(SEAL_ART).sort(),SPRIG.ver,Object.keys(SPRIG.img).sort(),!!SPRIG.custom]),()=>buildPlasterRaw(THREE,s,b)); }
   function buildPlasterRaw(THREE,s,b){
@@ -2870,8 +2870,8 @@
             for(let i=0;i<secs.length-1;i++) for(let q=0;q<4;q++) C.quad(secs[i][q],secs[i][(q+1)%4],secs[i+1][(q+1)%4],secs[i+1][q]);
             const e0=secs[0], e1=secs[secs.length-1]; C.quad(e0[3],e0[2],e0[1],e0[0]); C.quad(e1[0],e1[1],e1[2],e1[3]); }); }
         // caja: marco por piso, anillo de centrado de 5 mm y paredes
-        const rIn=inset(RI[0].loop,CASCO.ring+0.3), rOut=inset(RI[0].loop,0.3);
-        prism(S,outer,[rIn],0,F,id); prism(S,rOut,[rIn],F-0.3,F+5,id); prism(S,outer,[rect(-X+0.3,-hF+0.3,X-0.3,hF-0.3)],F-0.3,top,id);
+        const rIn=inset(RI[0].loop,CASCO.ring+CASCO.clr), rOut=inset(RI[0].loop,CASCO.clr);
+        prism(S,outer,[rIn],0,F,id); prism(S,rOut,[rIn],F-0.3,F+CASCO.ringH,id); prism(S,outer,[rect(-X+0.3,-hF+0.3,X-0.3,hF-0.3)],F-0.3,top,id);
         boxes.push({key:'cajaCuerpo',label:'Caja 1 → cuerpo del molde',shell:S.T.slice(),model:sw3(C.T)});
         parts.push({key:'cajaCuerpo',name:'Caja 1: cuerpo (marco, anillo y paredes; el casco va aparte)',file:'yeso-caja-1-cuerpo',T:S.T,map:id,color:0x78acc0,pour:(2*X*2*hF*U-solidV)/1e6});
         const CP=[]; for(let i=0;i<C.T.length;i+=3) CP.push(C.T[i],-C.T[i+2],tp-C.T[i+1]);   // giro de 180° sobre x: la cara inferior en la cama
@@ -2920,25 +2920,40 @@
         for(let f=1;f<nf;f++){ const x=-xr+2*xr*f/nf, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf).map(r=>r.Y).reverse()];
           const top=Ys.map(Y=>[Y,zAt(loopAt(Math.max(Yf,Y)),x)-CW+0.5]);
           if(top.some(p=>p[1]<z0+4)) continue;
-          const Yb=Ys[0], Ye=Ys[Ys.length-1], FW=CASCO.d, kz=Math.tan(55*Math.PI/180);
-          // marco: banda de CASCO.d mm pegada a la piel y dos patas que bajan a la cara de corte; el hueco cierra arriba (hacia la
-          // boca, que es lo alto al imprimir de pie) con un techo a 55°, así el tabique tampoco lleva voladizo
-          const zIn=Y=>{ let z=top[0][1]; for(let q=0;q<top.length-1;q++){ if(Y>=top[q][0]&&Y<=top[q+1][0]){ const a=top[q], c=top[q+1]; z=c[0]>a[0]?a[1]+(c[1]-a[1])*(Y-a[0])/(c[0]-a[0]):Math.min(a[1],c[1]); break; } } return z-FW; };
-          // techo a dos aguas: cumbrera a media altura del hueco, a CASCO.d de la boca; cada agua a 55°
-          const Ypk=Ye-FW, zm=(z0+Math.min(...top.map(p=>p[1]))-FW)/2, Yr0=Ypk-kz*(zm-z0); let Yr1=Ypk; for(let it=0;it<4;it++) Yr1=Ypk-kz*Math.max(0,zIn(Yr1)-zm);
-          const inner=top.filter(p=>p[0]>Yb+FW&&p[0]<Yr1).map(([Y,z])=>[Y,z-FW]);
-          const poly=Math.min(Yr0,Yr1)>Yb+FW+5&&[zIn(Yb+FW),...inner.map(p=>p[1]),zIn(Yr1)].every(z=>z>zm+3)?[[Yb,z0],[Yb+FW,z0],[Yb+FW,zIn(Yb+FW)],...inner,[Yr1,zIn(Yr1)],[Ypk,zm],[Yr0,z0],[Ye,z0],...top.slice().reverse()]:[[Yb,z0],[Ye,z0],...top.slice().reverse()];
-          prism(C,poly,[],x-CASCO.t/2,x+CASCO.t/2,(u,v,w)=>[w,u,v]); }
+          const Yb=Ys[0], Ye=Ys[Ys.length-1], FW=CASCO.bar, kz=Math.tan(55*Math.PI/180);
+          // celosía: el tabique es una placa entera (de la piel a 6 mm de la cara de corte) con ventanas en ROMBO de lados a 55°
+          // sobre la horizontal (al imprimir de pie, cada ventana se cierra arriba en punta sin voladizo), en tresbolillo y con
+          // barras de CASCO.bar mm: une la piel, el piso y la boca en muchos puntos y no deja puntas largas sueltas.
+          const zIn=Y=>{ let z=top[0][1]; for(let q=0;q<top.length-1;q++){ if(Y>=top[q][0]&&Y<=top[q+1][0]){ const a=top[q], c=top[q+1]; z=c[0]>a[0]?a[1]+(c[1]-a[1])*(Y-a[0])/(c[0]-a[0]):Math.min(a[1],c[1]); break; } } return z; };
+          const zSkin=(y0,y1)=>{ let m=Math.min(zIn(y0),zIn(y1)); top.forEach(([Y,z])=>{ if(Y>=y0&&Y<=y1) m=Math.min(m,z); }); return m; };
+          const poly=[[Yb,z0],[Ye,z0],...top.slice().reverse()], holes=[], a=CASCO.cell, h=a*kz, stepZ=2*a+FW*1.75, stepY=h+FW*1.2;
+          for(let r=0,Yc=Yb+FW+h;Yc+h<=Ye-FW;r++,Yc+=stepY){ for(let zc=z0+FW+a+(r%2?stepZ/2:0);zc+a<=zSkin(Yc-h,Yc+h)-FW;zc+=stepZ)
+              holes.push([[Yc-h,zc],[Yc,zc+a],[Yc+h,zc],[Yc,zc-a]]); }
+          prism(C,poly,holes,x-CASCO.t/2,x+CASCO.t/2,(u,v,w)=>[w,u,v]); }
         for(const v of deco3) C.T.push(v);
         CS=C.T; Dsil=[...rings.map((r,i)=>[RR[i][0],r.Y-Ym]),...rings.map((r,i)=>[-RR[i][M],r.Y-Ym]).reverse()];
-        notes.push(`Mitades con casco: cada media maceta se imprime aparte y de pie (cara inferior en la cama, la boca y la cara de corte abiertas), pared de ${String(CW).replace('.',',')} mm y tabiques transversales cada ${CASCO.gap/10} cm; se imprime una vez y sirve para las dos coladas. Medido en Bambu (rectangular 28,6 × 20,1 × 9): casco 206 g + caja con marco 390 g = 596 g y 10 h 20, contra 434 g y 7 h 54 con el modelo macizo dentro de la caja. ${s.pLipP==='diseno'&&s.rim!=='kittate'?'Con labio como el diseño el labio queda en el aire: activa soportes «solo desde la cama» o elige el bisel o sin labio.':'Sin soportes.'}`); }
+        notes.push(`Mitades con casco: cada media maceta se imprime aparte y de pie (cara inferior en la cama, la boca y la cara de corte abiertas), pared de ${String(CW).replace('.',',')} mm y tabiques transversales cada ${CASCO.gap/10} cm; se imprime una vez y sirve para las dos coladas. Medido en Bambu (rectangular 28,6 × 20,1 × 9): casco 208 g + caja con marco 397 g = 605 g y 11 h 31, contra 434 g y 7 h 54 con el modelo macizo dentro de la caja. ${s.pLipP==='diseno'&&s.rim!=='kittate'?'Con labio como el diseño el labio queda en el aire: activa soportes «solo desde la cama» o elige el bisel o sin labio.':'Sin soportes.'}`); }
       // Una sola caja para las DOS mitades (son iguales: una es la otra girada 180° sobre el eje de la maceta). Llaves de
       // media esfera en el lado +x y huecos en el lado −x: la segunda colada, girada, pone sus topes en los huecos de la primera.
-      { const S=adder(), F=PL.floorB, outer=rect(-X-W2,-U/2-W2,X+W2,U/2+W2), top=F+hF, xs=X-TH/2;
+      { const S=adder(), F=PL.floorB, outer=rect(-X-W2,-U/2-W2,X+W2,U/2+W2), top=F+hF;
+        // JUNTA EN V entre las mitades (sello contra la barbotina): a lo largo de los dos costados de la maceta, a SEAL.off mm del
+        // hueco, el piso de la caja lleva una ranura en V del lado +x (el yeso sale con una lengüeta) y un lomo en V algo mayor del
+        // lado −x (el yeso sale con una ranura). Como B es A girada 180°, la lengüeta de cada mitad cae en la ranura de la otra: las
+        // caras siguen apoyando planas y la junta queda en laberinto. Las llaves se corren hacia afuera para dejarle sitio.
+        const SEAL={off:5,w:5,h:2,wr:5.6,hr:2.3}, RS=rings.map(r=>radii(r.loop,[[1,0],[-1,0]]));
+        const xs=Math.min(X-9,Xm+SEAL.off+SEAL.wr/2+PL.natch+2);
         const ys=U>=4*PL.natch+12?[-U*0.2,U*0.2]:[0], bumpsAt=ys.map(y=>[xs,y]), plugsAt=ys.map(y=>[-xs,y]);
-        const rIn=casco?inset(Dsil,CASCO.w+CASCO.ring+0.3):null, rOut=casco?inset(Dsil,CASCO.w+0.3):null;
-        prism(S,outer,[...plugsAt.map(c=>circle(c,PL.natch,28)),...(casco?[rIn]:[])],0,F,id); bumpsAt.forEach(([cx,cy])=>dome(S,cx,cy,F-0.2,PL.natch)); plugsAt.forEach(([cx,cy])=>plug(S,cx,cy,F,PL.natch+0.2,6));
-        if(casco) prism(S,rOut,[rIn],F-0.3,F+5,id);
+        const rIn=casco?inset(Dsil,CASCO.w+CASCO.ring+CASCO.clr):null, rOut=casco?inset(Dsil,CASCO.w+CASCO.clr):null;
+        const path=sg=>{ const P=[]; rings.forEach((r,i)=>{ const y=Math.max(-U/2+0.1,Math.min(U/2-0.1,r.Y-Ym)), x=sg*(RS[i][sg>0?0:1]+SEAL.off); if(!P.length||Math.abs(P[P.length-1][1]-y)>0.05) P.push([x,y]); else if(sg*x>sg*P[P.length-1][0]) P[P.length-1][0]=x; }); return P; };
+        const sweep=(P,sec)=>{ const R=P.map(([x,y])=>sec.map(([dx,z])=>[x+dx,y,z])), m=sec.length; for(let i=0;i<R.length-1;i++) for(let q=0;q<m;q++){ const q2=(q+1)%m; S.quad(R[i][q],R[i][q2],R[i+1][q2],R[i+1][q]); }
+          [R[0],R[R.length-1]].forEach(E=>{ for(let q=1;q<m-1;q++) S.tri(E[0],E[q],E[q+1]); }); };
+        const PR=path(1), PLf=path(-1), band=[...PR.map(([x,y])=>[x-SEAL.w/2+0.2,y]),...PR.slice().reverse().map(([x,y])=>[x+SEAL.w/2-0.2,y])];
+        const fh=[...plugsAt.map(c=>circle(c,PL.natch,28)),...(casco?[rIn]:[])];
+        prism(S,outer,fh,0,F-SEAL.h-0.2,id); prism(S,outer,[...fh,band],F-SEAL.h-0.4,F,id);
+        sweep(PR,[[-SEAL.w/2,F-SEAL.h-0.6],[-SEAL.w/2,F],[0,F-SEAL.h],[SEAL.w/2,F],[SEAL.w/2,F-SEAL.h-0.6]]);   // fondo de la ranura en V (+x)
+        sweep(PLf,[[-SEAL.wr/2,F-0.3],[SEAL.wr/2,F-0.3],[0,F+SEAL.hr]]);                                             // lomo en V (−x)
+        bumpsAt.forEach(([cx,cy])=>dome(S,cx,cy,F-0.2,PL.natch)); plugsAt.forEach(([cx,cy])=>plug(S,cx,cy,F,PL.natch+0.2,6));
+        if(casco) prism(S,rOut,[rIn],F-0.3,F+CASCO.ringH,id);
         prism(S,outer,[rect(-X+0.3,-U/2+0.3,X-0.3,U/2-0.3)],F-0.3,top,id);
         const toBox=T=>{ const M3=[]; for(let i=0;i<T.length;i+=3) M3.push(T[i],T[i+1]-Ym,(casco?F:F-0.3)+T[i+2]); return M3; };
         if(!casco) pushBox('cajaAB','Caja A/B: media maceta (se cuela dos veces: salen las dos mitades)','yeso-caja-ab',S.T,toBox(HP),0x78acc0,(2*X*U*hF-VhalfPot)/1e6,'Caja A/B → mitades A y B (dos coladas)');
@@ -3092,7 +3107,7 @@
       `  ${PM.one?4:5}. Deja secar las piezas 7–10 días en lugar ventilado (o 2–3 días a 40 °C) antes de usarlas: el yeso húmedo no absorbe la barbotina.`,
       '','B. COLAR UNA MACETA (cada vez)',
       PM.one?'  1. Pon el fondo con los huecos hacia arriba y el cuerpo encima: el zócalo del fondo entra en el hueco de abajo del cuerpo y lo centra; aprieta con dos correas. La boca de la maceta queda arriba.'
-            :'  1. Pon el fondo con los huecos hacia arriba y cierra encima las mitades A y B: el zócalo del fondo entra entre las dos y las centra, y los topes de B entran en los huecos de A; aprieta con dos correas. La boca de la maceta queda arriba.',
+            :'  1. Pon el fondo con los huecos hacia arriba y cierra encima las mitades A y B: el zócalo del fondo entra entre las dos y las centra, los topes de B entran en los huecos de A y, a lo largo de los dos costados, la lengüeta en V de cada mitad entra en la ranura de la otra (junta en laberinto: la barbotina no se filtra). Aprieta con dos correas; si la junta llega a llorar, pasa un dedo de barbotina espesa por fuera y deja que endurezca antes de llenar. La boca de la maceta queda arriba.',
       '  2. Llena de barbotina hasta el borde de la reserva. Rellena a medida que baje el nivel.',
       `  3. Espera ≈ ${castMin(s)} min para ${String(s.pCast).replace('.',',')} mm de pared y fondo cocidos (${String(Math.round(s.pCast*s.pk*10)/10).replace('.',',')} mm en crudo; el grosor crece con la raíz del tiempo: prueba una vez con tu barbotina y ajusta). Vacía la barbotina volcando el molde despacio y déjalo boca abajo 10 min para que escurra.`,
       PM.one?'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo). Recorta la reserva por la marca del borde, perfora los orificios (ver abajo) y alisa con esponja.'
