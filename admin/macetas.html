@@ -279,7 +279,6 @@
       <p class="mold-lead">El molde de yeso tiene al menos <b>dos piezas</b>, para poder desmontarlo: el <b>cuerpo</b> (un bloque con el hueco de toda la maceta, abierto por la boca y por abajo) y el <b>fondo</b> (patas y logotipo). Se imprime una <b>caja por pieza</b>, con el positivo dentro: en la caja 1 la maceta boca abajo, en la caja 2 la base con las patas. Cuelas yeso en cada caja, fragua, lo sacas y esa es la pieza. Para desmoldar se quita el fondo y la maceta sale hacia arriba (o se empuja desde abajo). Con panza o cinturón el cuerpo va en dos mitades iguales con llaves, hechas en una misma caja que se cuela dos veces (tres piezas de yeso, dos cajas). Colada por drenaje: la pared la da el tiempo (6–8 mm en 15–25 min).</p>
       <div class="grid2">
         <label class="f"><span>Encogimiento <b>%</b></span><select id="pShrink"><option value="10">10 · loza, baja temperatura</option><option value="12" selected>12 · gres a 1200 °C</option><option value="14">14 · porcelana</option></select></label>
-        <label class="check" style="grid-column:1/-1"><input type="checkbox" id="pShell"><span>Borrador: modelo como cáscara con columnas. La pieza que va dentro de cada caja se vacía dejando una piel de 0,9 mm y columnas de Ø 4 mm cada 3 cm desde el piso, solo bajo las caras casi horizontales; las laderas se sostienen solas. Sin relleno ni capas sólidas por dentro.</span></label>
         <label class="f" style="grid-column:1/-1"><span>Cuerpo del molde</span><select id="pSplit"><option value="auto" selected>Automático · cuerpo entero + fondo (2 piezas) si la maceta sale hacia arriba</option><option value="una">Cuerpo entero + fondo (2 piezas)</option><option value="dos">Dos mitades con llaves + fondo (3 piezas de yeso, 2 cajas)</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Detalles en las paredes largas (molde de dos mitades)</span><select id="pDeco"><option value="none" selected>Ninguno</option><option value="studs1">Tachones · una fila</option><option value="studs2">Tachones · dos filas</option><option value="rivets">Remaches sobre el cinturón (cuerpo «con cinturón»)</option><option value="panel">Panel liso con marco en bisel</option></select></label>
         <label class="f"><span>Pared de yeso <b>mm</b></span><select id="pThick"><option value="30">30 · macetas chicas</option><option value="40" selected>40</option><option value="50">50 · macetas grandes</option></select></label>
@@ -521,7 +520,7 @@
     s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
     s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; }
-    if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=+$('pThick').value||40; s.pSplit=$('pSplit').value; s.pShell=$('pShell').checked; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
+    if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=+$('pThick').value||40; s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       if(s.foot!=='bloque'){ s.plasterNotes.push('Patas de bloque: en yeso las patas con estilo quedarían enganchadas en el fondo (no tienen salida).'); s.foot='bloque'; }
       if(s.corner==='sumiiri'||s.corner==='mokko'){ s.plasterNotes.push('Esquinas rectas: las entrantes (sumiiri, mokko) no salen de un molde de dos mitades.'); s.corner='recta'; }
       if(s.lobes){ s.plasterNotes.push('Sin lóbulos: no salen de un molde de dos mitades.'); s.lobes=0; }
@@ -2792,46 +2791,7 @@
     const inset=(L,t)=>{ const n=L.length; let A2=0; for(let i=0;i<n;i++){ const p=L[i], q=L[(i+1)%n]; A2+=p[0]*q[1]-q[0]*p[1]; } const g=A2>0?1:-1;
       const nrm=(p,q)=>{ const dx=q[0]-p[0], dz=q[1]-p[1], l=Math.hypot(dx,dz)||1; return [-g*dz/l,g*dx/l]; };
       return L.map((p,i)=>{ const a=L[(i+n-1)%n], c=L[(i+1)%n], n1=nrm(a,p), n2=nrm(p,c), f=t/Math.max(0.2,1+n1[0]*n2[0]+n1[1]*n2[1]); return [p[0]+(n1[0]+n2[0])*f,p[1]+(n1[1]+n2[1])*f]; }); };
-    // --- Modelo como CÁSCARA con columnas (borrador del usuario: «solo la carcasa importa»): el positivo que va dentro de la
-    //     caja se vacía dejando una piel de `sh` mm (vértices desplazados por su normal hacia adentro; en el pie, solo en
-    //     horizontal), cerrada abajo por un aro al nivel del piso, y columnas de Ø 2·colR cada `grid` mm desde el piso hasta
-    //     la cara interior, solo donde esa cara es casi horizontal (menos de 6°): las laderas se sostienen solas al imprimir.
-    //     Coordenadas de impresión (z arriba). La caja (piso y paredes) no cambia. El cuerpo ya es hueco (PL.shell): ahí
-    //     solo se le ponen las columnas, que sustituyen a los soportes del laminador bajo su techo.
-    function columnsOn(tris,zmin,grid,colR,lowest,box){
-      const [xmin,xmax,ymin,ymax]=box, out=[];
-      const hit=(x,y)=>{ let best=lowest?Infinity:-Infinity; for(const t of tris){ const [ax,ay,az,bx,by,bz,cx,cy,cz]=t; const d=(by-cy)*(ax-cx)+(cx-bx)*(ay-cy); if(Math.abs(d)<1e-12) continue; const l1=((by-cy)*(x-cx)+(cx-bx)*(y-cy))/d, l2=((cy-ay)*(x-cx)+(ax-cx)*(y-cy))/d, l3=1-l1-l2; if(l1<-1e-9||l2<-1e-9||l3<-1e-9) continue; const z=l1*az+l2*bz+l3*cz; if(lowest){ if(z>zmin+0.5&&z<best) best=z; } else if(z>best) best=z; } return best; };
-      let nc=0; const ncx=Math.max(1,Math.round((xmax-xmin)/grid)), ncy=Math.max(1,Math.round((ymax-ymin)/grid)), K=16;
-      for(let i=0;i<ncx;i++) for(let j=0;j<ncy;j++){ const x=xmin+(xmax-xmin)*(i+0.5)/ncx, y=ymin+(ymax-ymin)*(j+0.5)/ncy, z=hit(x,y); if(!isFinite(z)||z-zmin<4) continue;
-        let flat=true; for(let k=0;k<4&&flat;k++){ const a=k*Math.PI/2, zz=hit(x+Math.cos(a)*(colR+1.5),y+Math.sin(a)*(colR+1.5)); if(!isFinite(zz)||Math.abs(zz-z)>0.35) flat=false; } if(!flat) continue;
-        const z0=zmin-0.3, z1=z+0.4, ring=zz=>Array.from({length:K},(_,q)=>[x+colR*Math.cos(2*Math.PI*q/K),y+colR*Math.sin(2*Math.PI*q/K),zz]), lo=ring(z0), hi=ring(z1);
-        for(let q=0;q<K;q++){ const r=(q+1)%K; out.push(lo[q][0],lo[q][1],lo[q][2], lo[r][0],lo[r][1],lo[r][2], hi[r][0],hi[r][1],hi[r][2]); out.push(lo[q][0],lo[q][1],lo[q][2], hi[r][0],hi[r][1],hi[r][2], hi[q][0],hi[q][1],hi[q][2]); out.push(x,y,z0, lo[r][0],lo[r][1],lo[r][2], lo[q][0],lo[q][1],lo[q][2]); out.push(x,y,z1, hi[q][0],hi[q][1],hi[q][2], hi[r][0],hi[r][1],hi[r][2]); }
-        nc++; }
-      out.cols=nc; return out;
-    }
-    const boxOfV=V=>{ let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity,zmin=Infinity; for(let i=0;i<V.length;i+=3){ xmin=Math.min(xmin,V[i]); xmax=Math.max(xmax,V[i]); ymin=Math.min(ymin,V[i+1]); ymax=Math.max(ymax,V[i+1]); zmin=Math.min(zmin,V[i+2]); } return {box:[xmin,xmax,ymin,ymax],zmin}; };
-    function shellify(T,sh,grid,colR){
-      const R=stlOrient(T), V=R.V, F=R.F, n=V.length/3, {box,zmin}=boxOfV(V);
-      const isBot=f=>V[3*f[0]+2]<zmin+1e-3&&V[3*f[1]+2]<zmin+1e-3&&V[3*f[2]+2]<zmin+1e-3, botF=[], topF=[]; for(const f of F){ (isBot(f)?botF:topF).push(f); }
-      if(!botF.length||!topF.length) return T;
-      const N=new Float64Array(n*3);
-      for(const [a,b,c] of topF){ const ax=V[3*a],ay=V[3*a+1],az=V[3*a+2],bx=V[3*b],by=V[3*b+1],bz=V[3*b+2],cx=V[3*c],cy=V[3*c+1],cz=V[3*c+2]; const ux=bx-ax,uy=by-ay,uz=bz-az,vx=cx-ax,vy=cy-ay,vz=cz-az; const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx; for(const i of [a,b,c]){ N[3*i]+=nx; N[3*i+1]+=ny; N[3*i+2]+=nz; } }
-      const I=new Float64Array(V.length);
-      for(let i=0;i<n;i++){ let nx=N[3*i],ny=N[3*i+1],nz=N[3*i+2]; const bot=V[3*i+2]<zmin+1e-3; if(bot) nz=0; const l=Math.hypot(nx,ny,nz); if(l<1e-9){ I[3*i]=V[3*i]; I[3*i+1]=V[3*i+1]; I[3*i+2]=V[3*i+2]; continue; } nx/=l; ny/=l; nz/=l; I[3*i]=V[3*i]-nx*sh; I[3*i+1]=V[3*i+1]-ny*sh; I[3*i+2]=bot?zmin:V[3*i+2]-nz*sh; }
-      const out=[], P=(A,i)=>out.push(A[3*i],A[3*i+1],A[3*i+2]);
-      for(const [a,b,c] of topF){ P(V,a); P(V,b); P(V,c); P(I,a); P(I,c); P(I,b); }
-      const E=new Map(); for(const [a,b,c] of botF){ for(const [p,q] of [[a,b],[b,c],[c,a]]){ const k=p<q?p+'_'+q:q+'_'+p; E.set(k,(E.get(k)||0)+1); } }
-      for(const [k,cnt] of E){ if(cnt!==1) continue; const [p,q]=k.split('_').map(Number); P(V,p); P(V,q); P(I,q); P(V,p); P(I,q); P(I,p); }
-      const tris=topF.map(([a,b,c])=>[I[3*a],I[3*a+1],I[3*a+2],I[3*b],I[3*b+1],I[3*b+2],I[3*c],I[3*c+1],I[3*c+2]]);
-      const C=columnsOn(tris,zmin,grid,colR,false,box); for(let i=0;i<C.length;i++) out.push(C[i]); out.cols=C.cols; return out;
-    }
-    // cuerpo (ya hueco): columnas desde el piso hasta la primera cara que hay encima (el techo interior)
-    function cuerpoColumns(T,grid,colR){
-      const R=stlOrient(T), V=R.V, {box,zmin}=boxOfV(V), tris=R.F.map(([a,b,c])=>[V[3*a],V[3*a+1],V[3*a+2],V[3*b],V[3*b+1],V[3*b+2],V[3*c],V[3*c+1],V[3*c+2]]);
-      const C=columnsOn(tris,zmin,grid,colR,true,box), out=T.slice(); for(let i=0;i<C.length;i++) out.push(C[i]); out.cols=C.cols; return out;
-    }
-    let shellCols=0;
-    const pushBox=(key,name,file,shell,model,color,pour,label)=>{ const M2=!s.pShell||key==='sprig'?model:key==='cajaCuerpo'?cuerpoColumns(model,30,1):shellify(model,0.9,30,1); if(M2.cols) shellCols+=M2.cols; boxes.push({key,label,shell:shell.slice(),model:M2.slice()}); parts.push({key,name,file,T:shell.concat(M2),map:id,color,pour}); };
+    const pushBox=(key,name,file,shell,model,color,pour,label)=>{ boxes.push({key,label,shell:shell.slice(),model:model.slice()}); parts.push({key,name,file,T:shell.concat(model),map:id,color,pour}); };
     if(one){
       // --- caja 1, cuerpo: el modelo entero boca abajo (la boca y la reserva en el piso, la cara inferior a ras del borde
       //     de la caja). Yeso hasta el borde: sale el bloque con el hueco de la maceta, abierto por la boca y por abajo.
@@ -2843,7 +2803,7 @@
       // se libera el hueco de la maceta; el techo horizontal lo cubren los soportes.
       const sw3=T=>{ const M=[]; for(let i=0;i<T.length;i+=3) M.push(T[i],T[i+2],T[i+1]); return M; };   // (x, Y, z) → impresión (x, z, Y)
       band(Mo,R2); fill2D(Mo,R2[0].loop,[],(u,v)=>[u,R2[0].Y,v]); fill2D(Mo,R2[R2.length-1].loop,[],(u,v)=>[u,R2[R2.length-1].Y,v]);
-      const solidV=vol(sw3(Mo.T)), H=adder(), tp=R2[R2.length-1].Y, SHc=s.pShell?0.9:PL.shell, RI=R2.map((r,i)=>({loop:inset(r.loop,SHc),Y:i===R2.length-1?r.Y-SHc:r.Y}));
+      const solidV=vol(sw3(Mo.T)), H=adder(), tp=R2[R2.length-1].Y, RI=R2.map((r,i)=>({loop:inset(r.loop,PL.shell),Y:i===R2.length-1?r.Y-PL.shell:r.Y}));
       band(H,R2); band(H,RI); fill2D(H,R2[0].loop,[RI[0].loop],(u,v)=>[u,R2[0].Y,v]); fill2D(H,R2[R2.length-1].loop,[],(u,v)=>[u,tp,v]); fill2D(H,RI[RI.length-1].loop,[],(u,v)=>[u,RI[RI.length-1].Y,v]);
       const M3=sw3(H.T);
       pushBox('cajaCuerpo','Caja 1: cuerpo (modelo boca abajo, hueco)','yeso-caja-1-cuerpo',S.T,M3,0x78acc0,(2*X*2*hF*U-solidV)/1e6,'Caja 1 → cuerpo del molde');
@@ -2921,8 +2881,7 @@
     notes.push(`Yeso cerámico: ≈ ${f1(litres*0.9)} kg con ${f1(litres*0.63)} L de agua en total. Yeso líquido por caja: ${boxes.map(bx=>bx.label.split(' →')[0]+' '+f1(parts.find(p=>p.key===bx.key)?.pour??(V['yeso'+bx.key.slice(4)]||0)/1000)+' L').join(', ')}. Mezcla 100 de yeso por 63–70 de agua, espolvoreando el yeso sobre el agua.`);
     notes.push(`El fondo lleva un zócalo de  mm con la silueta del pie de la maceta, que entra en el cuerpo y traba las piezas en su sitio; encima van los huecos de las patas y el sello.`);
     notes.push(`La maceta va agrandada un ${(Math.round((k-1)*1000)/10).toString().replace('.',',')} % (encogimiento del ${Math.round((1-1/k)*100)} %) y lleva ${PL.spare} mm de reserva sobre el borde: recorta el borde en cuero por esa marca.`);
-    if(s.pShell) notes.push(`Borrador «cáscara con columnas»: el modelo de cada caja es una piel de 0,9 mm con ${shellCols} columnas de Ø 4 mm cada 3 cm bajo las caras casi horizontales. Imprímelo con 2 perímetros y sin relleno (la piel ya es la pared); el yeso solo ve la superficie.`);
-    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,shellMode:!!s.pShell,shellCols,X,Z0,hF,U,Ytop,Y0,ftk};
+    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,X,Z0,hF,U,Ytop,Y0,ftk};
   }
   function plasterPrintTris(part){ const T=part.T, out=new Array(T.length); for(let i=0;i<T.length;i+=3){ const p=part.map(T[i],T[i+1],T[i+2]); out[i]=p[0]; out[i+1]=p[1]; out[i+2]=p[2]; } return out; }
   // Visor: a la izquierda las cajas impresas con las paredes translúcidas, para ver el modelo dentro, tal como salen de la
@@ -2943,7 +2902,7 @@
     // las cajas impresas, en fila de atrás hacia adelante: paredes translúcidas y el modelo opaco dentro.
     // Impresión (x, y, z arriba) → visor (x, z, −y): un giro, no un espejo, para poder animar las piezas desde la caja.
     const boxes=new THREE.Group(), BL=[], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; }; let zc=0; const boxOf={};
-    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a,PM.shellMode?{transparent:true,opacity:0.45,depthWrite:false}:undefined).m; grp.add(sh,mo);
+    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a).m; grp.add(sh,mo);
       const cb=new THREE.Box3().setFromObject(grp); grp.position.z=zc-cb.min.z; boxes.add(grp); const sp=label3(THREE,bxd.label,lh,true); BL.push({sp,g:grp}); zc+=cb.max.z-cb.min.z+30; boxOf[bxd.key]=grp; });
     // posición provisional de las cajas (se fija después de encuadrar el molde); poses «en la caja» de cada pieza de yeso
     const F=PL.floor, Ym=(PM.Ytop+PM.Y0)/2, qx=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),a), qy=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),a);
@@ -3419,15 +3378,11 @@
   // retracción y viajes) + 6 min por cama (calentar y calibrar). Filamento de 1,75 mm (2,405 mm² de sección).
   const FIL={PLA:1.24,PETG:1.27};
   function calcOpts(){ return {rec:$('cRec').checked,pattern:$('cPattern').value,mat:$('cMat').value,price:Math.max(0,+$('cPrice').value||0),infill:Math.min(100,Math.max(0,+$('cInfill').value||0)),walls:Math.max(1,Math.round(+$('cWalls').value||3)),layer:+$('cLayer').value||0.2,kwh:Math.max(0,+$('cKwh').value||0),W:Math.max(0,+$('cW').value||0)}; }
-  // Volumen y superficie por SÓLIDO conexo (comps): así una piel delgada (modelo en cáscara, 0,9 mm) se cuenta como lo que
-  // es —dos perímetros y nada más— y no como dos caras con dos perímetros cada una; el laminador no puede meter cuatro líneas
-  // en 0,9 mm. Para cada sólido: material = V si su espesor medio (2V/A) no pasa de 1,7 mm (se imprime macizo), si no
-  // perímetros + relleno.
-  function solidStats(T){ const R=stlOrient(T), {mn,mx}=bbox(R.V); const areaOf=R2=>{ let A=0; for(const [a,b2,c] of R2.F){ const u=[R2.V[3*b2]-R2.V[3*a],R2.V[3*b2+1]-R2.V[3*a+1],R2.V[3*b2+2]-R2.V[3*a+2]], v=[R2.V[3*c]-R2.V[3*a],R2.V[3*c+1]-R2.V[3*a+1],R2.V[3*c+2]-R2.V[3*a+2]]; A+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; } return A; };
-    const A=areaOf(R); let comps=null; try{ const S=solidsOf(T); if(S.length>1) comps=S.map(C=>{ const Rc=stlOrient(C); return {V:Math.abs(Rc.volume),A:areaOf(Rc)}; }); }catch(e){}
-    return {V:Math.abs(R.volume),A,comps,size:[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]}; }
+  function solidStats(T){ const R=stlOrient(T), {mn,mx}=bbox(R.V); let A=0;
+    for(const [a,b2,c] of R.F){ const u=[R.V[3*b2]-R.V[3*a],R.V[3*b2+1]-R.V[3*a+1],R.V[3*b2+2]-R.V[3*a+2]], v=[R.V[3*c]-R.V[3*a],R.V[3*c+1]-R.V[3*a+1],R.V[3*c+2]-R.V[3*a+2]]; A+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
+    return {V:Math.abs(R.volume),A,size:[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]}; }
   // relleno «lightning»: ramas solo bajo las superficies; gasta ≈ 30 % de lo que gasta la rejilla a la misma densidad (medido en Bambu Studio sobre piezas como estas)
-  function estimate(p,o){ const parts=p.comps||[{V:p.V,A:p.A}]; let shell=0, inf=0; for(const c of parts){ const th=c.A>0?2*c.V/c.A:0, sh=th<=1.7?c.V:Math.min(c.V,c.A*o.walls*0.42); shell+=sh; inf+=Math.max(0,c.V-sh)*o.infill/100*(o.pattern==='lightning'?0.3:1); } const vol=shell+inf, k=o.layer/0.2;
+  function estimate(p,o){ const shell=Math.min(p.V,p.A*o.walls*0.42), inf=Math.max(0,p.V-shell)*o.infill/100*(o.pattern==='lightning'?0.3:1), vol=shell+inf, k=o.layer/0.2;
     return {g:vol/1000*FIL[o.mat], m:vol/2.405/1000, h:(shell/(11*k)+inf/(20*k)+p.size[2]/o.layer*2.5)/3600}; }
   // piezas que se imprimen en la sección actual: la maceta (y sus patas aparte) o las piezas del molde
   async function printPieces(s,b){
@@ -3710,7 +3665,7 @@
   $('v3play').addEventListener('click',()=>{ const ud=V3&&V3.pot&&V3.pot.userData; if(!ud||!ud.setProc) return; const t0=performance.now(); $('v3exp').value=1; ud.setExplode(1);
     const step=()=>{ const dt=(performance.now()-t0)/1000; if(dt<3){ const u=dt/3; $('v3proc').value=u; ud.setProc(u); } else if(dt<4.5){ $('v3proc').value=1; ud.setProc(1); const t=1-(dt-3)/1.5; $('v3exp').value=t; ud.setExplode(t); } else { $('v3exp').value=0; ud.setExplode(0); return; } requestAnimationFrame(step); }; step(); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'||MODE==='skin'?'cement':MODE)));
-  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','printer','bedXY','skinT','pShrink','pThick','pSplit','pShell','pDeco','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
+  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','printer','bedXY','skinT','pShrink','pThick','pSplit','pDeco','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
@@ -3739,7 +3694,7 @@
   window.addEventListener('afterprint',()=>fit(true));
   sel.value='chokkan'; applyPreset('chokkan');
   // Estado por URL: ?preset=chokkan&L=28.6&…&mode=mold (cualquier parámetro con el id de un campo), para volver a un diseño o compartirlo
-  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pShell','pSplit','pDeco','pThick','pShrink','moldClick'];
+  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','moldClick'];
   (function applyUrl(){ const q=new URLSearchParams(location.search); if(![...q.keys()].some(k=>k==='preset'||URL_F.includes(k)||k==='mode')) return;
     if(q.get('preset')&&q.get('preset')!=='custom'&&[...sel.options].some(o=>o.value===q.get('preset'))){ sel.value=q.get('preset'); applyPreset(q.get('preset')); }
     URL_F.forEach(id=>{ if(!q.has(id)||!$(id)) return; const el=$(id); if(el.type==='checkbox') el.checked=q.get(id)==='1'; else el.value=q.get(id); el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); });
