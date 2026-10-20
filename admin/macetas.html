@@ -284,7 +284,7 @@
         <label class="f"><span>Encogimiento <b>%</b></span><select id="pShrink"><option value="10">10 · loza, baja temperatura</option><option value="12" selected>12 · gres a 1200 °C</option><option value="14">14 · porcelana</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Cuerpo del molde</span><select id="pSplit"><option value="auto" selected>Automático · cuerpo entero + fondo (2 piezas) si la maceta sale hacia arriba</option><option value="una">Cuerpo entero + fondo (2 piezas)</option><option value="dos">Dos mitades con llaves + fondo (3 piezas de yeso, 2 cajas)</option></select></label>
         <label class="f"><span>Labio</span><select id="pLipP"><option value="diseno" selected>Con labio, como el diseño</option><option value="bisel">Con labio en bisel de 55° (casco sin soportes)</option><option value="sin">Sin labio · borde recto</option></select></label>
-        <label class="f"><span>Modelo del cuerpo</span><select id="pModel"><option value="macizo" selected>Macizo dentro de la caja</option><option value="casco">Casco (borrador): cuerpo entero aparte y de pie; en mitades, hueco por dentro</option></select></label>
+        <label class="f"><span>Modelo del cuerpo</span><select id="pModel"><option value="casco" selected>Casco: solo la piel, aparte y de pie (no se imprime el bloque)</option><option value="macizo">Macizo dentro de la caja (bloque con relleno lightning)</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Detalles en las paredes largas (molde de dos mitades)</span><select id="pDeco"><option value="none" selected>Ninguno</option><option value="studs1">Tachones · una fila</option><option value="studs2">Tachones · dos filas</option><option value="rivets">Remaches sobre el cinturón (cuerpo «con cinturón»)</option><option value="panel">Panel liso con marco en bisel</option></select></label>
         <label class="f"><span>Pared y fondo de la maceta <b>mm</b> (cocida)</span><input id="pCast" type="number" step="0.5" min="3" max="12" value="6"><small class="hint" id="h_pCast"></small></label>
         <label class="f"><span>Pared de yeso <b>mm</b></span><select id="pThick"><option value="auto" selected>Recomendada según el tamaño</option><option value="25">25 · macetas pequeñas</option><option value="30">30</option><option value="40">40</option><option value="50">50 · macetas grandes</option></select><small class="hint" id="h_pThick"></small></label>
@@ -3826,9 +3826,11 @@
     const best=(bed,it)=>{ let b=null; it.shapes.forEach(sh=>{ for(let y=0;y+sh.h<=NY;y++){ if(b&&y+sh.h>b.top) break; for(let x=0;x+sh.w<=NX;x++) if(fits(bed.g,sh,x,y)){ const top=y+sh.h; if(!b||top<b.top||(top===b.top&&x<b.x)) b={sh,x,y,top}; break; } if(b&&b.sh===sh) break; } }); return b; };
     const run=order=>{ const beds=[];
       list.slice().sort(order).forEach(it=>{
-        if(!it.shapes.length){ // no cabe con los márgenes: va sola, girada para que entre en la cama si alguna orientación lo permite (se centra después)
-          const Vs=[0,Math.PI/2].map(a=>rot(it.o.V,a)), sz=V=>{ const {mx}=bbox(V); return [mx[0],mx[1]]; }, over=V=>{ const [w,h]=sz(V); return Math.max(0,w-s.bedX)+Math.max(0,h-s.bedY); };
-          beds.push({items:[{o:it.o,V:over(Vs[1])<over(Vs[0])?Vs[1]:Vs[0],x:mc,y:mc}],big:true}); return; }
+        if(!it.shapes.length){ // no cabe con los márgenes de 5 mm: abre una cama, girada hacia donde entre (pegada a un borde) y deja libre
+          // el resto de la cama para otras piezas; solo si no entra en ninguna orientación va sola y se avisa
+          const all=[0,1,2,3,4,5,6,7].map(k=>{ const V=rot(it.o.V,k*Math.PI/4); return Object.assign({V},mask(V,it.o.F)); }), ok=all.filter(sh=>{ const {mx}=bbox(sh.V); return mx[0]<=s.bedX-1&&mx[1]<=s.bedY-1; });
+          if(!ok.length){ const over=V=>{ const {mx}=bbox(V); return Math.max(0,mx[0]-s.bedX)+Math.max(0,mx[1]-s.bedY); }; beds.push({items:[{o:it.o,V:all.slice().sort((a,b2)=>over(a.V)-over(b2.V))[0].V,x:mc,y:mc}],big:true}); return; }
+          const sh=ok.sort((a,b2)=>a.h-b2.h)[0], bed=newBed(); place(bed,it,sh,Math.max(0,Math.floor((NX-sh.w)/2)),0); beds.push(bed); return; }
         for(const bed of beds){ if(bed.big) continue; const b=best(bed,it); if(b){ place(bed,it,b.sh,b.x,b.y); return; } }
         const bed=newBed(), bd=best(bed,it)||{sh:it.shapes[0],x:mc,y:mc}; place(bed,it,bd.sh,bd.x,bd.y); beds.push(bed); });
       return beds; };
@@ -3852,6 +3854,7 @@
   async function bambuConfig(){ const k={a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]; if(!k) return null; if(BBL_CFG[k]) return BBL_CFG[k];
     try{ const r=await fetch('bambu/'+k+'.json?v=1'); if(!r.ok) return null; const t=await r.text(); JSON.parse(t); BBL_CFG[k]=t; return t; }catch(e){ return null; } }
   async function make3MF(objs,s,title){
+    const plates=Array.isArray(objs[0])?objs:[objs]; objs=[].concat(...plates);
     const esc3=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'), f=x=>(Math.round(x*1000)/1000).toString(), enc=new TextEncoder();
     const meshXML=o=>{ const vs=[], ts=[]; for(let i=0;i<o.V.length;i+=3) vs.push(`<vertex x="${f(o.V[i])}" y="${f(o.V[i+1])}" z="${f(o.V[i+2])}"/>`); o.F.forEach(([a,b2,c])=>ts.push(`<triangle v1="${a}" v2="${b2}" v3="${c}"/>`)); return `<mesh><vertices>${vs.join('')}</vertices><triangles>${ts.join('')}</triangles></mesh>`; };
     const cfg=await bambuConfig();
@@ -3865,18 +3868,22 @@
       return new Blob([z],{type:'model/3mf'}); }
     const uid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16));
     const NS='xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:BambuStudio="http://schemas.bambulab.com/package/2021" xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" requiredextensions="p"';
-    const n=objs.length, files=[], wraps=[], items=[], rels=[], oc=[], inst=[], I='1 0 0 0 1 0 0 0 1 0 0 0';
-    objs.forEach((o,k)=>{ const sid=k+1, wid=n+k+1, path=`3D/Objects/object_${sid}.model`;
+    // placas: Bambu Studio las acomoda en una cuadrícula de ceil(√n) columnas separadas 1,2 veces la cama (PartPlateList::compute_origin)
+    const nP=plates.length, cols=(()=>{ const v=Math.sqrt(nP), r=Math.round(v); return v>r?r+1:r; })(), plateOf=new Map();
+    plates.forEach((pl,p)=>pl.forEach(o=>plateOf.set(o,p)));
+    const org=p=>[(p%cols)*s.bedX*1.2,-Math.floor(p/cols)*s.bedY*1.2];
+    const n=objs.length, files=[], wraps=[], items=[], rels=[], oc=[], inst=plates.map(()=>[]), I='1 0 0 0 1 0 0 0 1 0 0 0';
+    objs.forEach((o,k)=>{ const sid=k+1, wid=n+k+1, path=`3D/Objects/object_${sid}.model`, p=plateOf.get(o)||0, [ox,oy]=org(p), IT=`1 0 0 0 1 0 0 0 1 ${f(ox)} ${f(oy)} 0`;
       files.push({name:path,data:enc.encode(`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" ${NS}>\n <metadata name="BambuStudio:3mfVersion">1</metadata>\n <resources>\n  <object id="${sid}" p:UUID="${uid()}" type="model">${meshXML(o)}</object>\n </resources>\n <build/>\n</model>`)});
       wraps.push(`  <object id="${wid}" p:UUID="${uid()}" type="model">\n   <components>\n    <component p:path="/${path}" objectid="${sid}" p:UUID="${uid()}" transform="${I}"/>\n   </components>\n  </object>`);
-      items.push(`  <item objectid="${wid}" p:UUID="${uid()}" transform="${I}" printable="1"/>`);
+      items.push(`  <item objectid="${wid}" p:UUID="${uid()}" transform="${IT}" printable="1"/>`);
       rels.push(` <Relationship Target="/${path}" Id="rel-${sid}" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>`);
       const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${st.pattern==='lightning'?'lightning':'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>`:'';
       oc.push(`  <object id="${wid}">\n    <metadata key="name" value="${esc3(o.name)}"/>\n    <metadata key="extruder" value="1"/>${sm}\n    <part id="${sid}" subtype="normal_part">\n      <metadata key="name" value="${esc3(o.name)}"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n    </part>\n  </object>`);
-      inst.push(`    <model_instance>\n      <metadata key="object_id" value="${wid}"/>\n      <metadata key="instance_id" value="0"/>\n      <metadata key="identify_id" value="${101+k}"/>\n    </model_instance>`); });
+      inst[p].push(`    <model_instance>\n      <metadata key="object_id" value="${wid}"/>\n      <metadata key="instance_id" value="0"/>\n      <metadata key="identify_id" value="${101+k}"/>\n    </model_instance>`); });
     const day=new Date().toISOString().slice(0,10);
     const model=`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" ${NS}>\n <metadata name="Application">BambuStudio-${BBL_VER}</metadata>\n <metadata name="BambuStudio:3mfVersion">1</metadata>\n <metadata name="Title">${esc3(title)}</metadata>\n <metadata name="Designer">Legado Bonsai</metadata>\n <metadata name="CreationDate">${day}</metadata>\n <metadata name="ModificationDate">${day}</metadata>\n <resources>\n${wraps.join('\n')}\n </resources>\n <build p:UUID="${uid()}">\n${items.join('\n')}\n </build>\n</model>`;
-    const ms=`<?xml version="1.0" encoding="UTF-8"?>\n<config>\n${oc.join('\n')}\n  <plate>\n    <metadata key="plater_id" value="1"/>\n    <metadata key="plater_name" value=""/>\n    <metadata key="locked" value="false"/>\n${inst.join('\n')}\n  </plate>\n  <assemble>\n  </assemble>\n</config>`;
+    const ms=`<?xml version="1.0" encoding="UTF-8"?>\n<config>\n${oc.join('\n')}\n${inst.map((L,p)=>`  <plate>\n    <metadata key="plater_id" value="${p+1}"/>\n    <metadata key="plater_name" value="${esc3(nP>1?`Cama ${p+1} de ${nP}`:'')}"/>\n    <metadata key="locked" value="false"/>\n${L.join('\n')}\n  </plate>`).join('\n')}\n  <assemble>\n  </assemble>\n</config>`;
     const ct='<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>\n <Default Extension="png" ContentType="image/png"/>\n <Default Extension="gcode" ContentType="text/x.gcode"/>\n</Types>';
     const rel0='<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>\n</Relationships>';
     const relM=`<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n${rels.join('\n')}\n</Relationships>`;
@@ -3920,9 +3927,10 @@
     const P=await exportPieces(s,b), what=s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?'molde-yeso':s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
     const nm=(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
-    for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
+    if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}.3mf`); }
+    else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
     const lista=beds.map((bd,k)=>`cama ${k+1}: ${bd.map(p=>p.name.split(' — ')[0].toLowerCase()).join(', ')}${bd[0]&&bd[0].big?' (no cabe en la cama: pártela en el laminador)':''}`).join(' · ');
-    out.textContent=`${s.mode==='mold'&&s.obj!=='mesa'&&s.moldAuto&&s.autoBeds?`Molde automático: ${autoTxt(s)}, ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos). `:''}Listo: ${P.length} pieza${P.length>1?'s':''} en ${nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. Ábrelo con doble clic en Bambu Studio; si avisa «configuración no válida, carga solo los datos de geometría», pulsa OK: es normal con archivos que no hizo Bambu Studio. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.`;
+    out.textContent=`${s.mode==='mold'&&s.obj!=='mesa'&&s.moldAuto&&s.autoBeds?`Molde automático: ${autoTxt(s)}, ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos). `:''}Listo: ${P.length} pieza${P.length>1?'s':''} en ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?`UN solo 3MF con ${nb>1?nb+' placas (una por cama)':'una placa'} para la ${s.bedName}`:nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?'Ábrelo con doble clic en Bambu Studio: trae la impresora, el PLA, la cama Textured PEI y el relleno y las paredes de cada pieza; solo lamina placa por placa («Laminar todo») e imprime.':'Ábrelo con doble clic en Bambu Studio; con «Otra» impresora avisa «configuración no válida, carga solo los datos de geometría»: pulsa OK. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.'}`;
   }
   $('spMotif').addEventListener('change',()=>{ const L=SPRIG_LIB[$('spMotif').value]; if(L&&L.w) $('spW').value=L.w; sprigPreview(); render(); });
   { let tm=0; $('spText').addEventListener('input',()=>{ clearTimeout(tm); tm=setTimeout(()=>{ SPRIG_CACHE.clear(); sprigPreview(); render(); },400); }); }
