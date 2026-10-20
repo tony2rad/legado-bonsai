@@ -2887,62 +2887,66 @@
         [[0,Ytop],[rings.length-1,Y0]].forEach(([i,Y])=>fill2D(A,RR[i].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Y,v]));
         fill2D(A,[...rings.map((r,i)=>[RR[i][0],r.Y]),...rings.map((r,i)=>[-RR[i][M],r.Y]).reverse()],[],(u,v)=>[u,v,0]);
         return A.T; };
-      // media maceta HUECA (modelo «casco» con el cuerpo en dos mitades): la media maceta va acostada con la cara de corte
-      // en el piso de la caja, así que no puede imprimirse aparte de pie; se vacía por dentro desde la cara de corte con un
-      // techo a 55° (se imprime sin soportes) y nervios transversales si el techo no alcanza a cerrar bajo la pared de arriba.
-      // Rejilla de CASCO.grid mm en el plano de corte (u = x, v = Y): h = alto de la media maceta en cada punto; el hueco deja
-      // CASCO.w de piel y su techo es c = min(tan 55° · distancia al borde del hueco, h − piel).
-      const halfHollow=()=>{ const A=adder(), M=120, dirs=Array.from({length:M+1},(_,j)=>{ const a=Math.PI*j/M; return [Math.cos(a),Math.sin(a)]; }), RR=rings.map(r=>radii(r.loop,dirs)), P3=(r,j,Y)=>[r*dirs[j][0],Y,r*dirs[j][1]];
-        for(let i=0;i<rings.length-1;i++) for(let j=0;j<M;j++) A.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RR[i+1][j+1],j+1,rings[i+1].Y),P3(RR[i+1][j],j,rings[i+1].Y));
-        [[0,Ytop],[rings.length-1,Y0]].forEach(([i,Y])=>fill2D(A,RR[i].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Y,v]));
-        const g=CASCO.grid, kk=Math.tan(55*Math.PI/180), w=CASCO.w+0.5;
-        let Xr=0; RR.forEach(R=>{ Xr=Math.max(Xr,R[0],R[M]); });
-        const u0=-Xr-g, NU=Math.ceil(2*(Xr+g)/g)+1, v0=Y0-g, NV=Math.ceil((Ytop-Y0+2*g)/g)+1, N=NU*NV, at=(i,j)=>j*NU+i;
-        const RS=rings.map((r,i)=>({loop:r.loop,Y:r.Y})).sort((a,b2)=>a.Y-b2.Y);
-        const loopAt=Y=>{ for(let i=0;i<RS.length-1;i++){ const a=RS[i], b2=RS[i+1]; if(Y>=a.Y&&Y<=b2.Y&&b2.Y>a.Y){ const t=(Y-a.Y)/(b2.Y-a.Y); return a.loop.map((p,q)=>[p[0]+(b2.loop[q][0]-p[0])*t,p[1]+(b2.loop[q][1]-p[1])*t]); } } return null; };
-        const H=new Float64Array(N);
-        for(let j=0;j<NV;j++){ const Y=v0+j*g; if(Y<Y0+0.01||Y>Ytop-0.01) continue; const L=loopAt(Y); if(!L) continue; const m=L.length;
-          for(let i=0;i<NU;i++){ const x=u0+i*g; let zm=0; for(let q=0;q<m;q++){ const a=L[q], c=L[(q+1)%m]; if((a[0]-x)*(c[0]-x)>0||a[0]===c[0]) continue; const z=a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0]); if(z>zm) zm=z; } H[at(i,j)]=zm; } }
-        const HE=new Float64Array(N); for(let j=1;j<NV-1;j++) for(let i=1;i<NU-1;i++){ let mn=Infinity; for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++) mn=Math.min(mn,H[at(i+di,j+dj)]); HE[at(i,j)]=mn-w; }
-        // celdas del hueco; nervios transversales (de 1 celda) si el techo no cabe: separación con la que tan55·s/2 ≤ alto típico
-        const cav=new Uint8Array((NU-1)*(NV-1)), ck=(i,j)=>j*(NU-1)+i;
-        const okCell=(i,j)=>HE[at(i,j)]>1&&HE[at(i+1,j)]>1&&HE[at(i,j+1)]>1&&HE[at(i+1,j+1)]>1;
-        const hs=[]; for(let j=0;j<NV-1;j++) for(let i=0;i<NU-1;i++) if(okCell(i,j)) hs.push(HE[at(i,j)]); hs.sort((a,b2)=>a-b2);
-        const hTyp=hs.length?hs[Math.floor(hs.length*0.25)]:0, sp=Math.max(6*g,2*0.9*hTyp/kk), ribs=[]; for(let u=sp/2;u<Xr;u+=sp){ ribs.push(u,-u); } if(Xr>sp/2) ribs.push(0);
-        const isRib=i=>{ const uc=u0+(i+0.5)*g; return ribs.some(r=>Math.abs(uc-r)<g*0.75); };
-        for(let j=0;j<NV-1;j++) for(let i=0;i<NU-1;i++) if(okCell(i,j)&&!isRib(i)) cav[ck(i,j)]=1;
-        // sin uniones en diagonal (darían bordes no manifold)
-        for(let it=0,ch=true;ch&&it<20;it++){ ch=false; for(let j=0;j<NV-2;j++) for(let i=0;i<NU-2;i++){ const a=cav[ck(i,j)], b2=cav[ck(i+1,j)], c=cav[ck(i,j+1)], d=cav[ck(i+1,j+1)];
-            if(a&&d&&!b2&&!c){ cav[ck(i+1,j+1)]=0; ch=true; } if(b2&&c&&!a&&!d){ cav[ck(i,j+1)]=0; ch=true; } } }
-        const cnt=new Uint8Array(N); for(let j=0;j<NV-1;j++) for(let i=0;i<NU-1;i++) if(cav[ck(i,j)]){ cnt[at(i,j)]++; cnt[at(i+1,j)]++; cnt[at(i,j+1)]++; cnt[at(i+1,j+1)]++; }
-        // distancia al borde del hueco (chaflán de dos pasadas)
-        const D=new Float64Array(N).fill(Infinity); for(let n=0;n<N;n++) if(cnt[n]>0&&cnt[n]<4) D[n]=0;
-        const s2=g*Math.SQRT2, nb=[[-1,0,g],[0,-1,g],[-1,-1,s2],[1,-1,s2]];
-        for(let pass=0;pass<2;pass++){ const fw=pass===0; for(let jj=0;jj<NV;jj++){ const j=fw?jj:NV-1-jj; for(let ii=0;ii<NU;ii++){ const i=fw?ii:NU-1-ii, n=at(i,j); if(cnt[n]!==4) continue;
-              for(const [di,dj,wd] of nb){ const i2=fw?i+di:i-di, j2=fw?j+dj:j-dj; if(i2<0||j2<0||i2>=NU||j2>=NV) continue; const v=D[at(i2,j2)]+wd; if(v<D[n]) D[n]=v; } } } }
-        const Cz=n=>cnt[n]===4?Math.max(0,Math.min(kk*D[n],HE[n])):0, PT=(i,j)=>[u0+i*g,v0+j*g,Cz(at(i,j))];
-        for(let j=0;j<NV-1;j++) for(let i=0;i<NU-1;i++) if(cav[ck(i,j)]) A.quad(PT(i,j),PT(i+1,j),PT(i+1,j+1),PT(i,j+1));
-        // bordes del hueco: aristas de celda con hueco a un lado y macizo al otro, encadenadas en lazos (huecos de la cara de corte)
-        const nxt=new Map(), key=(i,j)=>i+','+j, cv=(i,j)=>i>=0&&j>=0&&i<NU-1&&j<NV-1&&cav[ck(i,j)]===1;
-        for(let j=0;j<NV-1;j++) for(let i=0;i<NU-1;i++){ if(!cav[ck(i,j)]) continue;
-          if(!cv(i,j-1)) nxt.set(key(i,j),[i+1,j]); if(!cv(i+1,j)) nxt.set(key(i+1,j),[i+1,j+1]); if(!cv(i,j+1)) nxt.set(key(i+1,j+1),[i,j+1]); if(!cv(i-1,j)) nxt.set(key(i,j+1),[i,j]); }
-        const holes=[], seen=new Set(); for(const [k0] of nxt){ if(seen.has(k0)) continue; const L=[]; let k1=k0, guard=0; while(!seen.has(k1)&&guard++<1e6){ seen.add(k1); const [i,j]=k1.split(',').map(Number); L.push([u0+i*g,v0+j*g]); const nx=nxt.get(k1); if(!nx) break; k1=key(nx[0],nx[1]); } if(L.length>=4) holes.push(L); }
-        fill2D(A,[...rings.map((r,i)=>[RR[i][0],r.Y]),...rings.map((r,i)=>[-RR[i][M],r.Y]).reverse()],holes,(u,v)=>[u,v,0]);
-        return A.T; };
-      const HP=s.pModel==='casco'?halfHollow():halfPot();
-      if(s.pModel==='casco') notes.push('Mitades con el modelo hueco: la media maceta va acostada en la caja (no se puede imprimir aparte de pie), así que se vacía por dentro desde la cara de corte con un techo a 55° y nervios transversales; se imprime sin soportes. Ojo: medido en Bambu Studio (rectangular 28,6 × 20,1 × 9, media caja) gasta MÁS que el modelo macizo con lightning (272 g y 5 h 34 contra 217 g y 3 h 57), porque el techo y los nervios llevan perímetros; elige «Macizo» si no necesitas el hueco.');
+      const HP=halfPot();
       // tachones / remaches (medias esferas sobre la pared) y panel con marco en bisel, en el lado +z, escalados por k
-      studPoints(s).filter(p=>p.z>0).forEach(p=>{ const g=new THREE.SphereGeometry(p.r*k,14,10).toNonIndexed(), P=g.attributes.position.array; for(let i=0;i<P.length;i+=3) HP.push(P[i]+p.x*k,P[i+1]+p.y*k,P[i+2]+p.z*k); g.dispose(); });
-      { const PT=panelTris(THREE,s); for(let i=0;i<PT.length;i+=9){ if((PT[i+2]+PT[i+5]+PT[i+8])/3>0) for(let q=0;q<9;q++) HP.push(PT[i+q]*k); } }
-      const VhalfPot=vol(HP);
+      const deco3=[];
+      studPoints(s).filter(p=>p.z>0).forEach(p=>{ const g=new THREE.SphereGeometry(p.r*k,14,10).toNonIndexed(), P=g.attributes.position.array; for(let i=0;i<P.length;i+=3) deco3.push(P[i]+p.x*k,P[i+1]+p.y*k,P[i+2]+p.z*k); g.dispose(); });
+      { const PT=panelTris(THREE,s); for(let i=0;i<PT.length;i+=9){ if((PT[i+2]+PT[i+5]+PT[i+8])/3>0) for(let q=0;q<9;q++) deco3.push(PT[i+q]*k); } }
+      for(const v of deco3) HP.push(v);
+      const VhalfPot=vol(HP), casco=s.pModel==='casco';
+      // CASCO de la media maceta (modelo «casco» con el cuerpo en dos mitades): solo la piel de la media maceta, impresa APARTE
+      // y DE PIE (la cara inferior de la maceta en la cama, la boca arriba y abierta, la cara de corte abierta de lado), así
+      // nada queda en el aire. Por dentro, tabiques transversales con la forma del corte de la maceta cada ~CASCO.gap mm: la
+      // refuerzan contra la presión del yeso y, ya acostada en la caja, se apoyan en el piso. La caja lleva un marco por piso
+      // y un anillo con la silueta de la media maceta que entra en el borde del casco (lo centra y sella).
+      let CS=null, Dsil=null;
+      if(casco){ const C=adder(), M=120, dirs=Array.from({length:M+1},(_,j)=>{ const a=Math.PI*j/M; return [Math.cos(a),Math.sin(a)]; }), CW=CASCO.w, CF=CASCO.floor;
+        const RR=rings.map(r=>radii(r.loop,dirs)), P3=(r,j,Y)=>[r*dirs[j][0],Y,r*dirs[j][1]], nR=rings.length, Yf=Y0+CF;
+        const lerpL=(A,B,t)=>A.map((p,j)=>[p[0]+(B[j][0]-p[0])*t,p[1]+(B[j][1]-p[1])*t]);
+        const loopAt=Y=>{ for(let i=0;i<nR-1;i++){ const a=rings[i], b2=rings[i+1]; if(Y<=a.Y&&Y>=b2.Y&&a.Y>b2.Y) return lerpL(b2.loop,a.loop,(Y-b2.Y)/(a.Y-b2.Y)); } return rings[nR-1].loop; };
+        // anillos interiores: los de la maceta por encima del piso del casco y uno en el piso (todos metidos CW)
+        const IR=[...rings.filter(r=>r.Y>Yf+0.05).map(r=>({loop:inset(r.loop,CW),Y:r.Y})),{loop:inset(loopAt(Yf),CW),Y:Yf}], RI=IR.map(r=>radii(r.loop,dirs)), nI=IR.length;
+        for(let i=0;i<nR-1;i++) for(let j=0;j<M;j++) C.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RR[i+1][j+1],j+1,rings[i+1].Y),P3(RR[i+1][j],j,rings[i+1].Y));
+        for(let i=0;i<nI-1;i++) for(let j=0;j<M;j++) C.quad(P3(RI[i][j],j,IR[i].Y),P3(RI[i][j+1],j+1,IR[i].Y),P3(RI[i+1][j+1],j+1,IR[i+1].Y),P3(RI[i+1][j],j,IR[i+1].Y));
+        for(let j=0;j<M;j++) C.quad(P3(RR[0][j],j,Ytop),P3(RR[0][j+1],j+1,Ytop),P3(RI[0][j+1],j+1,Ytop),P3(RI[0][j],j,Ytop));   // canto de la boca
+        fill2D(C,RR[nR-1].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Y0,v]); fill2D(C,RI[nI-1].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Yf,v]);
+        // cara de corte (z = 0): una U, el canto de la piel por los dos lados y el piso abajo
+        const U2=[...rings.map((r,i)=>[RR[i][0],r.Y]),...rings.map((r,i)=>[-RR[i][M],r.Y]).reverse(),...IR.map((r,i)=>[-RI[i][M],r.Y]),...IR.map((r,i)=>[RI[i][0],r.Y]).reverse()];
+        fill2D(C,U2,[],(u,v)=>[u,v,0]);
+        // tabiques: a cada x, la media sección de la maceta menos la piel, desde 6 mm sobre la cara de corte (deja sitio al
+        // anillo de la caja) hasta la piel (0,5 mm dentro de ella), del piso del casco a la boca
+        const zAt=(L,x)=>{ let zm=0; for(let q=0,m=L.length;q<m;q++){ const a=L[q], c=L[(q+1)%m]; if((a[0]-x)*(c[0]-x)>0||a[0]===c[0]) continue; const z=a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0]); if(z>zm) zm=z; } return zm; };
+        const xr=Math.min(...rings.map((r,i)=>Math.min(RR[i][0],RR[i][M]))), nf=Math.max(1,Math.round(2*xr/CASCO.gap)), z0=CASCO.mouth;
+        for(let f=1;f<nf;f++){ const x=-xr+2*xr*f/nf, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf).map(r=>r.Y).reverse()];
+          const top=Ys.map(Y=>[Y,zAt(loopAt(Math.max(Yf,Y)),x)-CW+0.5]);
+          if(top.some(p=>p[1]<z0+4)) continue;
+          const Yb=Ys[0], Ye=Ys[Ys.length-1], FW=CASCO.d, kz=Math.tan(55*Math.PI/180);
+          // marco: banda de CASCO.d mm pegada a la piel y dos patas que bajan a la cara de corte; el hueco cierra arriba (hacia la
+          // boca, que es lo alto al imprimir de pie) con un techo a 55°, así el tabique tampoco lleva voladizo
+          const zIn=Y=>{ let z=top[0][1]; for(let q=0;q<top.length-1;q++){ if(Y>=top[q][0]&&Y<=top[q+1][0]){ const a=top[q], c=top[q+1]; z=c[0]>a[0]?a[1]+(c[1]-a[1])*(Y-a[0])/(c[0]-a[0]):Math.min(a[1],c[1]); break; } } return z-FW; };
+          // techo a dos aguas: cumbrera a media altura del hueco, a CASCO.d de la boca; cada agua a 55°
+          const Ypk=Ye-FW, zm=(z0+Math.min(...top.map(p=>p[1]))-FW)/2, Yr0=Ypk-kz*(zm-z0); let Yr1=Ypk; for(let it=0;it<4;it++) Yr1=Ypk-kz*Math.max(0,zIn(Yr1)-zm);
+          const inner=top.filter(p=>p[0]>Yb+FW&&p[0]<Yr1).map(([Y,z])=>[Y,z-FW]);
+          const poly=Math.min(Yr0,Yr1)>Yb+FW+5&&[zIn(Yb+FW),...inner.map(p=>p[1]),zIn(Yr1)].every(z=>z>zm+3)?[[Yb,z0],[Yb+FW,z0],[Yb+FW,zIn(Yb+FW)],...inner,[Yr1,zIn(Yr1)],[Ypk,zm],[Yr0,z0],[Ye,z0],...top.slice().reverse()]:[[Yb,z0],[Ye,z0],...top.slice().reverse()];
+          prism(C,poly,[],x-CASCO.t/2,x+CASCO.t/2,(u,v,w)=>[w,u,v]); }
+        for(const v of deco3) C.T.push(v);
+        CS=C.T; Dsil=[...rings.map((r,i)=>[RR[i][0],r.Y-Ym]),...rings.map((r,i)=>[-RR[i][M],r.Y-Ym]).reverse()];
+        notes.push(`Mitades con casco: cada media maceta se imprime aparte y de pie (cara inferior en la cama, la boca y la cara de corte abiertas), pared de ${String(CW).replace('.',',')} mm y tabiques transversales cada ${CASCO.gap/10} cm; se imprime una vez y sirve para las dos coladas. Medido en Bambu (rectangular 28,6 × 20,1 × 9): casco 206 g + caja con marco 390 g = 596 g y 10 h 20, contra 434 g y 7 h 54 con el modelo macizo dentro de la caja. ${s.pLipP==='diseno'&&s.rim!=='kittate'?'Con labio como el diseño el labio queda en el aire: activa soportes «solo desde la cama» o elige el bisel o sin labio.':'Sin soportes.'}`); }
       // Una sola caja para las DOS mitades (son iguales: una es la otra girada 180° sobre el eje de la maceta). Llaves de
       // media esfera en el lado +x y huecos en el lado −x: la segunda colada, girada, pone sus topes en los huecos de la primera.
       { const S=adder(), F=PL.floorB, outer=rect(-X-W2,-U/2-W2,X+W2,U/2+W2), top=F+hF, xs=X-TH/2;
         const ys=U>=4*PL.natch+12?[-U*0.2,U*0.2]:[0], bumpsAt=ys.map(y=>[xs,y]), plugsAt=ys.map(y=>[-xs,y]);
-        prism(S,outer,plugsAt.map(c=>circle(c,PL.natch,28)),0,F,id); bumpsAt.forEach(([cx,cy])=>dome(S,cx,cy,F-0.2,PL.natch)); plugsAt.forEach(([cx,cy])=>plug(S,cx,cy,F,PL.natch+0.2,6));
+        const rIn=casco?inset(Dsil,CASCO.w+CASCO.ring+0.3):null, rOut=casco?inset(Dsil,CASCO.w+0.3):null;
+        prism(S,outer,[...plugsAt.map(c=>circle(c,PL.natch,28)),...(casco?[rIn]:[])],0,F,id); bumpsAt.forEach(([cx,cy])=>dome(S,cx,cy,F-0.2,PL.natch)); plugsAt.forEach(([cx,cy])=>plug(S,cx,cy,F,PL.natch+0.2,6));
+        if(casco) prism(S,rOut,[rIn],F-0.3,F+5,id);
         prism(S,outer,[rect(-X+0.3,-U/2+0.3,X-0.3,U/2-0.3)],F-0.3,top,id);
-        const M3=[]; for(let i=0;i<HP.length;i+=3) M3.push(HP[i],HP[i+1]-Ym,F-0.3+HP[i+2]);
-        pushBox('cajaAB','Caja A/B: media maceta (se cuela dos veces: salen las dos mitades)','yeso-caja-ab',S.T,M3,0x78acc0,(2*X*U*hF-VhalfPot)/1e6,'Caja A/B → mitades A y B (dos coladas)'); }
+        const toBox=T=>{ const M3=[]; for(let i=0;i<T.length;i+=3) M3.push(T[i],T[i+1]-Ym,(casco?F:F-0.3)+T[i+2]); return M3; };
+        if(!casco) pushBox('cajaAB','Caja A/B: media maceta (se cuela dos veces: salen las dos mitades)','yeso-caja-ab',S.T,toBox(HP),0x78acc0,(2*X*U*hF-VhalfPot)/1e6,'Caja A/B → mitades A y B (dos coladas)');
+        else { boxes.push({key:'cajaAB',label:'Caja A/B → mitades A y B (dos coladas)',shell:S.T.slice(),model:toBox(CS)});
+          parts.push({key:'cajaAB',name:'Caja A/B: marco, anillo y paredes (el casco va aparte; se cuela dos veces)',file:'yeso-caja-ab',T:S.T,map:id,color:0x78acc0,pour:(2*X*U*hF-VhalfPot)/1e6});
+          const CP=[]; for(let i=0;i<CS.length;i+=3) CP.push(CS[i],-CS[i+2],CS[i+1]-Y0);   // de pie: (x, −z, Y − Y0), un giro
+          parts.push({key:'casco',name:`Casco de la media maceta (de pie, pared ${String(CASCO.w).replace('.',',')} mm con tabiques)`,file:'yeso-casco-media',T:CP,map:id,color:0x5f93a8}); cascoInfo={w:CASCO.w,half:true}; } }
+
     }
     // --- caja del fondo: la cara inferior en positivo (placa de 2 mm con la silueta, patas en tronco de pirámide con 3° de
     //     salida y sello en relieve), reflejada en z: el fondo de yeso se voltea sobre su lado largo para usarlo
