@@ -284,7 +284,7 @@
       <div class="grid2">
         <label class="f"><span>Encogimiento <b>%</b></span><select id="pShrink"><option value="10">10 · loza, baja temperatura</option><option value="12" selected>12 · gres a 1200 °C</option><option value="14">14 · porcelana</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Cuerpo del molde</span><select id="pSplit"><option value="auto" selected>Automático · cuerpo entero + fondo (2 piezas) si la maceta sale hacia arriba</option><option value="una">Cuerpo entero + fondo (2 piezas)</option><option value="dos">Dos mitades con llaves + fondo (3 piezas de yeso, 2 cajas)</option></select></label>
-        <label class="f"><span>Labio</span><select id="pLipP"><option value="diseno" selected>Con labio, como el diseño</option><option value="bisel">Con labio en bisel de 55° (casco sin soportes)</option><option value="sin">Sin labio · borde recto</option></select></label>
+        <label class="f"><span>Labio</span><select id="pLipP"><option value="aparte" selected>Con labio impreso aparte (aro boca abajo, sin soportes)</option><option value="diseno">Con labio, como el diseño (necesita soportes)</option><option value="bisel">Con labio en bisel de 55° (casco sin soportes)</option><option value="sin">Sin labio · borde recto</option></select></label>
         <label class="f"><span>Modelo del cuerpo</span><select id="pModel"><option value="casco" selected>Casco: solo la piel, aparte y de pie (no se imprime el bloque)</option><option value="macizo">Macizo dentro de la caja (bloque con relleno lightning)</option></select></label>
         <label class="f" style="grid-column:1/-1"><span>Detalles en las paredes largas (molde de dos mitades)</span><select id="pDeco"><option value="none" selected>Ninguno</option><option value="studs1">Tachones · una fila</option><option value="studs2">Tachones · dos filas</option><option value="rivets">Remaches sobre el cinturón (cuerpo «con cinturón»)</option><option value="panel">Panel liso con marco en bisel</option></select></label>
         <label class="f"><span>Pared y fondo de la maceta <b>mm</b> (cocida)</span><input id="pCast" type="number" step="0.5" min="3" max="12" value="6"><small class="hint" id="h_pCast"></small></label>
@@ -2929,26 +2929,47 @@
         const lerpL=(A,B,t)=>A.map((p,j)=>[p[0]+(B[j][0]-p[0])*t,p[1]+(B[j][1]-p[1])*t]);
         const ringY=(R,Y)=>{ for(let i=0;i<R.length-1;i++){ const a=R[i], b2=R[i+1]; if(Y>=a.Y&&Y<=b2.Y&&b2.Y>a.Y) return lerpL(a.loop,b2.loop,(Y-a.Y)/(b2.Y-a.Y)); } return R[R.length-1].loop; };
         const RI=[...RC.filter(r=>r.Y<tp-CF-0.05).map(r=>({loop:inset(r.loop,CW),Y:r.Y})),{loop:inset(ringY(RC,tp-CF),CW),Y:tp-CF}];
+        // LABIO APARTE (s.pLipP = 'aparte'): el casco se parte en la arista donde el labio se junta con la pared (Yc); el aro del
+        // labio (de la boca a Yc) se imprime boca abajo, así la cara de abajo del labio mira hacia arriba y no lleva voladizo, y el
+        // cuerpo del casco lleva una lengüeta de 4 mm que entra en el aro y lo centra. El resto del casco, como siempre.
+        const lipApart=s.pLipP==='aparte'&&s.rim!=='kittate'; let Yc=null, ringBase=null, x3=null; const Lr=lipApart?adder():null;
+        // contornos a d mm hacia adentro de la arista con ringAt (el inset de un inset dejaba puntos casi repetidos y bordes abiertos al partir la caja)
+        const inA=d=>ringAt(x3-d/k);
+        if(lipApart){ const y3=lipH(s)+s.lip*0.6, Yp=F-0.3+(Ytop-(Hb-y3)*k); let best=null; RC.forEach(r=>{ if(r.Y>F+2&&r.Y<tp-CF-6&&(!best||Math.abs(r.Y-Yp)<Math.abs(best.Y-Yp))) best=r; }); Yc=best?best.Y:null;
+          if(Yc!=null){ const yb=Hb-(F-0.3+Ytop-Yc)/k; x3=ext.reduce((a,p)=>Math.abs(p[1]-yb)<Math.abs(a[1]-yb)?p:a,ext[0])[0]; } }
+        if(Yc!=null){
+          // el aro lleva la pared interior RECTA (la de la arista): si siguiera la forma del labio, boca abajo esa cara quedaría en el aire
+          const RCb=RC.filter(r=>r.Y>=Yc-1e-6), RIb=RI.filter(r=>r.Y>=Yc-1e-6), RCc=RC.filter(r=>r.Y<=Yc+1e-6), LcI=inA(CW), RIc=RCc.map(r=>({loop:LcI,Y:r.Y})); ringBase=true;
+          band(C,RCb); band(C,RIb); fill2D(C,RCb[0].loop,[RIb[0].loop],(u,v)=>[u,Yc,v]);
+          fill2D(C,RC[RC.length-1].loop,[],(u,v)=>[u,tp,v]); fill2D(C,RI[RI.length-1].loop,[],(u,v)=>[u,tp-CF,v]);
+          band(Lr,RCc); band(Lr,RIc); fill2D(Lr,RCc[0].loop,[RIc[0].loop],(u,v)=>[u,F,v]); fill2D(Lr,RCc[RCc.length-1].loop,[RIc[RIc.length-1].loop],(u,v)=>[u,Yc,v]);
+          // lengüeta: anclada 0,4 mm en la pared del cuerpo (Yc..Yc+3) y saliendo 4 mm hacia el aro, 0,15 mm dentro de su cara interior
+          // ancla en rampa (de la pared a la lengüeta en 3 mm, unos 66°: sin voladizo al imprimir de pie) y lengüeta de 4 mm
+          const Ta=inA(CW-0.8), Tw=inA(CW-0.6), To=inA(CW+CASCO.clr), Ti=inA(CW+CASCO.clr+1.2);
+          band(C,[{loop:Ta,Y:Yc},{loop:Ta,Y:Yc+3}]); band(C,[{loop:Ti,Y:Yc},{loop:Tw,Y:Yc+3}]); fill2D(C,Ta,[Ti],(u,v)=>[u,Yc,v]); fill2D(C,Ta,[Tw],(u,v)=>[u,Yc+3,v]);
+          prism(C,To,[Ti],Yc-4,Yc+0.2,XZ);
+        } else {
         band(C,RC); band(C,RI);
         fill2D(C,RC[0].loop,[RI[0].loop],(u,v)=>[u,F,v]); fill2D(C,RC[RC.length-1].loop,[],(u,v)=>[u,tp,v]); fill2D(C,RI[RI.length-1].loop,[],(u,v)=>[u,tp-CF,v]);
+        }
         // nervios: placas de CASCO.t × CASCO.d que siguen la pared (metidas 0,5 mm en ella), del piso del casco hasta 6 mm de la boca
         { const L0=RI[0].loop, m=L0.length; let A2=0; for(let i=0;i<m;i++){ const p=L0[i], q=L0[(i+1)%m]; A2+=p[0]*q[1]-q[0]*p[1]; } const g=A2>0?1:-1;
           const per=[0]; for(let i=1;i<=m;i++) per.push(per[i-1]+Math.hypot(L0[i%m][0]-L0[i-1][0],L0[i%m][1]-L0[i-1][1]));
           const nf=Math.max(4,Math.round(per[m]/CASCO.gap)), idx=[]; for(let f=0;f<nf;f++){ const target=per[m]*f/nf; let j=0; while(j<m-1&&per[j+1]<target) j++; idx.push(j); }
-          const y0=F+CASCO.mouth, FR=[{loop:ringY(RI,y0),Y:y0},...RI.filter(r=>r.Y>y0+0.05)];
+          const y0=Yc!=null?Math.max(F+CASCO.mouth,Yc+1):F+CASCO.mouth, FR=[{loop:ringY(RI,y0),Y:y0},...RI.filter(r=>r.Y>y0+0.05)];
           idx.forEach(j=>{ const secs=FR.map(r=>{ const L=r.loop, P=L[j], a=L[(j+m-1)%m], c=L[(j+1)%m], tx=c[0]-a[0], tz=c[1]-a[1], tl=Math.hypot(tx,tz)||1, t=[tx/tl,tz/tl], ni=[-g*t[1],g*t[0]];
               const at=(dn,dt)=>[P[0]+ni[0]*dn+t[0]*dt,r.Y,P[1]+ni[1]*dn+t[1]*dt], h=CASCO.t/2;
               return [at(-0.5,h),at(-0.5,-h),at(CASCO.d,-h),at(CASCO.d,h)]; });
             for(let i=0;i<secs.length-1;i++) for(let q=0;q<4;q++) C.quad(secs[i][q],secs[i][(q+1)%4],secs[i+1][(q+1)%4],secs[i+1][q]);
             const e0=secs[0], e1=secs[secs.length-1]; C.quad(e0[3],e0[2],e0[1],e0[0]); C.quad(e1[0],e1[1],e1[2],e1[3]); }); }
         // caja: marco por piso, anillo de centrado de 5 mm y paredes
-        const rIn=inset(RI[0].loop,CASCO.ring+CASCO.clr), rOut=inset(RI[0].loop,CASCO.clr);
+        const rIn=ringBase?inA(CW+CASCO.ring+CASCO.clr):inset(RI[0].loop,CASCO.ring+CASCO.clr), rOut=ringBase?inA(CW+CASCO.clr):inset(RI[0].loop,CASCO.clr);
         prism(S,outer,[rIn],0,F,id); prism(S,rOut,[rIn],F-0.3,F+CASCO.ringH,id); prism(S,outer,[rect(-X+0.3,-hF+0.3,X-0.3,hF-0.3)],F-0.3,top,id);
-        boxes.push({key:'cajaCuerpo',label:'Caja 1 → cuerpo del molde',shell:S.T.slice(),model:sw3(C.T)});
-        parts.push({key:'cajaCuerpo',name:'Caja 1: cuerpo (marco, anillo y paredes; el casco va aparte)',file:'yeso-caja-1-cuerpo',T:S.T,map:id,color:0x78acc0,pour:(2*X*2*hF*U-solidV)/1e6});
+        boxes.push({key:'cajaCuerpo',label:'Caja 1 → cuerpo del molde',shell:S.T.slice(),model:sw3(Lr?C.T.concat(Lr.T):C.T)});
+        parts.push({key:'cajaCuerpo',name:'Caja 1: cuerpo (marco, anillo y paredes; el casco va aparte)',file:'yeso-caja-1-cuerpo',T:S.T,map:id,color:0x78acc0,pour:(2*X*2*hF*U-solidV)/1e6,...(!cascoFits(S.T,s)?{cutAt:freeCut(S.T)}:{})});   // corte sin vértices cerca (el del medio dejaba la sección del anillo abierta)
         let bodyCut=null;
         { const P0=[]; for(let i=0;i<C.T.length;i+=3) P0.push(C.T[i],-C.T[i+2],tp-C.T[i+1]);
-          if(!cascoFits(P0,s)){ const c=freeCut(C.T), FWb=CASCO.flw, Ylo=F+CASCO.mouth, Yfl=tp-CF, Yhi=Yfl+0.4;
+          if(!cascoFits(P0,s)){ const c=freeCut(C.T), FWb=CASCO.flw, Ylo=Yc!=null?Yc+1:F+CASCO.mouth, Yfl=tp-CF, Yhi=Yfl+0.4;
             const zAtB=(L,x)=>{ let zm=0; for(let q=0,m=L.length;q<m;q++){ const a=L[q], e=L[(q+1)%m]; if((a[0]-x)*(e[0]-x)>0||a[0]===e[0]) continue; const z=Math.abs(a[1]+(e[1]-a[1])*(x-a[0])/(e[0]-a[0])); if(z>zm) zm=z; } return zm; };
             const loopI=Y=>{ for(let i=0;i<RI.length-1;i++){ const a=RI[i], e=RI[i+1]; if(Y>=a.Y&&Y<=e.Y&&e.Y>a.Y) return lerpL(a.loop,e.loop,(Y-a.Y)/(e.Y-a.Y)); } return RI[Y<RI[0].Y?0:RI.length-1].loop; };
             [-1,1].forEach(sg=>{ const xa=c+sg*0.1, xb=c+sg*(0.1+CASCO.flt), xs=(xa+xb)/2, o=Y=>zAtB(loopI(Math.min(Y,Yfl)),xs)+0.5;
@@ -2958,7 +2979,20 @@
               prism(C,poly,[],Math.min(xa,xb),Math.max(xa,xb),(u,v,w)=>[w,u,v]); });
             bodyCut=c; } }
         const CP=[]; for(let i=0;i<C.T.length;i+=3) CP.push(C.T[i],-C.T[i+2],tp-C.T[i+1]);   // giro de 180° sobre x: la cara inferior en la cama
-        parts.push({key:'casco',name:`Casco del cuerpo (de pie, pared ${String(CW).replace('.',',')} mm con nervios)`,file:'yeso-casco-cuerpo',T:CP,map:id,color:0x5f93a8,...(bodyCut!=null?{cutAt:bodyCut,clipFl:true}:{})});
+        parts.push({key:'casco',name:`Casco del cuerpo (de pie, pared ${String(CW).replace('.',',')} mm con nervios${Yc!=null?', sin el labio':''})`,file:'yeso-casco-cuerpo',T:CP,map:id,color:0x5f93a8,...(bodyCut!=null?{cutAt:bodyCut,clipFl:true}:{})});
+        if(Yc!=null){
+          // aro del labio: si no cabe, pestañas de unión en las dos paredes, entre el anillo de la caja y la lengüeta
+          let lipCut=null; const L0=[]; for(let i=0;i<Lr.T.length;i+=3) L0.push(Lr.T[i],-Lr.T[i+2],Lr.T[i+1]-F);
+          if(!cascoFits(L0,s)){ const c=freeCut(Lr.T), FWb=CASCO.flw, Ylo=F+CASCO.ringH+1, Yhi=Yc-5;
+            const RIc=[{loop:inA(CW),Y:F},{loop:inA(CW),Y:Yc}], zAtB=(L,x)=>{ let zm=0; for(let q=0,m=L.length;q<m;q++){ const a=L[q], e=L[(q+1)%m]; if((a[0]-x)*(e[0]-x)>0||a[0]===e[0]) continue; const z=Math.abs(a[1]+(e[1]-a[1])*(x-a[0])/(e[0]-a[0])); if(z>zm) zm=z; } return zm; };
+            const loopI=Y=>{ for(let i=0;i<RIc.length-1;i++){ const a=RIc[i], e=RIc[i+1]; if(Y>=a.Y&&Y<=e.Y&&e.Y>a.Y) return lerpL(a.loop,e.loop,(Y-a.Y)/(e.Y-a.Y)); } return RIc[Y<RIc[0].Y?0:RIc.length-1].loop; };
+            if(Yhi-Ylo>=(CASCO.flw+0.5)*1.2+3) [-1,1].forEach(sg=>{ const xa=c+sg*0.1, xb=c+sg*(0.1+CASCO.flt), xs=(xa+xb)/2, o=Y=>zAtB(loopI(Y),xs)+0.5, Ys=[Ylo,...RIc.map(r=>r.Y).filter(Y=>Y>Ylo+0.05&&Y<Yhi-0.05),Yhi];
+              if(Ys.some(Y=>o(Y)<FWb+6)) return;
+              const Yr=Ylo+(FWb+0.5)*1.2;   // la pestaña arranca en rampa (unos 50°): sin cara plana hacia abajo al imprimir boca abajo
+              [1,-1].forEach(sz=>prism(Lr,[...Ys.map(Y=>[Y,sz*o(Y)]),...Ys.filter(Y=>Y>Yr).slice().reverse().map(Y=>[Y,sz*(o(Y)-FWb-0.5)]),[Yr,sz*(o(Yr)-FWb-0.5)]],[],Math.min(xa,xb),Math.max(xa,xb),(u,v,w)=>[w,u,v])); });
+            lipCut=c; }
+          const LP=[]; for(let i=0;i<Lr.T.length;i+=3) LP.push(Lr.T[i],-Lr.T[i+2],Lr.T[i+1]-F);   // boca en la cama: la cara de abajo del labio mira hacia arriba
+          parts.push({key:'labio',name:'Aro del labio (boca abajo, sin soportes)',file:'yeso-casco-labio',T:LP,map:id,color:0x7fb0c4,...(lipCut!=null?{cutAt:lipCut,clipFl:true}:{})}); notes.push('Labio aparte: el aro del labio se imprime boca abajo (la boca en la cama), así la cara de abajo del labio queda hacia arriba y sale limpia, sin soportes. Encájalo sobre la lengüeta del casco (entra 4 mm, holgura 0,15 mm) y sella la junta por dentro con un cordón de plastilina; queda justo en la arista del labio, donde no se nota. Si el aro va en dos trozos, únelos antes con vinchas en sus pestañas.'); }
         cascoInfo={w:CW,fins:true};
         notes.push(s.pLipP==="diseno"&&s.rim!=="kittate"?"Casco con labio como el diseño: el labio queda en el aire al imprimir de pie; activa soportes «solo desde la cama» en Bambu Studio, o elige el labio en bisel de 55° o sin labio.":"Casco del cuerpo: se imprime de pie y sin soportes, pared de 3 líneas (1,26 mm) y nervios por dentro cada 4 cm.");
       }
@@ -2982,25 +3016,44 @@
       // nada queda en el aire. Por dentro, tabiques transversales con la forma del corte de la maceta cada ~CASCO.gap mm: la
       // refuerzan contra la presión del yeso y, ya acostada en la caja, se apoyan en el piso. La caja lleva un marco por piso
       // y un anillo con la silueta de la media maceta que entra en el borde del casco (lo centra y sella).
-      let CS=null, Dsil=null, halfCut=null;
+      let CS=null, Dsil=null, halfCut=null, DsilIn=null, lipPartH=null, CSv=null;
       if(casco){ const C=adder(), M=120, dirs=Array.from({length:M+1},(_,j)=>{ const a=Math.PI*j/M; return [Math.cos(a),Math.sin(a)]; }), CW=CASCO.w, CF=CASCO.floor;
         const RR=rings.map(r=>radii(r.loop,dirs)), P3=(r,j,Y)=>[r*dirs[j][0],Y,r*dirs[j][1]], nR=rings.length, Yf=Y0+CF;
         const lerpL=(A,B,t)=>A.map((p,j)=>[p[0]+(B[j][0]-p[0])*t,p[1]+(B[j][1]-p[1])*t]);
         const loopAt=Y=>{ for(let i=0;i<nR-1;i++){ const a=rings[i], b2=rings[i+1]; if(Y<=a.Y&&Y>=b2.Y&&a.Y>b2.Y) return lerpL(b2.loop,a.loop,(Y-b2.Y)/(a.Y-b2.Y)); } return rings[nR-1].loop; };
         // anillos interiores: los de la maceta por encima del piso del casco y uno en el piso (todos metidos CW)
         const IR=[...rings.filter(r=>r.Y>Yf+0.05).map(r=>({loop:inset(r.loop,CW),Y:r.Y})),{loop:inset(loopAt(Yf),CW),Y:Yf}], RI=IR.map(r=>radii(r.loop,dirs)), nI=IR.length;
-        for(let i=0;i<nR-1;i++) for(let j=0;j<M;j++) C.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RR[i+1][j+1],j+1,rings[i+1].Y),P3(RR[i+1][j],j,rings[i+1].Y));
-        for(let i=0;i<nI-1;i++) for(let j=0;j<M;j++) C.quad(P3(RI[i][j],j,IR[i].Y),P3(RI[i][j+1],j+1,IR[i].Y),P3(RI[i+1][j+1],j+1,IR[i+1].Y),P3(RI[i+1][j],j,IR[i+1].Y));
-        for(let j=0;j<M;j++) C.quad(P3(RR[0][j],j,Ytop),P3(RR[0][j+1],j+1,Ytop),P3(RI[0][j+1],j+1,Ytop),P3(RI[0][j],j,Ytop));   // canto de la boca
+        // LABIO APARTE (mitades, s.pLipP = 'aparte'): el casco se parte en la arista del labio (anillo ic, YcH); el aro del labio
+        // (de YcH a la boca) va aparte y se imprime boca abajo, con la pared interior recta, y el cuerpo lleva una lengüeta en
+        // media luna de 4 mm (con ancla en rampa) que entra en el aro.
+        let ic=-1, YcH=null, x3h=null; const LH=adder();
+        if(s.pLipP==='aparte'&&s.rim!=='kittate'){ const y3=lipH(s)+s.lip*0.6, Yp=(Hb-y3)*k; let bi=-1; rings.forEach((r,i)=>{ if(i>0&&i<nI-1&&r.Y<Ytop-2&&r.Y>Yf+20&&(bi<0||Math.abs(r.Y-Yp)<Math.abs(rings[bi].Y-Yp))) bi=i; }); if(bi>0&&ext[bi-1]){ ic=bi; YcH=rings[bi].Y; x3h=ext[bi-1][0]; } }
+        const inH=d=>radii(ringAt(x3h-d/k),dirs);
+        const halfLoft=(A,Ob,Ib,Yb,Ot,It,Yt)=>{ for(let j=0;j<M;j++){ A.quad(P3(Ob[j],j,Yb),P3(Ob[j+1],j+1,Yb),P3(Ot[j+1],j+1,Yt),P3(Ot[j],j,Yt)); A.quad(P3(Ib[j],j,Yb),P3(Ib[j+1],j+1,Yb),P3(It[j+1],j+1,Yt),P3(It[j],j,Yt));
+            A.quad(P3(Ob[j],j,Yb),P3(Ob[j+1],j+1,Yb),P3(Ib[j+1],j+1,Yb),P3(Ib[j],j,Yb)); A.quad(P3(Ot[j],j,Yt),P3(Ot[j+1],j+1,Yt),P3(It[j+1],j+1,Yt),P3(It[j],j,Yt)); }
+          [0,M].forEach(j=>A.quad(P3(Ob[j],j,Yb),P3(Ib[j],j,Yb),P3(It[j],j,Yt),P3(Ot[j],j,Yt))); };
+        const i0=ic>0?ic:0;
+        for(let i=i0;i<nR-1;i++) for(let j=0;j<M;j++) C.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RR[i+1][j+1],j+1,rings[i+1].Y),P3(RR[i+1][j],j,rings[i+1].Y));
+        for(let i=i0;i<nI-1;i++) for(let j=0;j<M;j++) C.quad(P3(RI[i][j],j,IR[i].Y),P3(RI[i][j+1],j+1,IR[i].Y),P3(RI[i+1][j+1],j+1,IR[i+1].Y),P3(RI[i+1][j],j,IR[i+1].Y));
+        const Yb0=rings[i0].Y; for(let j=0;j<M;j++) C.quad(P3(RR[i0][j],j,Yb0),P3(RR[i0][j+1],j+1,Yb0),P3(RI[i0][j+1],j+1,Yb0),P3(RI[i0][j],j,Yb0));   // canto de la boca, o de la arista si el labio va aparte
         fill2D(C,RR[nR-1].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Y0,v]); fill2D(C,RI[nI-1].map((r,j)=>[r*dirs[j][0],r*dirs[j][1]]),[],(u,v)=>[u,Yf,v]);
         // cara de corte (z = 0): una U, el canto de la piel por los dos lados y el piso abajo
-        const U2=[...rings.map((r,i)=>[RR[i][0],r.Y]),...rings.map((r,i)=>[-RR[i][M],r.Y]).reverse(),...IR.map((r,i)=>[-RI[i][M],r.Y]),...IR.map((r,i)=>[RI[i][0],r.Y]).reverse()];
+        const rB=rings.slice(i0), iB=IR.slice(i0);
+        const U2=[...rB.map((r,i)=>[RR[i0+i][0],r.Y]),...rB.map((r,i)=>[-RR[i0+i][M],r.Y]).reverse(),...iB.map((r,i)=>[-RI[i0+i][M],r.Y]),...iB.map((r,i)=>[RI[i0+i][0],r.Y]).reverse()];
         fill2D(C,U2,[],(u,v)=>[u,v,0]);
+        let RIcH=null;
+        if(ic>0){ RIcH=inH(CW); const rc=rings.slice(0,ic+1);
+          for(let i=0;i<ic;i++) for(let j=0;j<M;j++){ LH.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RR[i+1][j+1],j+1,rings[i+1].Y),P3(RR[i+1][j],j,rings[i+1].Y)); LH.quad(P3(RIcH[j],j,rings[i].Y),P3(RIcH[j+1],j+1,rings[i].Y),P3(RIcH[j+1],j+1,rings[i+1].Y),P3(RIcH[j],j,rings[i+1].Y)); }
+          [0,ic].forEach(i=>{ for(let j=0;j<M;j++) LH.quad(P3(RR[i][j],j,rings[i].Y),P3(RR[i][j+1],j+1,rings[i].Y),P3(RIcH[j+1],j+1,rings[i].Y),P3(RIcH[j],j,rings[i].Y)); });
+          fill2D(LH,[...rc.map((r,i)=>[RR[i][0],r.Y]),...rc.map(r=>[RIcH[0],r.Y]).reverse()],[],(u,v)=>[u,v,0]);
+          fill2D(LH,[...rc.map((r,i)=>[-RR[i][M],r.Y]),...rc.map(r=>[-RIcH[M],r.Y]).reverse()],[],(u,v)=>[u,v,0]);
+          const Ta=inH(CW-0.8), Tw=inH(CW-0.6), To=inH(CW+CASCO.clr), Ti=inH(CW+CASCO.clr+1.2);
+          halfLoft(C,Ta,Tw,YcH-3,Ta,Ti,YcH); halfLoft(C,To,Ti,YcH-0.2,To,Ti,YcH+4); }
         // tabiques: a cada x, la media sección de la maceta menos la piel, desde 6 mm sobre la cara de corte (deja sitio al
         // anillo de la caja) hasta la piel (0,5 mm dentro de ella), del piso del casco a la boca
         const zAt=(L,x)=>{ let zm=0; for(let q=0,m=L.length;q<m;q++){ const a=L[q], c=L[(q+1)%m]; if((a[0]-x)*(c[0]-x)>0||a[0]===c[0]) continue; const z=a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0]); if(z>zm) zm=z; } return zm; };
         const xr=Math.min(...rings.map((r,i)=>Math.min(RR[i][0],RR[i][M]))), nf=Math.max(1,Math.round(2*xr/CASCO.gap)), z0=CASCO.mouth;
-        for(let f=1;f<nf;f++){ const x=-xr+2*xr*f/nf, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf).map(r=>r.Y).reverse()];
+        for(let f=1;f<nf;f++){ const x=-xr+2*xr*f/nf, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf&&(YcH==null||r.Y<YcH-4)).map(r=>r.Y).reverse(),...(YcH!=null?[YcH-4]:[])];
           const top=Ys.map(Y=>[Y,zAt(loopAt(Math.max(Yf,Y)),x)-CW+0.5]);
           if(top.some(p=>p[1]<z0+4)) continue;
           const Yb=Ys[0], Ye=Ys[Ys.length-1], FW=CASCO.bar, kz=Math.tan(55*Math.PI/180);
@@ -3019,13 +3072,24 @@
         // al juntar los trozos se aprietan con pinzas tipo binder por la cara de corte abierta. No tocan la cara que copia el yeso.
         { const P0=[]; for(let i=0;i<C.T.length;i+=3) P0.push(C.T[i],-C.T[i+2],C.T[i+1]-Y0);
           if(!cascoFits(P0,s)){ const c=freeCut(C.T), FWb=CASCO.flw;
-            [-1,1].forEach(sg=>{ const xa=c+sg*0.1, xb=c+sg*(0.1+CASCO.flt), xs=(xa+xb)/2, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf).map(r=>r.Y).reverse()];
+            [-1,1].forEach(sg=>{ const xa=c+sg*0.1, xb=c+sg*(0.1+CASCO.flt), xs=(xa+xb)/2, Ys=[Yf-0.4,...rings.filter(r=>r.Y>Yf&&(YcH==null||r.Y<YcH-4)).map(r=>r.Y).reverse(),...(YcH!=null?[YcH-4]:[])];
               const top=Ys.map(Y=>[Y,zAt(loopAt(Math.max(Yf,Y)),xs)-CW+0.5]); if(top.some(p=>p[1]<z0+FWb+3)) return;
               const Yb=Ys[0], Ye=Ys[Ys.length-1], inner=top.filter(p=>p[0]>Yf+FWb).map(([Y,z])=>[Y,z-FWb-0.5]);
               const poly=[[Yb,z0],...top,[Ye,top[top.length-1][1]-FWb-0.5],...inner.slice().reverse(),[Yf+FWb,z0]];
               prism(C,poly,[],Math.min(xa,xb),Math.max(xa,xb),(u,v,w)=>[w,u,v]); });
             halfCut=c; } }
         CS=C.T; Dsil=[...rings.map((r,i)=>[RR[i][0],r.Y-Ym]),...rings.map((r,i)=>[-RR[i][M],r.Y-Ym]).reverse()];
+        if(ic>0){
+          // silueta interior para el anillo de la caja: el anillo sigue la cara interior del casco y del aro (en el aro, recta)
+          const sR=[...rings.slice(0,ic).map(r=>[RIcH[0],r.Y-Ym]),...IR.slice(ic).map((r,i)=>[RI[ic+i][0],r.Y-Ym])], sL=[...rings.slice(0,ic).map(r=>[-RIcH[M],r.Y-Ym]),...IR.slice(ic).map((r,i)=>[-RI[ic+i][M],r.Y-Ym])];
+          DsilIn=[...sR,...sL.reverse()];
+          let lipCutH=null; const L0=[]; for(let i=0;i<LH.T.length;i+=3) L0.push(LH.T[i],LH.T[i+2],Ytop-LH.T[i+1]);
+          if(!cascoFits(L0,s)){ const c=freeCut(LH.T), FWb=CASCO.flw, Yl=YcH+5, Lp=ringAt(x3h-CW/k);
+            [-1,1].forEach(sg=>{ const xa=c+sg*0.1, xb=c+sg*(0.1+CASCO.flt), zi=zAt(Lp,(xa+xb)/2)+0.5; if(zi-FWb-0.5<z0+2||Ytop-Yl<6) return;
+              prism(LH,[[Yl,zi],[Ytop,zi],[Ytop,zi-FWb-0.5],[Yl,zi-FWb-0.5]],[],Math.min(xa,xb),Math.max(xa,xb),(u,v,w)=>[w,u,v]); });
+            lipCutH=c; }
+          const LPh=[]; for(let i=0;i<LH.T.length;i+=3) LPh.push(LH.T[i],LH.T[i+2],Ytop-LH.T[i+1]);   // boca en la cama: la cara de abajo del labio mira hacia arriba
+          lipPartH={key:'labio',name:'Aro del labio de la media maceta (boca abajo, sin soportes)',file:'yeso-casco-labio-media',T:LPh,map:id,color:0x7fb0c4,...(lipCutH!=null?{cutAt:lipCutH,clipFl:true}:{})}; CSv=C.T.concat(LH.T); }
         notes.push(`Mitades con casco: cada media maceta se imprime aparte y de pie (cara inferior en la cama, la boca y la cara de corte abiertas), pared de ${String(CW).replace('.',',')} mm y tabiques transversales cada ${CASCO.gap/10} cm; se imprime una vez y sirve para las dos coladas. Medido en Bambu (rectangular 28,6 × 20,1 × 9): casco 208 g + caja con marco 397 g = 605 g y 11 h 31, contra 434 g y 7 h 54 con el modelo macizo dentro de la caja. ${s.pLipP==='diseno'&&s.rim!=='kittate'?'Con labio como el diseño el labio queda en el aire: activa soportes «solo desde la cama» o elige el bisel o sin labio.':'Sin soportes.'}`); }
       // Una sola caja para las DOS mitades (son iguales: una es la otra girada 180° sobre el eje de la maceta). Llaves de
       // media esfera en el lado +x y huecos en el lado −x: la segunda colada, girada, pone sus topes en los huecos de la primera.
@@ -3037,7 +3101,7 @@
         const SEAL={off:5,w:5,h:2,wr:5.6,hr:2.3}, RS=rings.map(r=>radii(r.loop,[[1,0],[-1,0]]));
         const xs=Math.min(X-9,Xm+SEAL.off+SEAL.wr/2+PL.natch+2);
         const ys=U>=4*PL.natch+12?[-U*0.2,U*0.2]:[0], bumpsAt=ys.map(y=>[xs,y]), plugsAt=ys.map(y=>[-xs,y]);
-        const rIn=casco?inset(Dsil,CASCO.w+CASCO.ring+CASCO.clr):null, rOut=casco?inset(Dsil,CASCO.w+CASCO.clr):null;
+        const rIn=casco?(DsilIn?inset(DsilIn,CASCO.ring+CASCO.clr):inset(Dsil,CASCO.w+CASCO.ring+CASCO.clr)):null, rOut=casco?(DsilIn?inset(DsilIn,CASCO.clr):inset(Dsil,CASCO.w+CASCO.clr)):null;
         const path=sg=>{ const P=[]; rings.forEach((r,i)=>{ const y=Math.max(-U/2+0.1,Math.min(U/2-0.1,r.Y-Ym)), x=sg*(RS[i][sg>0?0:1]+SEAL.off); if(!P.length||Math.abs(P[P.length-1][1]-y)>0.05) P.push([x,y]); else if(sg*x>sg*P[P.length-1][0]) P[P.length-1][0]=x; }); return P; };
         const sweep=(P,sec)=>{ const R=P.map(([x,y])=>sec.map(([dx,z])=>[x+dx,y,z])), m=sec.length; for(let i=0;i<R.length-1;i++) for(let q=0;q<m;q++){ const q2=(q+1)%m; S.quad(R[i][q],R[i][q2],R[i+1][q2],R[i+1][q]); }
           [R[0],R[R.length-1]].forEach(E=>{ for(let q=1;q<m-1;q++) S.tri(E[0],E[q],E[q+1]); }); };
@@ -3051,10 +3115,10 @@
         prism(S,outer,[rect(-X+0.3,-U/2+0.3,X-0.3,U/2-0.3)],F-0.3,top,id);
         const toBox=T=>{ const M3=[]; for(let i=0;i<T.length;i+=3) M3.push(T[i],T[i+1]-Ym,(casco?F:F-0.3)+T[i+2]); return M3; };
         if(!casco) pushBox('cajaAB','Caja A/B: media maceta (se cuela dos veces: salen las dos mitades)','yeso-caja-ab',S.T,toBox(HP),0x78acc0,(2*X*U*hF-VhalfPot)/1e6,'Caja A/B → mitades A y B (dos coladas)');
-        else { boxes.push({key:'cajaAB',label:'Caja A/B → mitades A y B (dos coladas)',shell:S.T.slice(),model:toBox(CS)});
+        else { boxes.push({key:'cajaAB',label:'Caja A/B → mitades A y B (dos coladas)',shell:S.T.slice(),model:toBox(CSv||CS)});
           parts.push({key:'cajaAB',name:'Caja A/B: marco, anillo y paredes (el casco va aparte; se cuela dos veces)',file:'yeso-caja-ab',T:S.T,map:id,color:0x78acc0,pour:(2*X*U*hF-VhalfPot)/1e6});
           const CP=[]; for(let i=0;i<CS.length;i+=3) CP.push(CS[i],-CS[i+2],CS[i+1]-Y0);   // de pie: (x, −z, Y − Y0), un giro
-          parts.push({key:'casco',name:`Casco de la media maceta (de pie, pared ${String(CASCO.w).replace('.',',')} mm con tabiques)`,file:'yeso-casco-media',T:CP,map:id,color:0x5f93a8,...(halfCut!=null?{cutAt:halfCut,clipFl:true}:{})}); cascoInfo={w:CASCO.w,half:true}; } }
+          parts.push({key:'casco',name:`Casco de la media maceta (de pie, pared ${String(CASCO.w).replace('.',',')} mm con tabiques${lipPartH?', sin el labio':''})`,file:'yeso-casco-media',T:CP,map:id,color:0x5f93a8,...(halfCut!=null?{cutAt:halfCut,clipFl:true}:{})}); if(lipPartH){ parts.push(lipPartH); notes.push('Labio aparte: el aro del labio se imprime boca abajo (la boca en la cama), así la cara de abajo del labio queda hacia arriba y sale limpia, sin soportes. Encájalo sobre la lengüeta del casco (entra 4 mm, holgura 0,15 mm) y sella la junta por dentro con un cordón de plastilina; queda justo en la arista del labio, donde no se nota. Si el aro va en dos trozos, únelos antes con vinchas en sus pestañas.'); } cascoInfo={w:CASCO.w,half:true}; } }
 
     }
     // --- caja del fondo: la cara inferior en positivo (placa de 2 mm con la silueta, patas en tronco de pirámide con 3° de
@@ -3103,7 +3167,7 @@
     const dowR=[]; for(let round=0;round<2;round++) for(let i=0;i<parts.length;i++){ const pt=parts[i], Tp=plasterPrintTris(pt), Tq=new Array(Tp.length), bb=bbox(Tp), rot=(bb.mx[1]-bb.mn[1])>(bb.mx[0]-bb.mn[0]);
       for(let q=0;q<Tp.length;q+=3){ if(rot){ Tq[q]=Tp[q+1]; Tq[q+1]=Tp[q+2]; Tq[q+2]=-Tp[q]; } else { Tq[q]=Tp[q]; Tq[q+1]=Tp[q+2]; Tq[q+2]=Tp[q+1]; } }
       const sc=seal?[seal.c[0]*k,-seal.c[1]*k]:null, sw=seal?seal.w*k:0, sh=seal?(seal.h||seal.w)*k:0, sl=pt.key==='cajaC'&&seal?(rot?{c:[sc[1],-sc[0]],w:sh,h:sw}:{c:sc,w:sw,h:sh}):null;
-      const sp=splitToFit(THREE,{T:Tq,print:'ground',key:sl?'feet':'base',name:pt.name,file:pt.file,axisOnly:true,...(pt.cutAt!=null&&!rot?{cutAt:pt.cutAt,axis:0,forceN:true}:{})},s,sl); if(!sp) continue;
+      const sp=splitToFit(THREE,{T:Tq,print:'ground',key:sl?'feet':'base',name:pt.name,file:pt.file,axisOnly:true,...(pt.cutAt!=null&&!rot?{cutAt:pt.cutAt,axis:0,forceN:!!pt.clipFl}:{})},s,sl); if(!sp) continue;
       const pcs=sp.parts.map(pc=>Object.assign({},pt,{T:pc.T,name:pc.name,file:pc.file,piece:pc.piece,cutAt:null,map:rot?(a,b2,c)=>[-c,a,b2]:(x,y,z)=>[x,z,y]})); parts.splice(i,1,...pcs); i+=pcs.length-1; dowR.push(...sp.dowels);
       notes.push(pt.clipFl&&pt.cutAt!=null&&!rot?`${pt.name}: no cabe en la ${s.bedName}, va en 2 trozos con pestañas de unión por dentro (4 mm, sin agujeros) a cada lado del corte: junta los trozos y apriétalos con 3 o 4 pinzas tipo binder (vinchas) por la cara abierta; un punto de cianoacrilato es opcional. Las pestañas no tocan la cara que copia el yeso.`:sp.note); }
     if(dowR.length){ const A=adder(), dk=[...dowR,...new Set(dowR)].sort((a,b2)=>b2-a);
@@ -3761,7 +3825,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
