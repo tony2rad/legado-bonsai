@@ -1864,8 +1864,8 @@
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([stlBinary(R.V,R.F)],{type:'model/stl'})); a.download=file;
     document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },2000);
     const LABEL={maceta:'Maceta',imprimir:'Maceta para imprimir',guia:'Plato-guía',pext:'Perfil exterior',pint:'Perfil interior',juego:'Juego de la máquina'}, notes=[];
-    const fitsP=((size[0]<=s.bedX+0.5&&size[1]<=s.bedY+0.5)||(size[0]<=s.bedY+0.5&&size[1]<=s.bedX+0.5))&&size[2]<=s.bedZ+0.5;
-    if(!fitsP) notes.push(what==='juego'?`la fila de piezas no cabe en la ${s.bedName}: en el laminador usa «Dividir en objetos» y repártelas en varias impresiones`:what==='imprimir'?`no cabe entera en la ${s.bedName}: en el laminador usa «Dividir en objetos» e imprime las patas aparte${potSz&&!(((potSz[0]<=s.bedX+0.5&&potSz[1]<=s.bedY+0.5)||(potSz[0]<=s.bedY+0.5&&potSz[1]<=s.bedX+0.5))&&potSz[2]<=s.bedZ+0.5)?' (la maceta sola tampoco cabe: elige una impresora mayor o reduce la escala)':''}`:`no cabe en la ${s.bedName}: elige una impresora mayor o reduce la escala`);
+    const fitsP=((size[0]<=s.bedX-1&&size[1]<=s.bedY-1)||(size[0]<=s.bedY-1&&size[1]<=s.bedX-1))&&size[2]<=s.bedZ-0.5;
+    if(!fitsP) notes.push(what==='juego'?`la fila de piezas no cabe en la ${s.bedName}: en el laminador usa «Dividir en objetos» y repártelas en varias impresiones`:what==='imprimir'?`no cabe entera en la ${s.bedName}: en el laminador usa «Dividir en objetos» e imprime las patas aparte${potSz&&!(((potSz[0]<=s.bedX-1&&potSz[1]<=s.bedY-1)||(potSz[0]<=s.bedY-1&&potSz[1]<=s.bedX-1))&&potSz[2]<=s.bedZ-0.5)?' (la maceta sola tampoco cabe: elige una impresora mayor o reduce la escala)':''}`:`no cabe en la ${s.bedName}: elige una impresora mayor o reduce la escala`);
     if(what==='maceta'||what==='imprimir'){
       // voladizos y filamento aproximado (PLA 1,24 g/cm³; 3 perímetros y capas sólidas ≈ 1,2 mm de cáscara; 15 % de relleno)
       let area=0; for(const [a,b2,c] of R.F){ const A=[R.V[3*a],R.V[3*a+1],R.V[3*a+2]], B2=[R.V[3*b2],R.V[3*b2+1],R.V[3*b2+2]], C=[R.V[3*c],R.V[3*c+1],R.V[3*c+2]], u=[B2[0]-A[0],B2[1]-A[1],B2[2]-A[2]], v=[C[0]-A[0],C[1]-A[1],C[2]-A[2]]; area+=Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])/2; }
@@ -2069,7 +2069,7 @@
   // bordes, de agujeros y de otros sólidos, y con su tubo entero dentro de material).
   function splitToFit(THREE,pt,s,seal){
     const P=moldPrintTris(pt,s), {mn,mx}=bbox(P), size=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]];
-    const fits=(w,d,h)=>((w<=s.bedX+0.5&&d<=s.bedY+0.5)||(w<=s.bedY+0.5&&d<=s.bedX+0.5))&&h<=s.bedZ+0.5;
+    const fits=(w,d,h)=>((w<=s.bedX-1&&d<=s.bedY-1)||(w<=s.bedY-1&&d<=s.bedX-1))&&h<=s.bedZ-0.5;
     // s.splitN (molde automático): trozos pedidos para llenar mejor las camas aunque la pieza quepa entera
     const want=pt.cutAt!=null?2:(s.splitN&&s.splitN[pt.key])||1;   // cutAt/axis (base partida): corte forzado por ese plano
     if(fits(...size)&&want<2) return null;
@@ -2785,7 +2785,7 @@
   const PL={thick:40,spare:12,wall:5,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3,shell:3};
   function buildPlaster(THREE,s,b){ return cacheGet(MOLD_CACHE,JSON.stringify(['p',s,PAN,Object.keys(SEAL_ART).sort(),SPRIG.ver,Object.keys(SPRIG.img).sort(),!!SPRIG.custom]),()=>buildPlasterRaw(THREE,s,b)); }
   function buildPlasterRaw(THREE,s,b){
-    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
+    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH0=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
     const sK=Object.assign({},s,{c:s.c*k,lobes:0});
     const adder=()=>{ const T=[]; const tri=(a,b2,c)=>T.push(a[0],a[1],a[2],b2[0],b2[1],b2[2],c[0],c[1],c[2]); return {T,tri,quad:(a,b2,c,d)=>{ tri(a,b2,c); tri(a,c,d); }}; };
     const dedup=L=>L.filter((p,i)=>{ const q=L[(i+L.length-1)%L.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>0.02; });
@@ -2799,8 +2799,13 @@
     const rings=[{loop:ringAt(ext[0][0]),Y:Ytop},...ext.map(([x,y])=>({loop:ringAt(x),Y:Math.max(0,(Hb-y)*k)}))];
     rings[rings.length-1].Y=0; rings.push({loop:rings[rings.length-1].loop,Y:Y0});   // zócalo: la silueta del pie sigue PB mm bajo la cara inferior
     let Xm=0, Z0=0; rings.forEach(r=>r.loop.forEach(([x,z])=>{ Xm=Math.max(Xm,Math.abs(x)); Z0=Math.max(Z0,Math.abs(z)); }));
+    // la caja del cuerpo y la del fondo miden 2·(Z0 + pared de yeso) + paredes de ancho: si se pasan de la cama por pocos
+    // milímetros (hasta 8 mm de yeso por lado), se recorta la pared de yeso lo justo en vez de partir la caja en más trozos.
+    // Bambu Studio no acepta una pieza que no entre entera en la cama (la A2L mide 330 × 320 mm).
+    let TH=TH0, thNote=''; { const Bm=Math.max(s.bedX||330,s.bedY||320)-2, ex=2*(Z0+TH0)+2*PL.wall-Bm;
+      if(ex>0&&ex/2<=8){ TH=Math.floor((TH0-ex/2)*2)/2; thNote=`Pared de yeso de ${String(TH).replace('.',',')} mm en vez de ${TH0}: así la caja entra en la cama de la ${s.bedName||'impresora'} sin partirla en más trozos.`; } }
     const X=Xm+TH, U=Ytop-Y0, Ym=(Ytop+Y0)/2, hF=Z0+TH, W2=PL.wall;
-    const bottom=rings[rings.length-1].loop, parts=[], plaster=[], notes=[...(s.plasterNotes||[])], boxes=[];
+    const bottom=rings[rings.length-1].loop, parts=[], plaster=[], notes=[...(s.plasterNotes||[]),...(thNote?[thNote]:[])], boxes=[];
     const vol=T=>Math.abs(stlOrient(T).volume);
     const band=(A,R)=>{ for(let i=0;i<R.length-1;i++){ const L1=R[i].loop, L2=R[i+1].loop, m=L1.length; for(let j=0;j<m;j++){ const q=(j+1)%m; A.quad([L1[j][0],R[i].Y,L1[j][1]],[L1[q][0],R[i].Y,L1[q][1]],[L2[q][0],R[i+1].Y,L2[q][1]],[L2[j][0],R[i+1].Y,L2[j][1]]); } } };
     // ¿cuerpo en una pieza? Con panza o cinturón el hueco tiene contrasalida y la maceta no saldría hacia arriba
@@ -2828,15 +2833,14 @@
       const S=adder(), Mo=adder(), F=PL.floor, outer=rect(-X-W2,-hF-W2,X+W2,hF+W2), top=F+U;
       prism(S,outer,[],0,F,id); prism(S,outer,[rect(-X+0.3,-hF+0.3,X-0.3,hF-0.3)],F-0.3,top,id);
       const R2=rings.map(r=>({loop:r.loop,Y:F-0.3+(Ytop-r.Y)}));   // boca (Ytop) en el piso, cara inferior (Y0) arriba
-      // el yeso se calcula con el positivo sólido, pero el modelo que se imprime es solo la piel de PL.shell mm: paredes y
-      // techo huecos, con la boca abierta en el piso (la caja la cierra). La cavidad queda sin yeso y al sacar el modelo
-      // se libera el hueco de la maceta; el techo horizontal lo cubren los soportes.
+      // el modelo se imprime MACIZO (un sólido cerrado) y el laminador lo rellena con lightning al 5 %: solo imprime la piel,
+      // la cara de arriba y ramas finas que la sostienen. Antes era una piel hueca de 3 mm con el techo plano en el aire:
+      // Bambu Studio llenaba ese hueco de soportes (media caja de la rectangular 28,6 × 20,1 × 9: 382 g y 20 h 27 min,
+      // contra 197 g y 3 h 53 min macizo con lightning).
       const sw3=T=>{ const M=[]; for(let i=0;i<T.length;i+=3) M.push(T[i],T[i+2],T[i+1]); return M; };   // (x, Y, z) → impresión (x, z, Y)
       band(Mo,R2); fill2D(Mo,R2[0].loop,[],(u,v)=>[u,R2[0].Y,v]); fill2D(Mo,R2[R2.length-1].loop,[],(u,v)=>[u,R2[R2.length-1].Y,v]);
-      const solidV=vol(sw3(Mo.T)), H=adder(), tp=R2[R2.length-1].Y, RI=R2.map((r,i)=>({loop:inset(r.loop,PL.shell),Y:i===R2.length-1?r.Y-PL.shell:r.Y}));
-      band(H,R2); band(H,RI); fill2D(H,R2[0].loop,[RI[0].loop],(u,v)=>[u,R2[0].Y,v]); fill2D(H,R2[R2.length-1].loop,[],(u,v)=>[u,tp,v]); fill2D(H,RI[RI.length-1].loop,[],(u,v)=>[u,RI[RI.length-1].Y,v]);
-      const M3=sw3(H.T);
-      pushBox('cajaCuerpo','Caja 1: cuerpo (modelo boca abajo, hueco)','yeso-caja-1-cuerpo',S.T,M3,0x78acc0,(2*X*2*hF*U-solidV)/1e6,'Caja 1 → cuerpo del molde');
+      const M3=sw3(Mo.T), solidV=vol(M3);
+      pushBox('cajaCuerpo','Caja 1: cuerpo (modelo boca abajo)','yeso-caja-1-cuerpo',S.T,M3,0x78acc0,(2*X*2*hF*U-solidV)/1e6,'Caja 1 → cuerpo del molde');
     } else {
       // --- cajas A y B: piso, paredes hasta la altura del yeso y la media maceta acostada encima (0,3 mm dentro del piso).
       //     A lleva llaves; B, huecos (piso de 10 mm) en las mismas posiciones (dos por lado si caben, si no una).
@@ -2924,7 +2928,7 @@
     let holeInfo=null;
     { const e=s.pCast||6, Hp=holePlan(s.L/2-s.flare-e,s.W/2-s.flare-e,1,s.type==='round'||!!SHP(s));
       holeInfo={nd:Hp.drains.length,dr:Hp.dr*k,nw:Hp.wires.length,wr:Hp.wr*k}; }
-    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,holes:holeInfo,X,Z0,hF,U,Ytop,Y0,ftk};
+    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,holes:holeInfo,TH,X,Z0,hF,U,Ytop,Y0,ftk};
   }
   function plasterPrintTris(part){ const T=part.T, out=new Array(T.length); for(let i=0;i<T.length;i+=3){ const p=part.map(T[i],T[i+1],T[i+2]); out[i]=p[0]; out[i+1]=p[1]; out[i+2]=p[2]; } return out; }
   // Visor: a la izquierda las cajas impresas con las paredes translúcidas, para ver el modelo dentro, tal como salen de la
@@ -2980,7 +2984,7 @@
     const nm=current?current.name:shapeName(s), dims=s.type==='round'?`${mmc(s.L)}x${mmc(s.H)}cm`:`${mmc(s.L)}x${mmc(s.W)}x${mmc(s.H)}cm`;
     let open=0;
     PM.parts.forEach((pt,i)=>{ const R=stlOrient(plasterPrintTris(pt)), {mn,mx}=bbox(R.V), off=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]; for(let q=0;q<R.V.length;q++) R.V[q]-=off[q%3];
-      const size=[0,1,2].map(q=>mx[q]-mn[q]), fits=((size[0]<=s.bedX+0.5&&size[1]<=s.bedY+0.5)||(size[0]<=s.bedY+0.5&&size[1]<=s.bedX+0.5))&&size[2]<=s.bedZ+0.5;
+      const size=[0,1,2].map(q=>mx[q]-mn[q]), fits=((size[0]<=s.bedX-1&&size[1]<=s.bedY-1)||(size[0]<=s.bedY-1&&size[1]<=s.bedX-1))&&size[2]<=s.bedZ-0.5;
       open+=R.open; files.push({name:`${String(i+1).padStart(2,'0')}-${pt.file}.stl`,data:new Uint8Array(stlBinary(R.V,R.F))}); rows.push({name:pt.name,size,fits,ov:overhangCheck(R.V,R.F,45).area}); });
     const kg=f1(PM.litres*0.9), agua=f1(PM.litres*0.63), pour=key=>f1((PM.parts.find(p=>p.key===key)||{}).pour||0);
     const L=[`MOLDE DE YESO PARA BARBOTINA — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
@@ -3069,7 +3073,7 @@
     let open=0;
     MD.parts.filter(pt=>!pt.noPrint).forEach((pt,i)=>{ const R=stlOrient(moldPrintTris(pt,s)), {mn,mx}=bbox(R.V), off=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]];
       for(let k=0;k<R.V.length;k++) R.V[k]-=off[k%3];
-      const size=[0,1,2].map(k=>mx[k]-mn[k]), fits=((size[0]<=s.bedX+0.5&&size[1]<=s.bedY+0.5)||(size[0]<=s.bedY+0.5&&size[1]<=s.bedX+0.5))&&size[2]<=s.bedZ+0.5;
+      const size=[0,1,2].map(k=>mx[k]-mn[k]), fits=((size[0]<=s.bedX-1&&size[1]<=s.bedY-1)||(size[0]<=s.bedY-1&&size[1]<=s.bedX-1))&&size[2]<=s.bedZ-0.5;
       open+=R.open; files.push({name:`${String(i+1).padStart(2,'0')}-${pt.file}.stl`,data:new Uint8Array(stlBinary(R.V,R.F))});
       rows.push({name:pt.name,key:pt.key,size,fits,ov:Math.max(0,overhangCheck(R.V,R.F,45).area-(pt.bridges||0)*1.05)}); });
     const hw=MD.hw, sealTxt=MD.seal?`${MD.seal.name} de ${mmc(MD.seal.w)} cm de ancho, ${s.sealMode==='up'?'en relieve: sobresale '+mmc(sealDepth(s))+' cm':'grabado: se hunde '+mmc(sealDepth(s))+' cm'}`:'sin sello';
@@ -3554,7 +3558,7 @@
   const pieceOpts=(p,o)=>o.rec&&REC[p.key]?Object.assign({},o,REC[p.key]):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
-    const fit=rows.every(r=>((r.size[0]<=s.bedX+0.5&&r.size[1]<=s.bedY+0.5)||(r.size[0]<=s.bedY+0.5&&r.size[1]<=s.bedX+0.5))&&r.size[2]<=s.bedZ+0.5);
+    const fit=rows.every(r=>((r.size[0]<=s.bedX-1&&r.size[1]<=s.bedY-1)||(r.size[0]<=s.bedY-1&&r.size[1]<=s.bedX-1))&&r.size[2]<=s.bedZ-0.5);
     const kwh=h*o.W/1000, luz=kwh*o.kwh; // luz = potencia media × horas (incluye la preparación de camas) × tarifa
     return {rows,g,m,h,beds,cost:g/1000*o.price,kwh,luz,total:g/1000*o.price+luz,fit}; }
   async function calcThis(){
@@ -3600,7 +3604,7 @@
   // ---------- Mesa de exhibición: exportar (Impresión 3D: STL; Molde 3D: kit de silicona) ----------
   // Impresa boca abajo: (x, Y, z) → (x, z, Ht − Y), una rotación (no espeja).
   function tablePrintTris(THREE,s){ const TS=tableSolids(THREE,s), T=[]; TS.solids.forEach(S=>{ for(let i=0;i<S.length;i+=3) T.push(S[i],S[i+2],TS.Ht-S[i+1]); }); return T; }
-  const fitsBed=(sz,s)=>((sz[0]<=s.bedX+0.5&&sz[1]<=s.bedY+0.5)||(sz[0]<=s.bedY+0.5&&sz[1]<=s.bedX+0.5))&&sz[2]<=s.bedZ+0.5;
+  const fitsBed=(sz,s)=>((sz[0]<=s.bedX-1&&sz[1]<=s.bedY-1)||(sz[0]<=s.bedY-1&&sz[1]<=s.bedX-1))&&sz[2]<=s.bedZ-0.5;
   function centered(R){ const {mn,mx}=bbox(R.V), off=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]; for(let i=0;i<R.V.length;i++) R.V[i]-=off[i%3]; return [mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]]; }
   async function exportTable(kind){
     if(!last3) return; const out=$('tableOut'), say=t=>{ out.textContent=t; if($('dlg3d').open) $('v3msg').textContent=t; };
