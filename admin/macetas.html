@@ -2870,6 +2870,10 @@
         for(let j=0;j<4;j++){ const q=(j+1)%4; Mo.quad([lo[j][0],lo[j][1],zt-0.3],[lo[q][0],lo[q][1],zt-0.3],[hi[q][0],hi[q][1],zt+ftk],[hi[j][0],hi[j][1],zt+ftk]); }
         fill2D(Mo,lo,[],(u,v)=>[u,v,zt-0.3]); fill2D(Mo,hi,[],(u,v)=>[u,v,zt+ftk]); });
       if(seal) seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(Mo,r.L.map(([x,z])=>[x*k,-z*k]),r.kids.map(K=>K.map(([x,z])=>[x*k,-z*k])),zt-0.3,zt+MOLD.SEAL_DEPTH,id));
+      { const Hp=holePlan(s.L/2-s.flare-(s.pCast||6),s.W/2-s.flare-(s.pCast||6),1,s.type==='round'||!!SHP(s)), KM=16;
+        [...Hp.drains,...Hp.wires].forEach(([x,z])=>{ const c=mz([x*k,z*k]), lo=circle(c,1.6,KM), hi=circle(c,0.4,KM);
+          for(let j=0;j<KM;j++){ const q=(j+1)%KM; Mo.quad([lo[j][0],lo[j][1],zt-0.3],[lo[q][0],lo[q][1],zt-0.3],[hi[q][0],hi[q][1],zt+1.2],[hi[j][0],hi[j][1],zt+1.2]); }
+          fill2D(Mo,lo,[],(u,v)=>[u,v,zt-0.3]); fill2D(Mo,hi,[],(u,v)=>[u,v,zt+1.2]); }); }
       pushBox('cajaC',one?'Caja 2: fondo (patas y logotipo)':'Caja C: fondo (patas y logotipo)','yeso-caja-fondo',S.T,Mo.T,0x9c8fbe,(2*X*2*Zc*(PB+ftk+TH))/1e6,one?'Caja 2 → fondo del molde':'Caja C → fondo'); }
     // --- caja de sprig: bandeja pequeña con el relieve en positivo (por alturas) y 20 mm de yeso encima
     let sprigInfo=null;
@@ -2911,7 +2915,21 @@
     notes.push(`Yeso cerámico: ≈ ${f1(litres*0.9)} kg con ${f1(litres*0.63)} L de agua en total. Yeso líquido por caja: ${boxes.map(bx=>bx.label.split(' →')[0]+' '+f1(parts.find(p=>p.key===bx.key)?.pour??(V['yeso'+bx.key.slice(4)]||0)/1000)+' L').join(', ')}. Mezcla 100 de yeso por 63–70 de agua, espolvoreando el yeso sobre el agua.`);
     notes.push(`El fondo lleva un zócalo de  mm con la silueta del pie de la maceta, que entra en el cuerpo y traba las piezas en su sitio; encima van los huecos de las patas y el sello.`);
     notes.push(`La maceta va agrandada un ${(Math.round((k-1)*1000)/10).toString().replace('.',',')} % (encogimiento del ${Math.round((1-1/k)*100)} %) y lleva ${PL.spare} mm de reserva sobre el borde: recorta el borde en cuero por esa marca.`);
-    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,X,Z0,hF,U,Ytop,Y0,ftk};
+    // plantilla de perforación: placa de 1,6 mm con la forma del piso de adentro (en crudo, 1 mm menos por lado) y los orificios
+    // de drenaje y de alambre a su medida en crudo; se apoya en el piso de la maceta en cuero y se corta por sus agujeros
+    let holeInfo=null;
+    { const e=s.pCast||6, Hp=holePlan(s.L/2-s.flare-e,s.W/2-s.flare-e,1,s.type==='round'||!!SHP(s)), Lf=Math.max(12,(s.L-2*s.flare-2*e)*k-2), Wf=Math.max(12,((s.type==='round'||SHP(s))?s.L:s.W)*k-2*(s.flare+e)*k-2);
+      let fl=ringPts(s,Lf,Wf,180), hs=[...Hp.drains.map(c=>circle([c[0]*k,c[1]*k],Hp.dr*k,40)),...Hp.wires.map(c=>circle([c[0]*k,c[1]*k],Hp.wr*k,20))], A=adder(), half=false;
+      // si no cabe en la cama: media plantilla (desde un poco antes del centro); como la maceta es simétrica, se marca una mitad,
+      // se gira 180° y se marca la otra
+      const fitsB=(a,b2)=>(a<=s.bedX-10&&b2<=s.bedY-10)||(a<=s.bedY-10&&b2<=s.bedX-10);
+      if(!fitsB(Lf,Wf)){ const cut=-(Hp.dr*k+4), clip=P=>{ const o=[]; for(let i=0;i<P.length;i++){ const a=P[i],b2=P[(i+1)%P.length],fa=a[0]-cut,fb=b2[0]-cut; if(fa>=0) o.push(a); if((fa>=0)!==(fb>=0)){ const u=fa/(fa-fb); o.push([cut,a[1]+(b2[1]-a[1])*u]); } } return o; };
+        fl=clip(fl); hs=hs.filter(H=>H.every(p=>p[0]>cut+1)); half=true; }
+      prism(A,fl,hs,0,1.6,id);
+      parts.push({key:'plantilla',name:half?'Media plantilla de perforación (se usa dos veces)':'Plantilla de perforación (drenaje y alambre)',file:'yeso-plantilla-perforacion',T:A.T,map:id,color:0xd9a441});
+      if(half) notes.push('Plantilla de perforación: la entera no cabe en la cama; se imprime media. Apóyala en una mitad del piso, corta, gírala 180° y corta la otra mitad.');
+      holeInfo={nd:Hp.drains.length,dr:Hp.dr*k,nw:Hp.wires.length,wr:Hp.wr*k}; }
+    return {k,one,parts,plaster,boxes,V,litres,notes,seal,sprig:sprigInfo,holes:holeInfo,X,Z0,hF,U,Ytop,Y0,ftk};
   }
   function plasterPrintTris(part){ const T=part.T, out=new Array(T.length); for(let i=0;i<T.length;i+=3){ const p=part.map(T[i],T[i+1],T[i+2]); out[i]=p[0]; out[i+1]=p[1]; out[i+2]=p[2]; } return out; }
   // Visor: a la izquierda las cajas impresas con las paredes translúcidas, para ver el modelo dentro, tal como salen de la
@@ -2992,8 +3010,9 @@
             :'  1. Pon el fondo con los huecos hacia arriba y cierra encima las mitades A y B: el zócalo del fondo entra entre las dos y las centra, y los topes de B entran en los huecos de A; aprieta con dos correas. La boca de la maceta queda arriba.',
       '  2. Llena de barbotina hasta el borde de la reserva. Rellena a medida que baje el nivel.',
       `  3. Espera ≈ ${castMin(s)} min para ${String(s.pCast).replace('.',',')} mm de pared y fondo cocidos (${String(Math.round(s.pCast*s.pk*10)/10).replace('.',',')} mm en crudo; el grosor crece con la raíz del tiempo: prueba una vez con tu barbotina y ajusta). Vacía la barbotina volcando el molde despacio y déjalo boca abajo 10 min para que escurra.`,
-      PM.one?'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo). Recorta la reserva por la marca del borde, haz los agujeros de drenaje y alambre y alisa con esponja.'
-            :'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, abre el molde: quita las correas, separa las mitades y levanta la maceta del fondo. Recorta la reserva por la marca del borde, haz los agujeros de drenaje y alambre y alisa con esponja.',
+      PM.one?'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo). Recorta la reserva por la marca del borde, perfora con la plantilla (ver abajo) y alisa con esponja.'
+            :'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, abre el molde: quita las correas, separa las mitades y levanta la maceta del fondo. Recorta la reserva por la marca del borde, perfora con la plantilla (ver abajo) y alisa con esponja.',
+      ...(PM.holes?[`     Perforar: apoya la plantilla de perforación en el piso de adentro (entra justa) y corta por sus agujeros con un sacabocados o un tubo de cobre afilado: ${PM.holes.nd} ${PM.holes.nd>1?'drenajes':'drenaje'} de Ø ${String(Math.round(PM.holes.dr*2)/10).replace('.',',')} cm y ${PM.holes.nw} agujeros de alambre de Ø ${String(Math.round(PM.holes.wr*2)/10).replace('.',',')} cm (medidas en crudo). Por fuera, el fondo trae un granito en el centro de cada orificio: sirve para comprobar.`]:[]),
       '  5. Seca lento y parejo (tapado los primeros dos días) y cuece según tu barbotina. Deja secar el molde entre coladas. Aguanta 40–80 macetas.');
     if(PM.sprig) L.push('','C. RELIEVES CON MOLDE DE SPRIG',`  Caja de sprig «${PM.sprig.name}»: relieve de ${Math.round(PM.sprig.W)} × ${Math.round(PM.sprig.Hh)} mm y ${String(PM.sprig.d).replace('.',',')} mm de alto${PM.sprig.curved?', curvado a la pared de la maceta':''}${PM.sprig.frame&&PM.sprig.frame!=='none'?', con marco':''}.`,
       `  1. Jabón de moldes en la cajita y cuela ${f1(PM.sprig.pour)} L de yeso (2 cm sobre el relieve). Fragua 45–60 min, voltea y saca el molde; déjalo secar 3–4 días.`,
@@ -3296,6 +3315,8 @@
     const R=[], two=s.type==='rect'||s.type==='oval', round=s.type==='round', poly=!!SHP(s), dimTxt=(L,W)=>round?'Ø '+cm(L):two?cm(L)+' × '+cm(W):cm(L)+' entre caras', mm=x=>String(Math.round(x*10)/10).replace('.',',')+' mm', sec=t=>R.push(['§',t]);
     const soil=(Li,Wi,h)=>Math.max(0,Li*(round||poly?Li:Wi)*h*shapeArea(s)/1e6);   // litros (mm³ → L)
     // tamaño japonés: 1 gō (号) = 1 sun ≈ 3,03 cm del largo exterior de la boca (o del diámetro)
+    const holesRow=(wall,crude)=>{ const Hp=holePlan(s.L/2-s.flare-wall,s.W/2-s.flare-wall,1,round||poly), f=crude||1, d=x=>String(Math.round(x*2*f)/10).replace('.',',');
+      R.push(['Orificios',`${Hp.drains.length} de drenaje Ø ${d(Hp.dr)} cm y ${Hp.wires.length} de alambre Ø ${d(Hp.wr)} cm`+(crude?' (en crudo: se cortan en cuero con la plantilla de perforación)':'')]); };
     const go=()=>{ const g=s.L/30.3; R.push(['Tamaño japonés',`≈ ${String(Math.round(g*2)/2).replace('.',',')} gō (号: largo exterior de la boca ÷ 3,03 cm)`]); };
     // espacio útil para raíces y sustrato: largo × ancho del interior en la boca y en el fondo, y hondo
     const util=(wall,floor,bot)=>{ const Li=s.L-2*wall, Wi=(round||poly?s.L:s.W)-2*wall, hu=s.H-s.feet-floor, Lb=Math.max(0,Li-2*bot), Wb=Math.max(0,Wi-2*bot);
@@ -3314,24 +3335,24 @@
       sec('La maceta cocida (lo que escribes)');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go();
       R.push(['Pared y fondo',mm(e)+' (los da el tiempo de colado: ≈ '+castMin(s)+' min)']);
-      util(e,e,s.flare);
+      util(e,e,s.flare); holesRow(e,k);
       sec('El molde (no es el espacio para raíces)');
       R.push(['Qué es','el hueco del molde mide la maceta en crudo, antes de cocer: el yeso la copia por fuera y la arcilla encoge al secar y cocer'],['Encogimiento',Math.round((1-1/k)*100)+' % (todo se agranda × '+k.toFixed(3).replace('.',',')+')'],['Hueco · largo × ancho',dimTxt(s.L*k,s.W*k)+' cm'],['Hueco · alto',cm(s.H*k)+' cm, más 1,2 cm de reserva'],['Barbotina para llenarlo','≈ '+pct(soil(s.L*k,s.W*k,(s.H-s.feet)*k)*1.05)+' L (se recupera casi toda al vaciar)']);
       tree(); return R; }
     if(s.printable){ sec('La maceta impresa');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go(); R.push(['Pared',mm(s.t)],['Fondo',mm(s.pBase)]);
-      util(s.t,s.pBase,s.flare); tree(); return R; }
+      util(s.t,s.pBase,s.flare); holesRow(s.t); tree(); return R; }
     if(s.mat==='cement'){ const calc=cementBase(s.H/10,s.feet/10,s.L/10,s.W/10,s.t/10)*10, dC=Math.max(s.flare,b.core*Math.tan(MOLD.DRAFT*Math.PI/180));
       sec('La maceta de cemento (lo que escribes)');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go();
       R.push(['Pared',cm(s.t)+' cm'],['Fondo',cm(s.base)+' cm'+(Math.abs(s.base-calc)<0.6?' (calculado por resistencia)':' · por resistencia: '+cm(calc)+' cm')]);
-      const u=util(s.t,s.base,dC);
+      const u=util(s.t,s.base,dC); holesRow(s.t);
       const lt=mortarLitres(s,b)*1.15; R.push(['Mortero','≈ '+pct(lt)+' L ('+pct(lt*2.1)+' kg) · la maceta pesa ≈ '+pct(lt/1.15*2.2)+' kg']);
       sec('El molde'); R.push(['Hueco del molde','igual a la maceta por fuera: el cemento no encoge'],['Núcleo','forma el espacio útil: '+dimTxt(u.Li,u.Wi)+' cm y '+cm(u.hu)+' cm de alto'],['Placa de patas','forma el fondo y las patas']);
       tree(); return R; }
     { const kf=1-s.shrink/100; sec('La maceta cocida (lo que escribes)');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go(); R.push(['Pared y fondo','placa cruda '+cm(s.t)+' cm · cocida ≈ '+cm(s.t*kf)+' cm']);
-      util(s.t*kf,s.t*kf,s.flare);
+      util(s.t*kf,s.t*kf,s.flare); holesRow(s.t*kf);
       sec('Las plantillas (en crudo, no es el espacio útil)'); R.push(['Tamaño en crudo',dimTxt(b.L,b.W)+' × '+cm(b.H)+' cm (× '+b.k.toFixed(3).replace('.',',')+')']);
       tree(); return R; }
   }
@@ -3492,7 +3513,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,kit:{infill:100,walls:3},caja:L5};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,kit:{infill:100,walls:3},caja:L5,plantilla:{infill:100,walls:2}};
   const pieceOpts=(p,o)=>o.rec&&REC[p.key]?Object.assign({},o,REC[p.key]):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
