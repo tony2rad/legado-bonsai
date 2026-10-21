@@ -3175,14 +3175,15 @@
       [yLo,yHi].forEach((yw,si)=>{ const sy=si?1:-1, y0=out?yw-sy*0.4:yw-sy*(PL.wall-0.3), y1=out?yw+sy*W:yw, ym=(y0+y1)/2;
         const P=side<0?[[c-BXF.t,y0],[c,y0],[c,ym-sy*v],[c+h,ym],[c,ym+sy*v],[c,y1],[c-BXF.t,y1]]
                      :[[c,y0],[c,ym-sy*(v+BXF.c)],[c+h+BXF.c,ym],[c,ym+sy*(v+BXF.c)],[c,y1],[c+BXF.t,y1],[c+BXF.t,y0]];
-        prism(A,P,[],out?0:zTop-0.4,out?zTop:zTop+BXF.e,id); }); for(let i=0;i<A.T.length;i+=3) T.push(A.T[i],A.T[i+2],A.T[i+1]); return out; };   // impresión (x, y, z) → coordenadas del corte (x, z, y)
+        prism(A,P,[],out?0:zTop-0.4,out?zTop:zTop+BXF.e,id); }); for(let i=0;i<A.T.length;i+=3) T.push(A.T[i],A.T[i+2],A.T[i+1]); return {out,P:A.T}; };   // impresión (x, y, z) → coordenadas del corte (x, z, y)
     const dowR=[]; for(let round=0;round<2;round++) for(let i=0;i<parts.length;i++){ const pt=parts[i], Tp=plasterPrintTris(pt), Tq=new Array(Tp.length), bb=bbox(Tp), rot=(bb.mx[1]-bb.mn[1])>(bb.mx[0]-bb.mn[0]);
       const isBox=/^caja/.test(pt.key)&&!rot&&round===0&&pt.piece==null&&!cascoFits(Tp,s); if(isBox&&pt.cutAt==null) pt.cutAt=freeCut(Tp);
       for(let q=0;q<Tp.length;q+=3){ if(rot){ Tq[q]=Tp[q+1]; Tq[q+1]=Tp[q+2]; Tq[q+2]=-Tp[q]; } else { Tq[q]=Tp[q]; Tq[q+1]=Tp[q+2]; Tq[q+2]=Tp[q+1]; } }
       const sc=seal?[seal.c[0]*k,-seal.c[1]*k]:null, sw=seal?seal.w*k:0, sh=seal?(seal.h||seal.w)*k:0, sl=pt.key==='cajaC'&&seal?(rot?{c:[sc[1],-sc[0]],w:sh,h:sw}:{c:sc,w:sw,h:sh}):null;
       const sp=splitToFit(THREE,{T:Tq,print:'ground',key:sl?'feet':'base',name:pt.name,file:pt.file,axisOnly:true,...(pt.cutAt!=null&&!rot?{cutAt:pt.cutAt,axis:0,forceN:!!pt.clipFl}:{})},s,sl); if(!sp) continue;
       let flOut=false; if(isBox&&sp.parts.length===2){ const wy=bb.mx[1]-bb.mn[1], wx=Math.max(...sp.parts.map(pc=>{ let a=1e9,b2=-1e9; for(let q=0;q<pc.T.length;q+=3){ a=Math.min(a,pc.T[q]); b2=Math.max(b2,pc.T[q]); } return b2-a; }))+BXF.h+0.2;
-          const room=Math.max(Math.min(s.bedX,s.bedY)-1-wy,wx<=Math.min(s.bedX,s.bedY)-1?Math.max(s.bedX,s.bedY)-1-wy:0)/2; sp.parts.forEach((pc,q)=>{ flOut=boxFlanges(pc.T,pt.cutAt,bb.mn[1],bb.mx[1],bb.mx[2],q?1:-1,room); }); }
+          const room=Math.max(Math.min(s.bedX,s.bedY)-1-wy,wx<=Math.min(s.bedX,s.bedY)-1?Math.max(s.bedX,s.bedY)-1-wy:0)/2; const bxV=boxes.find(x=>x.key===pt.key);
+          sp.parts.forEach((pc,q)=>{ const r=boxFlanges(pc.T,pt.cutAt,bb.mn[1],bb.mx[1],bb.mx[2],q?1:-1,room); flOut=r.out; if(bxV){ bxV.fl=bxV.fl||[]; for(const v of r.P) bxV.fl.push(v); } }); }   // el visor dibuja las pestañas u orejas (en dorado) en la caja entera
       const pcs=sp.parts.map(pc=>Object.assign({},pt,{T:pc.T,name:pc.name,file:pc.file,piece:pc.piece,cutAt:null,map:rot?(a,b2,c)=>[-c,a,b2]:(x,y,z)=>[x,z,y]})); parts.splice(i,1,...pcs); i+=pcs.length-1; dowR.push(...sp.dowels);
       if(isBox&&sp.parts.length===2) notes.push(flOut?`${pt.name}: va en 2 trozos con pestañas por fuera de las paredes a todo lo alto (lengüeta en V de un lado y ranura del otro, así las paredes quedan al ras): júntalos y apriétalos con 2 o 3 pinzas tipo binder (vinchas) por pestaña. Las espigas y un punto de pegamento en el piso son opcionales.`:`${pt.name}: va en 2 trozos; la caja ya llena la cama a lo ancho, así que las pestañas de unión van como orejas de ${BXF.e} mm sobre el borde de cada pared (lengüeta en V de un lado y ranura del otro: las paredes quedan al ras). Júntalos con las espigas, aprieta las orejas con una pinza tipo binder (vincha) cada una y un punto de pegamento en el piso.`);
       else notes.push(pt.clipFl&&pt.cutAt!=null&&!rot?`${pt.name}: no cabe en la ${s.bedName}, va en 2 trozos con pestañas de unión por dentro (4 mm, sin agujeros) a cada lado del corte: junta los trozos y apriétalos con 3 o 4 pinzas tipo binder (vinchas) por la cara abierta; un punto de cianoacrilato es opcional. Las pestañas no tocan la cara que copia el yeso.`:sp.note); }
@@ -3235,7 +3236,7 @@
     // las cajas impresas, en fila de atrás hacia adelante: paredes translúcidas y el modelo opaco dentro.
     // Impresión (x, y, z arriba) → visor (x, z, −y): un giro, no un espejo, para poder animar las piezas desde la caja.
     const boxes=new THREE.Group(), BL=[], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; }; let zc=0; const boxOf={};
-    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a).m; grp.add(sh,mo);
+    PM.boxes.forEach(bxd=>{ const grp=new THREE.Group(), sh=mk(toV(bxd.shell),0x7fa6c8,{transparent:true,opacity:0.38,depthWrite:false}).m, mo=mk(toV(bxd.model),0xb98c5a).m; grp.add(sh,mo); if(bxd.fl) grp.add(mk(toV(bxd.fl),0xceb88a).m);
       const cb=new THREE.Box3().setFromObject(grp); grp.position.z=zc-cb.min.z; boxes.add(grp); const sp=label3(THREE,bxd.label,lh,true); BL.push({sp,g:grp}); zc+=cb.max.z-cb.min.z+30; boxOf[bxd.key]=grp; });
     // posición provisional de las cajas (se fija después de encuadrar el molde); poses «en la caja» de cada pieza de yeso
     const F=PL.floor, Ym=(PM.Ytop+PM.Y0)/2, qx=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),a), qy=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),a);
