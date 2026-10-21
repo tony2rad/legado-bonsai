@@ -289,12 +289,15 @@
         <label class="f"><span>Piso de las cajas</span><select id="pFloor"><option value="impreso" selected>Impreso, con lomo en V donde encajan las paredes</option><option value="melamina">Tabla de melamina (no se imprime el piso)</option></select></label>
         <label class="f"><span>Paredes de las cajas</span><select id="pWalls"><option value="impresas" selected>Impresas, con orejas y nervios para vinchas</option><option value="melamina15">Melamina de 15 mm cortada a medida (se imprimen solo escuadras)</option><option value="melamina18">Melamina de 18 mm cortada a medida (se imprimen solo escuadras)</option></select></label>
         <label class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="pEscOwn" type="checkbox" checked><span>Ya tengo el juego de escuadras (no incluirlas en cada molde; se descarga una vez con «Juego de escuadras»)</span></label>
+        <label class="f" style="grid-column:1/-1"><span>Reserva (sobrante del borde)</span><select id="pCollar"><option value="aparte" selected>Collarín aparte: el borde se corta al ras del molde (medida exacta)</option><option value="integrada">En el cuerpo, 12 mm (se recorta a mano en cuero)</option></select></label>
+        <label class="f"><span>Número del molde</span><select id="pNumD"><option value="2" selected>2 cifras (01–99), fichas intercambiables</option><option value="3">3 cifras (001–999), fichas intercambiables</option><option value="none">Sin número</option></select></label>
+        <label class="f"><span>Número de este molde</span><input id="pNum" type="number" min="0" max="999" step="1" value="1"></label>
         <label class="f" style="grid-column:1/-1"><span>Detalles en las paredes largas (molde de dos mitades)</span><select id="pDeco"><option value="none" selected>Ninguno</option><option value="studs1">Tachones · una fila</option><option value="studs2">Tachones · dos filas</option><option value="rivets">Remaches sobre el cinturón (cuerpo «con cinturón»)</option><option value="panel">Panel liso con marco en bisel</option></select></label>
         <label class="f"><span>Pared y fondo de la maceta <b>mm</b> (cocida)</span><input id="pCast" type="number" step="0.5" min="3" max="12" value="6"><small class="hint" id="h_pCast"></small></label>
         <label class="f"><span>Pared de yeso <b>mm</b></span><select id="pThick"><option value="auto" selected>Recomendada según el tamaño</option><option value="25">25 · macetas pequeñas</option><option value="30">30</option><option value="40">40</option><option value="50">50 · macetas grandes</option></select><small class="hint" id="h_pThick"></small></label>
       </div>
       <p class="mold-lead" style="margin-top:8px">En yeso no hay contrasalidas: patas de bloque con 3° de salida, esquinas rectas o redondeadas, sin lóbulos ni labio interno, panel solo en las paredes largas. Lo que no se pueda moldear se ajusta solo y se avisa.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnPlaster3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnPlaster" type="button">STL sueltos (ZIP)</button><button class="btn ghost" id="btnEscKit" type="button" title="8 escuadras reforzadas para las paredes de melamina: se imprimen una sola vez y sirven para todos los moldes">Juego de escuadras (3MF, una sola vez)</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnPlaster3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnPlaster" type="button">STL sueltos (ZIP)</button><button class="btn ghost" id="btnEscKit" type="button" title="8 escuadras reforzadas para las paredes de melamina: se imprimen una sola vez y sirven para todos los moldes">Juego de escuadras (3MF, una sola vez)</button><button class="btn ghost" id="btnNumKit" type="button" title="Fichas 0–9 para el número de cada molde: se imprimen una sola vez">Juego de números (3MF, una sola vez)</button></div>
       <div id="plasterOut" class="mold-out"></div>
     </details>
     <details class="gloss" id="sprigBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
@@ -385,6 +388,7 @@
   <div class="v3body"><div class="v3stage"><canvas id="v3canvas"></canvas><div id="v3dims"></div></div><aside id="v3side"><h3>Personalizar</h3><div id="v3fields"></div><p class="v3note">Estos campos son los mismos del panel lateral: lo que cambies aquí se aplica también a las plantillas.</p></aside></div>
   <div id="v3msg"></div>
 </div></dialog>
+<script src="../assets/img/numeros/numeros.js"></script>
 <script>
 (function(){
   const $=id=>document.getElementById(id);
@@ -532,7 +536,7 @@
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
     s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
-      s.pModel=$('pModel').value; s.pLipP=$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked;
+      s.pModel=$('pModel').value; s.pLipP=$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
       if(s.pLipP==='sin'&&s.rim!=='kittate'){ s.rimDesign=s.rim; s.rim='kittate'; }   // sin labio: borde recto
       if(s.corner==='sumiiri'){ s.plasterNotes.push('Esquinas rectas: la esquina entrante sumiiri todavía no se moldea en yeso (las mokko sí).'); s.corner='recta'; }
       if(s.feet>0&&s.foot!=='bloque') s.plasterNotes.push('Patas con estilo: se forman en el fondo de yeso como en el molde de cemento (sin entrantes: el borde de abajo de cada pata solo sube o baja). Saca el fondo cuando la maceta esté en cuero: la arcilla ya encogió y suelta las patas.');
@@ -1647,7 +1651,7 @@
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
   // proporcional, modelo «Personalizada», render). Tras cada render, sync3() trae de vuelta valores y estados.
-  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['base','Fondo cemento cm (calculado por resistencia)'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pLipP','Labio',1],['pModel','Modelo del cuerpo',1],['pFloor','Piso de las cajas',1],['pWalls','Paredes de las cajas',1],['pEscOwn','Ya tengo el juego de escuadras',1],['pCast','Pared y fondo de la maceta mm'],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spText','Relieve: texto'],['spSoft','Relieve: detalle',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['moldJoin','Unión de los gajos',1],['moldPlate','Placa de patas',1],['moldBase','Base con núcleo',1],['moldClick','Clic y sellado de la placa'],['moldClip','Perfiles de cierre (cola de milano)'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
+  const V3F=[['type','Forma',1],['L','Largo cm'],['W','Ancho cm'],['H','Alto total cm'],['t','Grosor de pared cm'],['flare','Inclinación cm/lado'],['feet','Altura de patas cm'],['base','Fondo cemento cm (calculado por resistencia)'],['rim','Borde'],['lip','Labio cm'],['body','Cuerpo'],['corner','Esquinas'],['lobes','Lóbulos'],['foot','Tipo de patas',1],['panel','Panel decorativo en las paredes'],['panelStyle','Forma del panel',1],['panelMode','Técnica del panel',1],['panelW','Ancho panel %'],['panelH','Alto panel %'],['panelWhere','Paredes con panel',1],['#print','Impresión 3D','La maceta en plástico, de pie con el fondo en la cama. Elige labio y patas y mira el encaje con «Desarmado».'],['pWall','Pared impresa',1],['pLip','Labio',1],['pFeet','Patas',1],['pFit','Ajuste de las espigas',1],['#plaster','Molde de yeso para barbotina','Cajas impresas con el modelo dentro: en cada una se cuela una pieza del molde (cuerpo y fondo; o mitades A y B con panza o cinturón).'],['pShrink','Encogimiento %',1],['pSplit','Cuerpo del molde',1],['pLipP','Labio',1],['pModel','Modelo del cuerpo',1],['pFloor','Piso de las cajas',1],['pWalls','Paredes de las cajas',1],['pEscOwn','Ya tengo el juego de escuadras',1],['pNumD','Número del molde',1],['pNum','Número de este molde'],['pCollar','Reserva',1],['pCast','Pared y fondo de la maceta mm'],['pDeco','Detalles en las paredes largas',1],['pThick','Pared de yeso mm',1],['spMotif','Relieve (sprig)',1],['spText','Relieve: texto'],['spSoft','Relieve: detalle',1],['spW','Relieve: ancho mm'],['spD','Relieve: profundidad mm'],['spFrame','Relieve: marco'],['spCurve','Relieve: curvatura'],['#skin','Contramolde para silicona','Madre con placa de vertido y carcasa en dos piezas; la piel de silicona se cuela entre las dos.'],['skinT','Grosor de la piel mm',1],['#mold','Molde para imprimir en 3D','Molde de vaciado para cemento. Es de cemento: desde otra sección, al verlo o descargarlo cambia a Molde 3D.'],['moldParts','Molde exterior'],['sealKind','Sello en la base'],['sealMode','Relieve del sello'],['moldWall','Pared del molde cm'],['moldCore','Núcleo'],['moldJoin','Unión de los gajos',1],['moldPlate','Placa de patas',1],['moldBase','Base con núcleo',1],['moldClick','Clic y sellado de la placa'],['moldClip','Perfiles de cierre (cola de milano)'],['#obj','Diseño 3D','Maceta o mesa de exhibición, para imprimir o para el molde.'],['pObj','Diseño',1],['#marca','Logotipo de Legado','Maceta impresa: grabado 1 mm en la base (míralo con «Fondo») y, si quieres, en el piso de adentro, hundido o en relieve (quita «Árbol y sustrato» y usa «Planta»). Mesa: en relieve bajo la cubierta.'],['pSeal','Variante',1],['pIn','En el interior',1],['#mesa','Mesa de exhibición','Se imprime boca abajo en una sola pieza, sin soportes.'],['tSides','Forma'],['tW','Ancho cm'],['tH','Alto cm'],['tTop','Cubierta cm'],['tApron','Faldón cm'],['tApT','Grosor faldón cm'],['tLeg','Pata cm'],['tFret','Calado'],['tFoot','Patas',1],['printer','Impresora',1],['bedXY','Cama de otra impresora cm']];
   function build3Side(){
     const box=$('v3fields'); if(box.childElementCount) return;
     let sec='';
@@ -2863,10 +2867,10 @@
   // no lo corre y las pestañas de unión quedan a 0,1 mm del corte)
   const cascoFits=(T,s)=>{ let mn=[1e9,1e9],mx=[-1e9,-1e9]; for(let i=0;i<T.length;i+=3) for(let q=0;q<2;q++){ mn[q]=Math.min(mn[q],T[i+q]); mx[q]=Math.max(mx[q],T[i+q]); } const w=mx[0]-mn[0], d=mx[1]-mn[1]; return (w<=s.bedX-1&&d<=s.bedY-1)||(w<=s.bedY-1&&d<=s.bedX-1); };
   const freeCut=T=>{ for(let k=0;k<200;k++){ const c=(k%2?1:-1)*Math.ceil(k/2)*0.013; let hit=false; for(let i=0;i<T.length;i+=3) if(Math.abs(T[i]-c)<0.07){ hit=true; break; } if(!hit) return c; } return 0.31; };
-  const PL={thick:40,spare:12,wall:3,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3,shell:3};
+  const PL={thick:40,spare:12,collar:25,colAng:12,wall:3,natch:8,draft:3,plinth:10,floor:4,floorB:10,clr:0.3,shell:3};
   function buildPlaster(THREE,s,b){ return cacheGet(MOLD_CACHE,JSON.stringify(['p',s,PAN,Object.keys(SEAL_ART).sort(),SPRIG.ver,Object.keys(SPRIG.img).sort(),!!SPRIG.custom]),()=>buildPlasterRaw(THREE,s,b)); }
   function buildPlasterRaw(THREE,s,b){
-    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, Ytop=Yr+PL.spare, TH0=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
+    const k=s.pk||1.136, n=240, Hb=s.H-s.feet, Yr=Hb*k, COL=s.pCollar!=='integrada', Ytop=Yr+(COL?0:PL.spare), TH0=s.pThick||PL.thick, PB=PL.plinth, Y0=-PB, ftk=s.feet*k;
     const sK=Object.assign({},s,{c:s.c*k,lobes:0});
     const adder=()=>{ const T=[]; const tri=(a,b2,c)=>T.push(a[0],a[1],a[2],b2[0],b2[1],b2[2],c[0],c[1],c[2]); return {T,tri,quad:(a,b2,c,d)=>{ tri(a,b2,c); tri(a,c,d); }}; };
     const dedup=L=>L.filter((p,i)=>{ const q=L[(i+L.length-1)%L.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>0.02; });
@@ -2877,7 +2881,8 @@
     // anillos de la maceta agrandada, de la reserva (arriba) a Y0: el perfil real de halfExt por k (cinturón en chaflán,
     // como en cemento, para que el modelo se imprima sin soportes)
     const ext=halfExt(Object.assign({},s,{printable:true,pLip:s.pLipP==='bisel'?'bisel':'diseno'}),s.W/2,s.H,s.feet,s.flare), ringAt=x=>{ const dl=s.W/2-x; return ringPts(sK,Math.max(4,(s.L-2*dl)*k),Math.max(4,(s.W-2*dl)*k),n); };
-    const rings=[{loop:ringAt(ext[0][0]),Y:Ytop},...ext.map(([x,y])=>({loop:ringAt(x),Y:Math.max(0,(Hb-y)*k)}))];
+    // con collarín (COL) el cuerpo termina en el borde: su cara de arriba es la guía para cortar la reserva al ras
+    const rings=[...(COL?[]:[{loop:ringAt(ext[0][0]),Y:Ytop}]),...ext.map(([x,y])=>({loop:ringAt(x),Y:Math.max(0,(Hb-y)*k)}))];
     rings[rings.length-1].Y=0; rings.push({loop:rings[rings.length-1].loop,Y:Y0});   // zócalo: la silueta del pie sigue PB mm bajo la cara inferior
     let Xm=0, Z0=0; rings.forEach(r=>r.loop.forEach(([x,z])=>{ Xm=Math.max(Xm,Math.abs(x)); Z0=Math.max(Z0,Math.abs(z)); }));
     // la caja del cuerpo y la del fondo miden 2·(Z0 + pared de yeso) + paredes de ancho: si se pasan de la cama por pocos
@@ -2886,7 +2891,7 @@
     let TH=TH0, thNote=''; { const Bm=Math.max(s.bedX||330,s.bedY||320)-2, ex=2*(Z0+TH0)+2*(/^melamina/.test(s.pWalls||'')?0:PL.wall)-Bm;
       if(ex>0&&ex/2<=8){ TH=Math.floor((TH0-ex/2)*2)/2; thNote=`Pared de yeso de ${String(TH).replace('.',',')} mm en vez de ${TH0}: así la caja entra en la cama de la ${s.bedName||'impresora'} sin partirla en más trozos.`; } }
     const X=Xm+TH, U=Ytop-Y0, Ym=(Ytop+Y0)/2, hF=Z0+TH, W2=/^melamina/.test(s.pWalls||'')?0:PL.wall;
-    let cascoInfo=null, sealPartP=false; const sealIns=adder(); const bottom=rings[rings.length-1].loop, parts=[], plaster=[], notes=[...(s.plasterNotes||[]),...(thNote?[thNote]:[])], boxes=[];
+    let cascoInfo=null, sealPartP=false, numInfoP=null; const sealIns=adder(); const bottom=rings[rings.length-1].loop, parts=[], plaster=[], notes=[...(s.plasterNotes||[]),...(thNote?[thNote]:[])], boxes=[];
     const vol=T=>Math.abs(stlOrient(T).volume);
     const band=(A,R)=>{ for(let i=0;i<R.length-1;i++){ const L1=R[i].loop, L2=R[i+1].loop, m=L1.length; for(let j=0;j<m;j++){ const q=(j+1)%m; A.quad([L1[j][0],R[i].Y,L1[j][1]],[L1[q][0],R[i].Y,L1[q][1]],[L2[q][0],R[i+1].Y,L2[q][1]],[L2[j][0],R[i+1].Y,L2[j][1]]); } } };
     // ¿cuerpo en una pieza? Con panza o cinturón el hueco tiene contrasalida y la maceta no saldría hacia arriba
@@ -2961,13 +2966,13 @@
       return out; };
     // o: key, label, name, file, color, pour, S (piso sin paredes), hx, hy (medio interior), F, top; model = se imprime con el piso;
     // view = solo para el visor (casco aparte); mela = lo que se imprime con melamina en vez del modelo; noMela = piso siempre impreso
-    const pushKnock=o=>{ const mela=s.pFloor==='melamina'&&!o.noMela, pre=o.label.split(' →')[0], Wb=melW?Tm+BRD.g+20:PL.wall+BXW.e+20;
+    const pushKnock=o=>{ const mela=(s.pFloor==='melamina'||o.forceMela)&&!o.noMela, pre=o.label.split(' →')[0], Wb=melW?Tm+BRD.g+20:PL.wall+BXW.e+20;
       const BW=melW?boardWalls(mela?null:o.S,o.hx,o.hy,o.F,o.top,o.label.replace(' → ',' (')+')'):null, walls=BW?BW.walls:knockWalls(mela?null:o.S,o.hx,o.hy,o.F,o.top);
       let shell=o.S.T; if(mela){ const B=adder(); prism(B,rect(-o.hx-Wb,-o.hy-Wb,o.hx+Wb,o.hy+Wb),[],0,o.F,id); shell=B.T; knock.mela.push(pre);
         const bw=2*(o.hx+Wb)+20, bd=2*(o.hy+Wb)+20; knock.board=knock.board?[Math.max(knock.board[0],Math.max(bw,bd)),Math.max(knock.board[1],Math.min(bw,bd))]:[Math.max(bw,bd),Math.min(bw,bd)]; }
       boxes.push({key:o.key,label:o.label,shell:shell.slice(),board:mela,walls:walls.map(w=>({T:w.T,dir:w.dir,kind:w.kind})),model:[...(o.view||o.model||[]),...(mela&&o.mela?o.mela:[])]});
       if(!mela) parts.push({key:o.key,name:o.name,file:o.file,T:o.model?o.S.T.concat(o.model):o.S.T,map:id,color:o.color,pour:o.pour,knock:true});
-      else { const src=o.mela||o.model, D=o.F-0.3, T=[]; for(let i=0;i<src.length;i+=3) T.push(src[i],src[i+1],src[i+2]-D);
+      else if(o.mela||o.model){ const src=o.mela||o.model, D=o.F-0.3, T=[]; for(let i=0;i<src.length;i+=3) T.push(src[i],src[i+1],src[i+2]-D);
         parts.push({key:o.key,name:o.melaName||`${pre}: modelo (se pega en la tabla de melamina)`,file:o.file+'-modelo',T,map:id,color:o.color,pour:o.pour,knock:true}); }
       if(BW&&!s.pEscOwn) parts.push({key:'escuadra',name:`${pre}: escuadras de esquina ×${BW.n} (de pie)`,file:`${o.file}-escuadras`,T:BW.esc,map:id,color:0xd9a441});
       else if(!BW) walls.forEach(w=>parts.push({key:'pared',name:`${pre}: ${w.name} (acostada)`,file:`${o.file}-${w.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}`,T:w.P,map:id,color:0x8fb6cc})); };
@@ -3096,7 +3101,7 @@
         // (de YcH a la boca) va aparte y se imprime boca abajo, con la pared interior recta, y el cuerpo lleva una lengüeta en
         // media luna de 4 mm (con ancla en rampa) que entra en el aro.
         let ic=-1, YcH=null, x3h=null; const LH=adder();
-        if(s.pLipP==='aparte'&&s.rim!=='kittate'){ const y3=lipH(s)+s.lip*0.6, Yp=(Hb-y3)*k; let bi=-1; rings.forEach((r,i)=>{ if(i>0&&i<nI-1&&r.Y<Ytop-2&&r.Y>Yf+20&&(bi<0||Math.abs(r.Y-Yp)<Math.abs(rings[bi].Y-Yp))) bi=i; }); if(bi>0&&ext[bi-1]){ ic=bi; YcH=rings[bi].Y; x3h=ext[bi-1][0]; } }
+        if(s.pLipP==='aparte'&&s.rim!=='kittate'){ const y3=lipH(s)+s.lip*0.6, Yp=(Hb-y3)*k; let bi=-1; rings.forEach((r,i)=>{ if(i>0&&i<nI-1&&r.Y<Ytop-2&&r.Y>Yf+20&&(bi<0||Math.abs(r.Y-Yp)<Math.abs(rings[bi].Y-Yp))) bi=i; }); if(bi>0&&ext[bi-(COL?0:1)]){ ic=bi; YcH=rings[bi].Y; x3h=ext[bi-(COL?0:1)][0]; } }
         const inH=d=>radii(ringAt(x3h-d/k),dirs);
         const halfLoft=(A,Ob,Ib,Yb,Ot,It,Yt)=>{ for(let j=0;j<M;j++){ A.quad(P3(Ob[j],j,Yb),P3(Ob[j+1],j+1,Yb),P3(Ot[j+1],j+1,Yt),P3(Ot[j],j,Yt)); A.quad(P3(Ib[j],j,Yb),P3(Ib[j+1],j+1,Yb),P3(It[j+1],j+1,Yt),P3(It[j],j,Yt));
             A.quad(P3(Ob[j],j,Yb),P3(Ob[j+1],j+1,Yb),P3(Ib[j+1],j+1,Yb),P3(Ib[j],j,Yb)); A.quad(P3(Ot[j],j,Yt),P3(Ot[j+1],j+1,Yt),P3(It[j+1],j+1,Yt),P3(It[j],j,Yt)); }
@@ -3202,7 +3207,26 @@
         const Hp0=holePlan(s.L/2-s.flare-(s.pCast||6),s.W/2-s.flare-(s.pCast||6),1,s.type==='round'||!!SHP(s)), cs=[...Hp0.drains,...Hp0.wires].map(([x,z])=>mz([x*k,z*k]));
         const P1=rr(x0-3,z0-3,x1+3,z1+3,2.5);
         if(P1.every(p=>inPoly(p,silC))&&!cs.some(c=>c[0]>x0-6&&c[0]<x1+6&&c[1]>z0-6&&c[1]<z1+6)){ pocP=P1; insP=rr(x0-2.85,z0-2.85,x1+2.85,z1+2.85,2.35); } }
-      if(pocP){ prism(Mo,silC,[],F-0.3,zt-PDp,id); prism(Mo,silC,[pocP],zt-PDp-0.2,zt,id); } else prism(Mo,silC,[],F-0.3,zt,id);
+      // NÚMERO DEL MOLDE (s.pNumD cifras): una fila de huecos para fichas intercambiables, debajo del logotipo (al leerlo), o encima
+      // o a los lados si no cabe; fuera de orificios, patas y logotipo. Las fichas no se imprimen con la caja: se imprime una vez
+      // el «Juego de números» y en cada molde nuevo se ponen las del número que toca (en el visor, las de s.pNum).
+      const numSlots=[], numView=adder(); let numInfo=null;
+      if(s.pNumD&&s.pNumD!=='none'&&window.LEGADO_NUMEROS){ const nd=+s.pNumD, step=NUM.w+NUM.gap, W=nd*step-NUM.gap, Hh=NUM.th;
+        let bx0=0,bx1=0,bz0=0,bz1=0; if(seal){ bx0=1e9;bx1=-1e9;bz0=1e9;bz1=-1e9; seal.regions.filter(r=>r.d===0).forEach(r=>r.L.forEach(([x,z])=>{ const X2=x*k, Z2=-z*k; bx0=Math.min(bx0,X2); bx1=Math.max(bx1,X2); bz0=Math.min(bz0,Z2); bz1=Math.max(bz1,Z2); })); }
+        const Hq=holePlan(s.L/2-s.flare-(s.pCast||6),s.W/2-s.flare-(s.pCast||6),1,s.type==='round'||!!SHP(s)), hc=[...Hq.drains,...Hq.wires].map(([x,z])=>mz([x*k,z*k]));
+        const fp=[]; const FRq=s.feet>0&&footRibbons(s); if(FRq) FRq.forEach(r=>[...r.o,...r.i].forEach(([x,z])=>fp.push(mz([x*k,z*k])))); else if(s.feet>0) blockFeet(s).forEach(([x,z])=>{ const c=mz([x*k,z*k]), hh=footSize(s.L,s.W)*k/2; fp.push([c[0]-hh,c[1]-hh],[c[0]+hh,c[1]-hh],[c[0]+hh,c[1]+hh],[c[0]-hh,c[1]+hh],c); });
+        const ok=(cx,cy)=>{ const x0=cx-W/2-4, x1=cx+W/2+4, y0=cy-Hh/2-4, y1=cy+Hh/2+4, R=[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[cx,y0],[cx,y1],[x0,cy],[x1,cy]];
+          if(!R.every(p=>inPoly(p,silC))) return false; if(hc.some(c=>c[0]>x0-2&&c[0]<x1+2&&c[1]>y0-2&&c[1]<y1+2)) return false;
+          if(fp.some(p=>p[0]>x0&&p[0]<x1&&p[1]>y0&&p[1]<y1)) return false; if(seal&&!(x1<bx0-1||x0>bx1+1||y1<bz0-1||y0>bz1+1)) return false; return true; };
+        const mx=seal?(bx0+bx1)/2:0, cands=seal?[[mx,bz1+6+Hh/2],[mx,bz0-6-Hh/2],[bx1+6+W/2,(bz0+bz1)/2],[bx0-6-W/2,(bz0+bz1)/2]]:[[0,0],[0,Hh+8],[0,-Hh-8]];
+        const at=cands.find(([cx,cy])=>ok(cx,cy));
+        if(at){ const txt=String(Math.max(0,s.pNum||0)%Math.pow(10,nd)).padStart(nd,'0');
+          for(let q=0;q<nd;q++){ const cx=at[0]-W/2+NUM.w/2+q*step, cy=at[1]; numSlots.push(slotPoly(cx,cy,NUM.clr));
+            prism(numView,slotPoly(cx,cy,0),[],zt-NUM.base,zt,id); digitRegions(txt[q],cx,cy).filter(r=>r.d%2===0).forEach(r=>prism(numView,r.L,r.kids,zt-0.3,zt+MOLD.SEAL_DEPTH,id)); }
+          numInfo={txt,nd,where:at===cands[0]?'debajo':at===cands[1]?'encima':'al lado'}; }
+        else notes.push('Número del molde: no hay sitio libre en el fondo para las fichas (orificios, patas o logotipo); este molde va sin número.'); }
+      const holesZ=[...(pocP?[pocP]:[]),...numSlots];
+      if(holesZ.length){ prism(Mo,silC,[],F-0.3,zt-PDp,id); prism(Mo,silC,holesZ,zt-PDp-0.2,zt,id); } else prism(Mo,silC,[],F-0.3,zt,id);
       const fsz=footSize(s.L,s.W)*k, tp=Math.max(4,fsz-2*ftk*Math.tan(PL.draft*Math.PI/180));
       const FRp=s.feet>0&&footRibbons(s);
       if(FRp) FRp.forEach(r=>{ const m=r.o.length, ft0=s.feet; let q0=0; while(q0<m){ if(r.dep[q0]<=0.05){ q0++; continue; } let e=q0; while(e+1<m&&r.dep[e+1]>0.05) e++;
@@ -3214,11 +3238,32 @@
         fill2D(Mo,lo,[],(u,v)=>[u,v,zt-0.3]); fill2D(Mo,hi,[],(u,v)=>[u,v,zt+ftk]); });
       if(seal) seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(pocP?sealIns:Mo,r.L.map(([x,z])=>[x*k,-z*k]),r.kids.map(K=>K.map(([x,z])=>[x*k,-z*k])),zt-0.3,zt+MOLD.SEAL_DEPTH,id));
       if(pocP){ prism(sealIns,insP,[],zt-PDp,zt,id); sealPartP=true; }
+      numInfoP=numInfo;
       { const Hp=holePlan(s.L/2-s.flare-(s.pCast||6),s.W/2-s.flare-(s.pCast||6),1,s.type==='round'||!!SHP(s)), KM=16;
         [...Hp.drains,...Hp.wires].forEach(([x,z])=>{ const c=mz([x*k,z*k]), lo=circle(c,1.6,KM), hi=circle(c,0.4,KM);
           for(let j=0;j<KM;j++){ const q=(j+1)%KM; Mo.quad([lo[j][0],lo[j][1],zt-0.3],[lo[q][0],lo[q][1],zt-0.3],[hi[q][0],hi[q][1],zt+1.2],[hi[j][0],hi[j][1],zt+1.2]); }
           fill2D(Mo,lo,[],(u,v)=>[u,v,zt-0.3]); fill2D(Mo,hi,[],(u,v)=>[u,v,zt+1.2]); }); }
-      pushKnock({key:'cajaC',label:one?'Caja 2 → fondo del molde':'Caja C → fondo',name:one?'Caja 2: piso con el fondo (zócalo, patas y logotipo)':'Caja C: piso con el fondo (zócalo, patas y logotipo)',file:'yeso-caja-fondo',color:0x9c8fbe,pour:(2*X*2*Zc*(PB+ftk+TH))/1e6,S,hx:X,hy:Zc,F,top,model:Mo.T,melaName:`${one?'Caja 2':'Caja C'}: modelo del fondo (se pega en la tabla de melamina)`}); }
+      pushKnock({key:'cajaC',label:one?'Caja 2 → fondo del molde':'Caja C → fondo',name:one?'Caja 2: piso con el fondo (zócalo, patas y logotipo)':'Caja C: piso con el fondo (zócalo, patas y logotipo)',file:'yeso-caja-fondo',color:0x9c8fbe,pour:(2*X*2*Zc*(PB+ftk+TH))/1e6,S,hx:X,hy:Zc,F,top,model:Mo.T,view:Mo.T.concat(numView.T),melaName:`${one?'Caja 2':'Caja C'}: modelo del fondo (se pega en la tabla de melamina)`}); }
+    // --- COLLARÍN DE RESERVA (pedido del usuario, como en los moldes de producción): aro de yeso de PL.collar mm que va encima
+    //     del cuerpo, con un embudo que se abre PL.colAng° hacia arriba; abajo mide 0,8 mm más que la boca (nunca tapa el borde).
+    //     Después de vaciar se levanta y el sobrante, parado sobre el molde, se corta al ras de la cara de arriba del cuerpo con
+    //     una tarjeta apoyada en el yeso: el borde sale a la medida exacta. Su caja se cuela sobre una tabla lisa alrededor de un
+    //     NÚCLEO impreso suelto (cáscara de 1,68 mm con pestaña de 8 mm en la boca ancha; se imprime con esa boca en la cama).
+    let colInfo=null;
+    if(COL){ const Hc=PL.collar, ta=Math.tan(PL.colAng*Math.PI/180), x0=ext[0][0], F=PL.floor, eB=0.8, eT=eB+Hc*ta, cw=1.68;
+      const xb=x0+eB/k, xt=x0+eT/k, Lb=ringAt(xb), Lt=ringAt(xt);
+      { const A=adder(), R=rect(-X,-hF,X,hF); band(A,[{loop:Lb,Y:Ytop},{loop:Lt,Y:Ytop+Hc}]); fill2D(A,R,[Lb],(u,v)=>[u,Ytop,v]); fill2D(A,R,[Lt],(u,v)=>[u,Ytop+Hc,v]);
+        for(let j=0;j<4;j++){ const a=R[j], c=R[(j+1)%4]; A.quad([a[0],Ytop,a[1]],[c[0],Ytop,c[1]],[c[0],Ytop+Hc,c[1]],[a[0],Ytop+Hc,a[1]]); }
+        plaster.push({key:'yesoCol',name:'Collarín',T:A.T,explode:[0,one?U+Hc+70:Hc+45,0]}); colInfo={Hc,vol:vol(A.T)/1e6}; }
+      // núcleo en coordenadas de la caja: (x, −z, F + Y − Ytop); perfil escalonado barrido (un solo sólido cerrado)
+      const zb=F, zt2=F+Hc, xIn=z=>xb-cw/k+(xt-xb)*(z-zb)/Hc, L3=(L,zz)=>L.map(([x,z])=>[x,-z,zz]);
+      const prof=[[Lb,zb],[Lt,zt2],[ringAt(xt-8/k),zt2],[ringAt(xt-8/k),zt2-1.6],[ringAt(xIn(zt2-1.6)),zt2-1.6],[ringAt(xb-cw/k),zb]], core=adder();
+      prof.forEach(([La,za],i)=>{ const [Lb2,zb2]=prof[(i+1)%prof.length], A3=L3(La,za), B3=L3(Lb2,zb2), m=A3.length; for(let j=0;j<m;j++){ const q=(j+1)%m; core.quad(A3[j],A3[q],B3[q],B3[j]); } });
+      const S=adder(); prism(S,rect(-X-W2,-hF-W2,X+W2,hF+W2),[],0,F,id);
+      pushKnock({key:'cajaCol',label:'Caja del collarín → collarín de reserva',name:'Caja del collarín',file:'yeso-caja-collarin',color:0x9fb8a0,pour:colInfo.vol,S,hx:X,hy:hF,F,top:F+Hc,view:core.T,forceMela:true});
+      const CP=[]; for(let i=0;i<core.T.length;i+=3) CP.push(core.T[i],-core.T[i+1],zt2-core.T[i+2]);   // boca ancha en la cama (giro de 180° en x)
+      parts.push({key:'colNucleo',name:'Núcleo del collarín (embudo, boca ancha en la cama)',file:'yeso-collarin-nucleo',T:CP,map:id,color:0x7fb0c4,...(!cascoFits(CP,s)?{cutAt:freeCut(CP),clipFl:false}:{})});
+      notes.push(`Collarín de reserva: aro de yeso de ${Hc} mm que va encima del ${one?'cuerpo':'molde (sobre las dos mitades)'}; el cuerpo termina justo en el borde de la maceta, así que su cara de arriba es la guía de corte. Después de vaciar levanta el collarín: el sobrante queda parado sobre el molde y lo cortas al ras con una tarjeta o una cuchilla apoyada plana en el yeso, girando el molde. Su caja se cuela sobre cualquier superficie lisa (melamina, vidrio, fórmica) alrededor del núcleo impreso, que va suelto.`); }
     // --- caja de sprig: bandeja pequeña con el relieve en positivo (por alturas) y 20 mm de yeso encima
     let sprigInfo=null;
     if(s.sprig&&s.sprig.motif!=='none'){ const cfg=s.sprig, im=sprigImg(cfg);
@@ -3261,7 +3306,7 @@
     const V={}; plaster.forEach(p=>{ V[p.key]=vol(p.T)/1000; }); const litres=Object.values(V).reduce((t,v)=>t+v,0)/1000, f1=x=>x.toFixed(1).replace('.',',');
     notes.push(`Yeso cerámico: ≈ ${f1(litres*0.9)} kg con ${f1(litres*0.63)} L de agua en total. Yeso líquido por caja: ${boxes.map(bx=>bx.label.split(' →')[0]+' '+f1(parts.find(p=>p.key===bx.key)?.pour??(V['yeso'+bx.key.slice(4)]||0)/1000)+' L').join(', ')}. Mezcla 100 de yeso por 63–70 de agua, espolvoreando el yeso sobre el agua.`);
     notes.push(`El fondo lleva un zócalo de ${PL.plinth} mm con la silueta del pie de la maceta, que entra en el cuerpo y traba las piezas en su sitio; encima van los huecos de las patas y el sello.`);
-    notes.push(`La maceta va agrandada un ${(Math.round((k-1)*1000)/10).toString().replace('.',',')} % (encogimiento del ${Math.round((1-1/k)*100)} %) y lleva ${PL.spare} mm de reserva sobre el borde: recorta el borde en cuero por esa marca.`);
+    notes.push(`La maceta va agrandada un ${(Math.round((k-1)*1000)/10).toString().replace('.',',')} % (encogimiento del ${Math.round((1-1/k)*100)} %)${COL?'; la reserva va en el collarín y el borde se corta al ras del cuerpo.':` y lleva ${PL.spare} mm de reserva sobre el borde: recorta el borde en cuero por esa marca.`}`);
     // orificios: el molde no puede formarlos; la caja del fondo deja un granito en el centro de cada uno y se perforan en cuero
     let holeInfo=null;
     { const e=s.pCast||6, Hp=holePlan(s.L/2-s.flare-e,s.W/2-s.flare-e,1,s.type==='round'||!!SHP(s));
@@ -3272,7 +3317,10 @@
       if(knock.mela.length) notes.push(`Piso de melamina en ${knock.mela.join(', ')}: no se imprime el piso, solo el modelo${one&&s.pModel==='casco'?' (o la base del casco)':''}, que se pega al centro de la tabla con cinta doble faz. Tabla lisa de al menos ${mm(knock.board[0])} × ${mm(knock.board[1])} cm. Rellena la ranura de abajo de cada pared con un cordón de plastilina: así sella contra la tabla.${!one?' La caja A/B conserva su piso impreso, porque lleva las llaves, la junta en V y los huecos.':''}`); }
     const cm1=x=>(Math.round(x)/10).toFixed(1).replace('.',','), cutTxt=board.cuts.map(c=>`${c.pre}: 2 × ${cm1(c.a)} × ${cm1(c.h)} cm (van por fuera) y 2 × ${cm1(c.b)} × ${cm1(c.h)} cm (van entre ellas)`).join('; ');
     if(board.cuts.length) notes.push(`Paredes de melamina de ${Tm} mm (no se imprimen): cortes ${cutTxt}. Las dos de fuera cubren las puntas de las otras dos; ${knock.mela.length?'se paran sobre la tabla base':'rodean el piso impreso, que va al tamaño interior: apoyan en la mesa y tocan sus cantos'}. En cada esquina una escuadra impresa (${s.pEscOwn?`de tu juego reutilizable: esta caja usa ${board.escMax} a la vez; si aún no lo tienes, descárgalo con «Juego de escuadras»`:`${board.esc} en total`}) y alrededor de cada fila de escuadras una cinta de amarre con trinquete de 25 mm (${board.straps} en total), que aprieta las tablas de fuera contra las puntas de las de dentro; sirven también ligas anchas de neumático. Sella por fuera las esquinas y la base con un cordón de plastilina. Para desmoldar afloja la cinta, quita las escuadras y abre las tablas.`);
-    return {k,one,parts,plaster,boxes,V,litres,notes,knock,board,cutTxt,escUnit,seal,sprig:sprigInfo,holes:holeInfo,casco:cascoInfo,TH,X,Z0,hF,U,Ytop,Y0,ftk};
+    // ficha suelta de la cifra c (para el «Juego de números»): base de NUM.base mm y la cifra en relieve, en el origen
+    const numTile=c=>{ const A=adder(); prism(A,slotPoly(0,0,0),[],0,NUM.base,id); digitRegions(c,0,0).filter(r=>r.d%2===0).forEach(r=>prism(A,r.L,r.kids,NUM.base-0.3,NUM.base+MOLD.SEAL_DEPTH,id)); return A.T; };
+    if(numInfoP) notes.push(`Número del molde «${numInfoP.txt}»: el zócalo de la caja del fondo lleva ${numInfoP.nd} huecos ${numInfoP.where} del logotipo para las fichas del «Juego de números» (se imprime una vez y sirve para todos los moldes). Antes de colar cada molde pon las fichas del número que le toca; los chaflanes de arriba hacen que solo entren derechas. El número sale en relieve en la base de cada maceta: así sabes qué molde la hizo y cuándo retirarlo (aguanta 40–80 coladas).`);
+    return {k,one,parts,plaster,boxes,V,litres,notes,knock,collar:colInfo,board,cutTxt,escUnit,numTile,numInfo:numInfoP,seal,sprig:sprigInfo,holes:holeInfo,casco:cascoInfo,TH,X,Z0,hF,U,Ytop,Y0,ftk};
   }
   function plasterPrintTris(part){ const T=part.T, out=new Array(T.length); for(let i=0;i<T.length;i+=3){ const p=part.map(T[i],T[i+1],T[i+2]); out[i]=p[0]; out[i+1]=p[1]; out[i+2]=p[2]; } return out; }
   // Visor: a la izquierda las cajas impresas con las paredes translúcidas, para ver el modelo dentro, tal como salen de la
@@ -3287,7 +3335,7 @@
     const sk=Object.assign({},s,{L:s.L*k,W:s.W*k,H:s.H*k,feet:s.feet*k,t:s.t*k,flare:s.flare*k,lip:s.lip*k,c:s.c*k});
     const ghost=potGroup(THREE,sk,b,{tree:false,cut:false}); ghost.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.transparent=true; o.material.opacity=0.45; o.material.depthWrite=false; } }); ghost.position.y=-s.feet*k; M.add(ghost);
     let nL=0; const num=()=>`${++nL} · `;
-    const L=[['yesoC',num()+'Fondo: patas y sello (se usa volteado, con los huecos arriba)'],...(PM.one?[['yesoCuerpo',num()+'Cuerpo: el hueco de la maceta, en una pieza']]:[['yesoA',num()+'Mitad A'],['yesoB',num()+'Mitad B']])].map(([kk,t])=>({p:parts.find(p=>p.key===kk),sp:label3(THREE,t,lh)}));
+    const L=[['yesoC',num()+'Fondo: patas y sello (se usa volteado, con los huecos arriba)'],...(PM.one?[['yesoCuerpo',num()+'Cuerpo: el hueco de la maceta, en una pieza']]:[['yesoA',num()+'Mitad A'],['yesoB',num()+'Mitad B']]),...(PM.collar?[['yesoCol',num()+'Collarín de reserva: va encima; el sobrante se corta al ras']]:[])].map(([kk,t])=>({p:parts.find(p=>p.key===kk),sp:label3(THREE,t,lh)}));
     const Lall=label3(THREE,'Molde de yeso armado: la barbotina entra por la boca',lh); L.forEach(l=>G.add(l.sp)); G.add(Lall);
     const bx=new THREE.Box3(), at=(sp,o)=>{ bx.setFromObject(o); const c=bx.getCenter(new THREE.Vector3()); sp.position.set(c.x,bx.max.y+lh*0.5,c.z); };
     // las cajas impresas, en fila de atrás hacia adelante: paredes translúcidas y el modelo opaco dentro.
@@ -3302,7 +3350,8 @@
     // posición provisional de las cajas (se fija después de encuadrar el molde); poses «en la caja» de cada pieza de yeso
     const F=PL.floor, Ym=(PM.Ytop+PM.Y0)/2, qx=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),a), qy=a=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),a);
     const POSE={yesoA:{box:'cajaAB',q:qx(-Math.PI/2),p:c=>[c.x,c.z+F,-c.y+Ym]},yesoB:{box:'cajaAB',q:qx(-Math.PI/2).multiply(qy(Math.PI)),p:c=>[-c.x,-c.z+F,-c.y+Ym]},
-      yesoC:{box:'cajaC',q:qx(Math.PI),p:c=>[c.x,F+PL.plinth-c.y,-c.z]},yesoCuerpo:{box:'cajaCuerpo',q:qx(Math.PI),p:c=>[c.x,F+PM.Ytop-c.y,-c.z]}};
+      yesoC:{box:'cajaC',q:qx(Math.PI),p:c=>[c.x,F+PL.plinth-c.y,-c.z]},yesoCuerpo:{box:'cajaCuerpo',q:qx(Math.PI),p:c=>[c.x,F+PM.Ytop-c.y,-c.z]},
+      yesoCol:{box:'cajaCol',q:new THREE.Quaternion(),p:c=>[c.x,F+c.y-PM.Ytop,c.z]}};   // el collarín se cuela como se usa (la cara de abajo en la tabla)
     const ease=u=>u<=0?0:u>=1?1:u*u*(3-2*u); let T=opt.explode??1, U=1;
     const apply=()=>{ const su=ease(Math.max(0,(U-0.25)/0.75)), wo=ease(Math.min(1,U*4))*WOPEN; WL.forEach(w=>w.m.position.copy(w.home).addScaledVector(w.d,wo)); parts.forEach(p=>{ const use=p.home.clone().addScaledVector(p.v,T), PS=POSE[p.key], g=boxOf[PS.box];
         if(!g){ p.m.position.copy(use); p.m.quaternion.identity(); return; }
@@ -3332,6 +3381,31 @@
     L.push(`  Total: ${nt} tabla${nt>1?'s':''}, unos ${(area/1e6).toFixed(2).replace('.',',')} m² de melamina.`);
     if(B.cuts.length) L.push('  Cómo van, vistas desde arriba (el alto de cada tabla es la segunda medida):','      +=================A=================+','      | B                               B |','      | B          piso o modelo        B |','      | B                               B |','      +=================A=================+',`  En cada esquina una escuadra por fuera${PM.knock.clips?'':' (de tu juego de 8)'} y alrededor de las escuadras una cinta de amarre con trinquete de 25 mm.`);
     return L; }
+  // NÚMEROS DE LA MARCA (assets/img/numeros/numeros.js, pincel japonés): trazado SVG (M, L, Q, C, Z absolutos) → contornos
+  // planos; anidado por paridad (par = relleno) como el logotipo. Fichas de número para el molde de yeso: tamaño UNIVERSAL en
+  // mm de la caja (NUM.h = alto de la cifra), así un solo juego sirve para todos los moldes; chaflán en las esquinas de arriba
+  // de la ficha y de su hueco, para que solo entre derecha.
+  const NUM={h:8,w:8,th:11,ch:1.6,clr:0.15,gap:1.2,base:2};
+  function pathLoops(d,sc,ox,oy){ const t=d.match(/[MLQCZ]|-?\d*\.?\d+(?:e-?\d+)?/gi)||[], loops=[]; let i=0, cmd='', cur=null, P=[0,0];
+    const num=()=>parseFloat(t[i++]), add=(x,y)=>{ const q=[ox+x*sc,oy+y*sc], l=cur[cur.length-1]; if(!l||Math.hypot(q[0]-l[0],q[1]-l[1])>1e-4) cur.push(q); P=[x,y]; };
+    while(i<t.length){ if(/[MLQCZ]/i.test(t[i])) cmd=t[i++].toUpperCase();
+      if(cmd==='M'){ cur=[]; loops.push(cur); add(num(),num()); cmd='L'; }
+      else if(cmd==='L') add(num(),num());
+      else if(cmd==='Q'){ const a=P, c1=[num(),num()], e=[num(),num()]; for(let k=1;k<=6;k++){ const u=k/6, v=1-u; add(v*v*a[0]+2*v*u*c1[0]+u*u*e[0],v*v*a[1]+2*v*u*c1[1]+u*u*e[1]); } }
+      else if(cmd==='C'){ const a=P, c1=[num(),num()], c2=[num(),num()], e=[num(),num()]; for(let k=1;k<=8;k++){ const u=k/8, v=1-u; add(v*v*v*a[0]+3*v*v*u*c1[0]+3*v*u*u*c2[0]+u*u*u*e[0],v*v*v*a[1]+3*v*v*u*c1[1]+3*v*u*u*c2[1]+u*u*u*e[1]); } }
+      else if(cmd==='Z'){ if(cur&&cur.length>1&&Math.hypot(cur[0][0]-cur[cur.length-1][0],cur[0][1]-cur[cur.length-1][1])<1e-4) cur.pop(); cmd=''; }
+      else i++; }
+    return loops.filter(L=>L.length>=3); }
+  function nestLoops(Ls){ const inside=(p,L)=>{ let q=false; for(let i=0,j=L.length-1;i<L.length;j=i++){ const a=L[i], b2=L[j]; if((a[1]>p[1])!==(b2[1]>p[1])&&p[0]<(b2[0]-a[0])*(p[1]-a[1])/(b2[1]-a[1])+a[0]) q=!q; } return q; };
+    const area=L=>Math.abs(L.reduce((s2,p,i)=>{ const q=L[(i+1)%L.length]; return s2+p[0]*q[1]-q[0]*p[1]; },0)/2);
+    const par=Ls.map((L,i)=>{ let best=-1,ba=Infinity; Ls.forEach((M2,j)=>{ if(j!==i&&inside(L[0],M2)){ const a2=area(M2); if(a2<ba&&a2>area(L)) { ba=a2; best=j; } } }); return best; });
+    const depth=Ls.map((_,i)=>{ let dd=0,p=par[i]; while(p>=0){ dd++; p=par[p]; } return dd; });
+    return Ls.map((L,i)=>({L,d:depth[i],kids:Ls.filter((_,j)=>par[j]===i)})); }
+  // contornos de la cifra c centrada en (cx, cy) de la caja (y hacia abajo = hacia abajo de la cifra al leerla en la maceta)
+  function digitRegions(c,cx,cy){ const G=(window.LEGADO_NUMEROS||{})[c]; if(!G) return []; const sc=NUM.h/790, gx=(G.bb[0]+G.bb[2])/2;
+    return nestLoops(pathLoops(G.d,sc,cx-gx*sc,cy+NUM.h/2)); }
+  // hueco (o ficha, con d < 0) de ancho w y alto h con chaflán en las dos esquinas de arriba (y menor)
+  const slotPoly=(cx,cy,d)=>{ const w=NUM.w/2+d, h=NUM.th/2+d, c=NUM.ch; return [[cx-w+c,cy-h],[cx+w-c,cy-h],[cx+w,cy-h+c],[cx+w,cy+h],[cx-w,cy+h],[cx-w,cy-h+c]]; };
   async function exportPlaster(textOnly){
     if(!last3) return; const out=$('plasterOut'); let THREE=V3&&V3.THREE;
     if(!THREE){ out.textContent='Preparando el molde…'; try{ THREE=await import('three'); }catch(e){ out.textContent='No se pudo generar: hace falta conexión a internet la primera vez.'; return; } }
@@ -3348,7 +3422,7 @@
       PM.one?`El molde de yeso tiene dos piezas: el CUERPO (un bloque con el hueco de toda la maceta, abierto por la boca y por abajo) y el FONDO (patas y logotipo, sobre un zócalo de ${PL.plinth} mm con la silueta del pie que entra en el cuerpo y lo traba). Se imprimen DOS CAJAS, una por pieza: cada caja lleva dentro, en positivo, lo que su pieza debe copiar. Cuelas yeso en la caja, fragua, lo sacas y esa es la pieza. Como la maceta se abre hacia la boca, sale del cuerpo hacia arriba sin partir el molde.`
             :'El molde de yeso tiene tres piezas: las mitades A y B del cuerpo (se abren hacia los lados; con panza o cinturón la maceta no saldría de un bloque de una pieza) y el FONDO (patas y logotipo). Se imprimen DOS CAJAS: la caja A/B, con media maceta, se cuela dos veces (las dos mitades son iguales: la segunda, girada 180°, encaja con la primera por sus llaves), y la caja del fondo una vez. Cada caja lleva dentro, en positivo, lo que su pieza debe copiar.',
       'Las cajas se guardan para hacer más moldes.',
-      `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer) y lleva ${PL.spare} mm de reserva sobre el borde para recortarlo en cuero.`,
+      `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer)${PM.collar?'; la reserva va en el collarín, encima del molde, y el borde se corta al ras del cuerpo.':` y lleva ${PL.spare} mm de reserva sobre el borde para recortarlo en cuero.`}`,
       'Cada STL ya viene orientado para imprimir sin soportes (piso en la cama). Los STL están en milímetros.','Impresión: 2 perímetros, 3 capas arriba y abajo y relleno «lightning» al 5 % (en Bambu Studio: ajustes del objeto → patrón de relleno Lightning). El modelo dentro de la caja queda como una cáscara sostenida por columnas ramificadas que el laminador levanta desde el piso solo bajo las superficies: al yeso solo le importa la superficie, y así la caja pesa un tercio menos que con relleno normal.','','PIEZAS IMPRESAS'];
     if(textOnly) L.push('  Las piezas van en el 3MF «molde-yeso-…» que se descargó junto con este archivo: ábrelo con doble clic en Bambu Studio; ya trae una placa por cama y el relleno y las paredes de cada pieza.');
     rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm · ${r.ov<100?'sin soportes':'voladizo de '+mmc(r.ov/10)+' cm²'}${r.fits?'':'  ← no cabe en la '+s.bedName+': imprímela en dos trozos (herramienta Cortar)'}`));
@@ -3364,13 +3438,24 @@
         `  3. Vuelve a armar la caja (casco en su anillo, paredes y vinchas), jabón de moldes y repite con otros ${pour('cajaAB')} L: sale la MITAD B, idéntica. Girada 180° encaja con la A: los topes de una entran en los huecos de la otra.`,
         `  4. Caja C: igual con ${pour('cajaC')} L. Sale el FONDO. Para usarlo se voltea sobre su lado largo: los huecos de las patas y el logotipo quedan hacia arriba, y el logotipo se lee derecho.`]),
       `  ${PM.one?4:5}. Deja secar las piezas 7–10 días en lugar ventilado (o 2–3 días a 40 °C) antes de usarlas: el yeso húmedo no absorbe la barbotina.`,
+      ...(PM.collar?[`  Collarín: arma su caja sobre una tabla lisa (melamina, vidrio o fórmica; sin piso impreso), con la ranura de abajo de las paredes rellena de plastilina, y pon al centro el núcleo del embudo, suelto, con la boca angosta abajo. Jabón de moldes y cuela ${pour('cajaCol')} L de yeso hasta el borde de las paredes (a ras de la pestaña del núcleo). Al fraguar, quita las paredes, levanta el collarín con el núcleo dentro y empuja el núcleo desde abajo: sale por el lado ancho.`]:[]),
+      ...(PM.numInfo?[`  Número: antes de colar el fondo pon las fichas «${PM.numInfo.txt}» del «Juego de números» en los huecos del zócalo (solo entran derechas). Cambia el número en cada molde nuevo y anótalo: cada maceta lleva en la base el número del molde que la hizo.`]:[]),
+      '','PREPARAR Y CONTROLAR LA BARBOTINA (valores típicos de una barbotina de colada de gres o loza; confírmalos con tu proveedor)',
+      '  - Densidad: 1,75–1,80 g/ml. Pésala: 100 ml (con una jeringa o una probeta, sobre una balanza de cocina) deben pesar 175–180 g. Más liviana: la pared crece lento, queda delgada y la pieza se deforma; más pesada: espesa, atrapa aire y deja el fondo grueso.',
+      '  - Fluidez: se logra con defloculante (silicato de sodio, solo o con carbonato de sodio), no con agua. Añádelo de a gotas, unos 0,1–0,3 % del peso de la arcilla seca, mezclando, hasta que fluya como crema líquida. Prueba simple: mete una espátula y sácala; debe cubrir parejo y escurrir en un hilo continuo, sin grumos. Si te pasas se pone gelatinosa y la pieza se pega al molde.',
+      '  - Mezcla con taladro y paleta 10–15 min a velocidad baja, sin hacer remolino (mete aire). Pásala por un tamiz de malla 80 (o una media de nylon), déjala reposar 24 h tapada y vuelve a mezclar 5 min antes de colar; corrige la densidad si hace falta.',
+      '  - La barbotina que vacías del molde se recupera: tamízala, devuélvela al balde y vuelve a medir la densidad.',
+      '  - Si algo falla: cuela lento → molde húmedo (déjalo secar) o barbotina liviana; poros o burbujas → aire: mezcla lento, tamiza y deja reposar, y vierte en un chorro continuo contra la pared; grietas en el borde o el fondo → secado desparejo (tapa la pieza) o exceso de defloculante; se pega al molde → molde nuevo (las primeras 2–3 coladas pueden pegarse), molde muy seco y frío, o exceso de defloculante.',
+      '  - Moldes: 2–3 coladas al día como máximo por molde, dejándolo secar entre una y otra en un lugar ventilado. No uses jabón en el molde de colar (tapa los poros): el jabón de moldes es solo para las cajas.',
       '','B. COLAR UNA MACETA (cada vez)',
       PM.one?'  1. Pon el fondo con los huecos hacia arriba y el cuerpo encima: el zócalo del fondo entra en el hueco de abajo del cuerpo y lo centra; aprieta con dos correas. La boca de la maceta queda arriba.'
             :'  1. Pon el fondo con los huecos hacia arriba y cierra encima las mitades A y B: el zócalo del fondo entra entre las dos y las centra, los topes de B entran en los huecos de A y, a lo largo de los dos costados, la lengüeta en V de cada mitad entra en la ranura de la otra (junta en laberinto: la barbotina no se filtra). Aprieta con dos correas; si la junta llega a llorar, pasa un dedo de barbotina espesa por fuera y deja que endurezca antes de llenar. La boca de la maceta queda arriba.',
-      '  2. Llena de barbotina hasta el borde de la reserva. Rellena a medida que baje el nivel.',
+      ...(PM.collar?['  1b. Pon el collarín encima, con el embudo abierto hacia arriba, centrado sobre la boca (por abajo es casi 1 mm más ancho que la boca: no tapa el borde).']:[]),
+      PM.collar?'  2. Llena de barbotina hasta arriba del collarín. Rellena a medida que baje el nivel.':'  2. Llena de barbotina hasta el borde de la reserva. Rellena a medida que baje el nivel.',
       `  3. Espera ≈ ${castMin(s)} min para ${String(s.pCast).replace('.',',')} mm de pared y fondo cocidos (${String(Math.round(s.pCast*s.pk*10)/10).replace('.',',')} mm en crudo; el grosor crece con la raíz del tiempo: prueba una vez con tu barbotina y ajusta). Vacía la barbotina volcando el molde despacio y déjalo boca abajo 10 min para que escurra.`,
-      PM.one?'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo). Recorta la reserva por la marca del borde, perfora los orificios (ver abajo) y alisa con esponja.'
-            :'  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, abre el molde: quita las correas, separa las mitades y levanta la maceta del fondo. Recorta la reserva por la marca del borde, perfora los orificios (ver abajo) y alisa con esponja.',
+      ...(PM.collar?['  3b. Cuando la barbotina que quedó en el collarín pierda el brillo (unos 10–20 min después de vaciar), levanta el collarín. El sobrante queda parado sobre el molde: córtalo al ras de la cara de arriba del molde con una tarjeta plástica o una cuchilla apoyada plana en el yeso, girando el molde (sobre un torno de decorar es más fácil). Así el borde sale a la medida exacta, sin recortarlo después.']:[]),
+      PM.one?`  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, quita las correas, separa el fondo y saca la maceta del cuerpo hacia arriba (si se resiste, empújala con suavidad desde abajo por el hueco del fondo).${PM.collar?'':' Recorta la reserva por la marca del borde'}, perfora los orificios (ver abajo) y alisa con esponja.`
+            :`  4. A las 1–2 h, cuando la pared se separa del yeso y está en cuero, abre el molde: quita las correas, separa las mitades y levanta la maceta del fondo.${PM.collar?'':' Recorta la reserva por la marca del borde'}, perfora los orificios (ver abajo) y alisa con esponja.`,
       ...(PM.holes?[`     Perforar: el fondo trae por fuera un granito en el centro de cada orificio; con la maceta boca abajo, corta en cada granito con un sacabocados o un tubo de cobre afilado, girándolo sin empujar fuerte: ${PM.holes.nd} ${PM.holes.nd>1?'drenajes':'drenaje'} de Ø ${String(Math.round(PM.holes.dr*2)/10).replace('.',',')} cm y ${PM.holes.nw} agujeros de alambre de Ø ${String(Math.round(PM.holes.wr*2)/10).replace('.',',')} cm (medidas en crudo).`]:[]),
       '  5. Seca lento y parejo (tapado los primeros dos días) y cuece según tu barbotina. Deja secar el molde entre coladas. Aguanta 40–80 macetas.');
     if(PM.sprig) L.push('','C. RELIEVES CON MOLDE DE SPRIG',`  Caja de sprig «${PM.sprig.name}»: relieve de ${Math.round(PM.sprig.W)} × ${Math.round(PM.sprig.Hh)} mm y ${String(PM.sprig.d).replace('.',',')} mm de alto${PM.sprig.curved?', curvado a la pared de la maceta':''}${PM.sprig.frame&&PM.sprig.frame!=='none'?', con marco':''}.`,
@@ -3698,7 +3783,7 @@
       R.push(['Pared y fondo',mm(e)+' (los da el tiempo de colado: ≈ '+castMin(s)+' min)']);
       util(e,e,s.flare); holesRow(e,k);
       sec('El molde (no es el espacio para raíces)');
-      R.push(['Qué es','el hueco del molde mide la maceta en crudo, antes de cocer: el yeso la copia por fuera y la arcilla encoge al secar y cocer'],['Encogimiento',Math.round((1-1/k)*100)+' % (todo se agranda × '+k.toFixed(3).replace('.',',')+')'],['Hueco · largo × ancho',dimTxt(s.L*k,s.W*k)+' cm'],['Hueco · alto',cm(s.H*k)+' cm, más 1,2 cm de reserva'],['Barbotina para llenarlo','≈ '+pct(soil(s.L*k,s.W*k,(s.H-s.feet)*k)*1.05)+' L (se recupera casi toda al vaciar)']);
+      R.push(['Qué es','el hueco del molde mide la maceta en crudo, antes de cocer: el yeso la copia por fuera y la arcilla encoge al secar y cocer'],['Encogimiento',Math.round((1-1/k)*100)+' % (todo se agranda × '+k.toFixed(3).replace('.',',')+')'],['Hueco · largo × ancho',dimTxt(s.L*k,s.W*k)+' cm'],['Hueco · alto',cm(s.H*k)+(s.pCollar==='integrada'?' cm, más 1,2 cm de reserva':' cm (la reserva va en el collarín de 2,5 cm)')],['Barbotina para llenarlo','≈ '+pct(soil(s.L*k,s.W*k,(s.H-s.feet)*k)*1.05)+' L (se recupera casi toda al vaciar)']);
       tree(); return R; }
     if(s.printable){ sec('La maceta impresa');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go(); R.push(['Pared',mm(s.t)],['Fondo',mm(s.pBase)]);
@@ -3915,7 +4000,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,escKit:{infill:40,walls:5},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -4157,6 +4242,9 @@
     const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&recOf(key); return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
     const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F,set:pieceOpts({key},o)}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
+    if(kit==='num'){ const PMk=buildPlaster(THREE,s,b), sets=Math.max(2,+s.pNumD||2);
+      for(let j=0;j<sets;j++){ const T=[]; '0123456789'.split('').forEach((c,q)=>{ const U=PMk.numTile(c), dx=(q%5)*(NUM.w+4), dy=Math.floor(q/5)*(NUM.th+4); for(let i=0;i<U.length;i+=3) T.push(U[i]+dx,U[i+1]+dy,U[i+2]); }); add(`Fichas de número 0–9, juego ${j+1} de ${sets}`,T,'numKit'); }
+      return out; }
     if(kit){ const U=buildPlaster(THREE,s,b).escUnit; for(let i=0;i<8;i++) add(`Escuadra de esquina ${i+1} de 8 (de pie)`,U,'escKit'); return out; }
     if(s.mode==='plaster'){ await prepareSeal(s); buildPlaster(THREE,s,b).parts.forEach(pt=>add(pt.name,plasterPrintTris(pt),pt.key)); return out; }
     if(s.mode==='mold'){ await prepareSeal(s); buildMold(THREE,s,b).parts.filter(pt=>!pt.noPrint).forEach(pt=>add(pt.name,moldPrintTris(pt,s),pt.key)); return out; }
@@ -4185,8 +4273,8 @@
   async function export3MF(outId,kit){
     if(!last3) return; await ensureAuto(t=>{ $(outId).textContent=t; }); const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
-    const P=await exportPieces(s,b,kit), what=kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?'molde-yeso':s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
-    const nm=kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const P=await exportPieces(s,b,kit), what=kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?'molde-yeso':s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
+    const nm=kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
     if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
@@ -4198,7 +4286,7 @@
   { let tm=0; $('spText').addEventListener('input',()=>{ clearTimeout(tm); tm=setTimeout(()=>{ SPRIG_CACHE.clear(); sprigPreview(); render(); },400); }); }
   sprigPreview();
   $('spFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ SPRIG.custom=im; SPRIG.customName=f.name.replace(/\.[^.]+$/,''); SPRIG.ver++; SPRIG_CACHE.clear(); $('spMotif').value=/svg/i.test(f.type)||/\.svg$/i.test(f.name)?'svg':'img'; render(); }; im.onerror=()=>{ $('plasterOut').textContent='No se pudo leer el archivo: usa un SVG o una imagen PNG/JPG.'; }; im.src=URL.createObjectURL(f); });
-  $('btnPlaster3mf').addEventListener('click',()=>export3MF('plasterOut')); $('btnEscKit').addEventListener('click',()=>export3MF('plasterOut',true)); $('btnPlaster').addEventListener('click',exportPlaster);
+  $('btnPlaster3mf').addEventListener('click',()=>export3MF('plasterOut')); $('btnEscKit').addEventListener('click',()=>export3MF('plasterOut',true)); $('btnNumKit').addEventListener('click',()=>export3MF('plasterOut','num')); $('btnPlaster').addEventListener('click',exportPlaster);
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
@@ -4211,7 +4299,7 @@
   $('v3play').addEventListener('click',()=>{ const ud=V3&&V3.pot&&V3.pot.userData; if(!ud||!ud.setProc) return; const t0=performance.now(); $('v3exp').value=1; ud.setExplode(1);
     const step=()=>{ const dt=(performance.now()-t0)/1000; if(dt<3){ const u=dt/3; $('v3proc').value=u; ud.setProc(u); } else if(dt<4.5){ $('v3proc').value=1; ud.setProc(1); const t=1-(dt-3)/1.5; $('v3exp').value=t; ud.setExplode(t); } else { $('v3exp').value=0; ud.setExplode(0); return; } requestAnimationFrame(step); }; step(); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'||MODE==='skin'?'cement':MODE)));
-  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','moldClip','printer','bedXY','skinT','pShrink','pThick','pSplit','pCast','pDeco','pModel','pLipP','pFloor','pWalls','pEscOwn','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
+  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','moldClip','printer','bedXY','skinT','pShrink','pThick','pSplit','pCast','pDeco','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
@@ -4240,7 +4328,7 @@
   window.addEventListener('afterprint',()=>fit(true));
   sel.value='chokkan'; applyPreset('chokkan');
   // Estado por URL: ?preset=chokkan&L=28.6&…&mode=mold (cualquier parámetro con el id de un campo), para volver a un diseño o compartirlo
-  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','moldClick','moldClip'];
+  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','moldClick','moldClip'];
   (function applyUrl(){ const q=new URLSearchParams(location.search); if(![...q.keys()].some(k=>k==='preset'||URL_F.includes(k)||k==='mode')) return;
     if(q.get('preset')&&q.get('preset')!=='custom'&&[...sel.options].some(o=>o.value===q.get('preset'))){ sel.value=q.get('preset'); applyPreset(q.get('preset')); }
     URL_F.forEach(id=>{ if(!q.has(id)||!$(id)) return; const el=$(id); if(el.type==='checkbox') el.checked=q.get(id)==='1'; else el.value=q.get(id); el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); });

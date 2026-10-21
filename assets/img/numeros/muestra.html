@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Números de Legado Bonsai</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Zen+Kaku+Gothic+New&display=swap">
+<style>
+  :root{--tinta:#192010;--verde:#1E3328;--dorado:#CEB88A;--crema:#EDE3D2;--kraft:#C9A877;--papel:#F6F1E7}
+  body{margin:0;padding:24px 16px 40px;background:var(--papel);color:var(--tinta);font-family:'Zen Kaku Gothic New',sans-serif}
+  main{max-width:960px;margin:0 auto;display:grid;gap:28px}
+  h1{font-family:'Shippori Mincho',serif;font-weight:600;font-size:26px;margin:0}
+  h1 small{font-size:14px;letter-spacing:.2em;color:#6b6a55;margin-left:10px}
+  p{margin:4px 0 0;max-width:65ch;line-height:1.55;font-size:14px}
+  .fila{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;padding:18px;border-radius:6px}
+  .fila svg{height:72px;width:auto}
+  .t{background:var(--crema);color:var(--tinta)} .v{background:var(--verde);color:var(--dorado)} .k{background:var(--kraft);color:var(--tinta)}
+  .usos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .uso{background:#fff;border:1px solid #e1d8c6;border-radius:6px;padding:14px;display:grid;gap:8px;justify-items:center}
+  .uso b{font-size:13px;justify-self:start}
+  .hanko{width:120px;height:120px;border:5px solid #b3362b;border-radius:10px;color:#b3362b;display:flex;align-items:center;justify-content:center;gap:2px}
+  .hanko svg{height:64px;width:auto}
+  .base{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e6dccb,#c9bba3);display:flex;align-items:center;justify-content:center;color:#a8987d;box-shadow:inset 0 0 0 10px #d8cbb4}
+  .base svg{height:34px;width:auto;filter:drop-shadow(1px 1px 0 #f4ecdd) drop-shadow(-1px -1px 0 #9c8b70)}
+  small.n{font-size:12px;color:#6b6a55}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Números de Legado Bonsai<small>数字 · SŪJI</small></h1>
+    <p>Del 0 al 9 con trazo de pincel japonés: entrada gruesa, giro con impulso y salida afilada, como el pincel sobre washi. Contornos de la tipografía Potta One (Font Zone 108, licencia SIL OFL 1.1), convertidos a vectores para usarlos en el molde, las etiquetas y la web. Archivos: <code>numero-0.svg</code> … <code>numero-9.svg</code> (tinta), <code>numeros.svg</code> (símbolos que toman el color del texto) y <code>numeros.js</code> (trazados para dibujar o extruir).</p>
+  </header>
+  <section class="fila t" id="f1"></section>
+  <section class="fila v" id="f2"></section>
+  <section class="fila k" id="f3"></section>
+  <section class="usos">
+    <div class="uso"><b>Molde n.º 07 en la base</b><div class="base" id="u1"></div><small class="n">En relieve sobre el fondo de la maceta, junto al logotipo</small></div>
+    <div class="uso"><b>Sello (hanko)</b><div class="hanko" id="u2"></div><small class="n">Para etiquetas y certificados</small></div>
+    <div class="uso"><b>Ejemplar LB-0128</b><div id="u3" style="color:var(--verde);display:flex;align-items:flex-end;gap:2px"></div><small class="n">Numeración de árboles y lotes</small></div>
+  </section>
+</main>
+<script src="numeros.js"></script>
+<script>
+  const N=window.LEGADO_NUMEROS;
+  const svg=(c,h)=>{ const g=N[c], x0=g.bb[0]-20, w=g.bb[2]-g.bb[0]+40; return `<svg viewBox="${x0} -800 ${w} 860" style="height:${h}px" aria-label="${c}"><path fill="currentColor" d="${g.d}"/></svg>`; };
+  const fila='0123456789'.split('').map(c=>svg(c,72)).join('');
+  ['f1','f2','f3'].forEach(id=>document.getElementById(id).innerHTML=fila);
+  document.getElementById('u1').innerHTML=svg('0',34)+svg('7',34);
+  document.getElementById('u2').innerHTML=svg('2',64)+svg('1',64);
+  document.getElementById('u3').innerHTML='<span style="font-family:Shippori Mincho,serif;font-size:30px;margin-right:6px">LB-</span>'+'0128'.split('').map(c=>svg(c,44)).join('');
+</script>
+</body>
+</html>
