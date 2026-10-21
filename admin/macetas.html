@@ -3164,12 +3164,28 @@
     // --- cajas que no caben en la cama de la impresora: trozos iguales con espigas de unión (como en el molde rígido).
     //     splitToFit trabaja en coordenadas de maceta (Y arriba, corta por x o z): se le pasa (x, z_impresión, y) con 'ground'
     //     y con el lado largo en x (si el largo va en y, la pieza se gira 90° antes): el corte por x es el camino probado
+    // PESTAÑAS EXTERIORES DE LAS CAJAS (como las cajas de referencia unidas con pinzas): si una caja no cabe y se parte, el corte
+    // va por un plano libre de vértices y a cada lado, por fuera de las dos paredes largas, una pestaña de BXF.t mm × BXF.w mm a
+    // todo lo alto; la del trozo de la izquierda lleva una lengüeta en V y la del otro su ranura: al apretarlas con vinchas las
+    // paredes quedan al ras (sin escalón que el yeso copie) y la junta cerrada.
+    const BXF={t:5,w:12,v:2,h:1.6,c:0.15,e:12};
+    // Si la caja ya llena la cama a lo ancho, las pestañas no pueden salir hacia afuera: van como OREJAS de BXF.e mm por encima
+    // del borde de cada pared (sobre el grosor de la pared: no tocan el yeso, que llega a ras del borde).
+    const boxFlanges=(T,c,yLo,yHi,zTop,side,room)=>{ const A=adder(), out=room>=8, W=out?Math.min(BXF.w,room):PL.wall-0.6, v=out?BXF.v:1.4, h=out?BXF.h:1.1;
+      [yLo,yHi].forEach((yw,si)=>{ const sy=si?1:-1, y0=out?yw-sy*0.4:yw-sy*(PL.wall-0.3), y1=out?yw+sy*W:yw, ym=(y0+y1)/2;
+        const P=side<0?[[c-BXF.t,y0],[c,y0],[c,ym-sy*v],[c+h,ym],[c,ym+sy*v],[c,y1],[c-BXF.t,y1]]
+                     :[[c,y0],[c,ym-sy*(v+BXF.c)],[c+h+BXF.c,ym],[c,ym+sy*(v+BXF.c)],[c,y1],[c+BXF.t,y1],[c+BXF.t,y0]];
+        prism(A,P,[],out?0:zTop-0.4,out?zTop:zTop+BXF.e,id); }); for(let i=0;i<A.T.length;i+=3) T.push(A.T[i],A.T[i+2],A.T[i+1]); return out; };   // impresión (x, y, z) → coordenadas del corte (x, z, y)
     const dowR=[]; for(let round=0;round<2;round++) for(let i=0;i<parts.length;i++){ const pt=parts[i], Tp=plasterPrintTris(pt), Tq=new Array(Tp.length), bb=bbox(Tp), rot=(bb.mx[1]-bb.mn[1])>(bb.mx[0]-bb.mn[0]);
+      const isBox=/^caja/.test(pt.key)&&!rot&&round===0&&pt.piece==null&&!cascoFits(Tp,s); if(isBox&&pt.cutAt==null) pt.cutAt=freeCut(Tp);
       for(let q=0;q<Tp.length;q+=3){ if(rot){ Tq[q]=Tp[q+1]; Tq[q+1]=Tp[q+2]; Tq[q+2]=-Tp[q]; } else { Tq[q]=Tp[q]; Tq[q+1]=Tp[q+2]; Tq[q+2]=Tp[q+1]; } }
       const sc=seal?[seal.c[0]*k,-seal.c[1]*k]:null, sw=seal?seal.w*k:0, sh=seal?(seal.h||seal.w)*k:0, sl=pt.key==='cajaC'&&seal?(rot?{c:[sc[1],-sc[0]],w:sh,h:sw}:{c:sc,w:sw,h:sh}):null;
       const sp=splitToFit(THREE,{T:Tq,print:'ground',key:sl?'feet':'base',name:pt.name,file:pt.file,axisOnly:true,...(pt.cutAt!=null&&!rot?{cutAt:pt.cutAt,axis:0,forceN:!!pt.clipFl}:{})},s,sl); if(!sp) continue;
+      let flOut=false; if(isBox&&sp.parts.length===2){ const wy=bb.mx[1]-bb.mn[1], wx=Math.max(...sp.parts.map(pc=>{ let a=1e9,b2=-1e9; for(let q=0;q<pc.T.length;q+=3){ a=Math.min(a,pc.T[q]); b2=Math.max(b2,pc.T[q]); } return b2-a; }))+BXF.h+0.2;
+          const room=Math.max(Math.min(s.bedX,s.bedY)-1-wy,wx<=Math.min(s.bedX,s.bedY)-1?Math.max(s.bedX,s.bedY)-1-wy:0)/2; sp.parts.forEach((pc,q)=>{ flOut=boxFlanges(pc.T,pt.cutAt,bb.mn[1],bb.mx[1],bb.mx[2],q?1:-1,room); }); }
       const pcs=sp.parts.map(pc=>Object.assign({},pt,{T:pc.T,name:pc.name,file:pc.file,piece:pc.piece,cutAt:null,map:rot?(a,b2,c)=>[-c,a,b2]:(x,y,z)=>[x,z,y]})); parts.splice(i,1,...pcs); i+=pcs.length-1; dowR.push(...sp.dowels);
-      notes.push(pt.clipFl&&pt.cutAt!=null&&!rot?`${pt.name}: no cabe en la ${s.bedName}, va en 2 trozos con pestañas de unión por dentro (4 mm, sin agujeros) a cada lado del corte: junta los trozos y apriétalos con 3 o 4 pinzas tipo binder (vinchas) por la cara abierta; un punto de cianoacrilato es opcional. Las pestañas no tocan la cara que copia el yeso.`:sp.note); }
+      if(isBox&&sp.parts.length===2) notes.push(flOut?`${pt.name}: va en 2 trozos con pestañas por fuera de las paredes a todo lo alto (lengüeta en V de un lado y ranura del otro, así las paredes quedan al ras): júntalos y apriétalos con 2 o 3 pinzas tipo binder (vinchas) por pestaña. Las espigas y un punto de pegamento en el piso son opcionales.`:`${pt.name}: va en 2 trozos; la caja ya llena la cama a lo ancho, así que las pestañas de unión van como orejas de ${BXF.e} mm sobre el borde de cada pared (lengüeta en V de un lado y ranura del otro: las paredes quedan al ras). Júntalos con las espigas, aprieta las orejas con una pinza tipo binder (vincha) cada una y un punto de pegamento en el piso.`);
+      else notes.push(pt.clipFl&&pt.cutAt!=null&&!rot?`${pt.name}: no cabe en la ${s.bedName}, va en 2 trozos con pestañas de unión por dentro (4 mm, sin agujeros) a cada lado del corte: junta los trozos y apriétalos con 3 o 4 pinzas tipo binder (vinchas) por la cara abierta; un punto de cianoacrilato es opcional. Las pestañas no tocan la cara que copia el yeso.`:sp.note); }
     if(dowR.length){ const A=adder(), dk=[...dowR,...new Set(dowR)].sort((a,b2)=>b2-a);
       dk.forEach((r,i)=>prism(A,circle([3+(i%8)*(DOWEL.dia+5),3+Math.floor(i/8)*(DOWEL.dia+5)],r-0.2),[],0,DOWEL.len,id));
       parts.push({key:'kit',name:'Espigas de unión de los trozos',file:'yeso-espigas',T:A.T,map:id,color:0x888888}); }
