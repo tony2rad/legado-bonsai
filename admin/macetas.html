@@ -337,7 +337,7 @@
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="moldClick" checked><span>Clic y sellado de la placa: ranura de sellado en el canto de los gajos (la placa lleva una lengüeta que la centra y cierra la junta) y ranura exterior donde hacen clic cuatro pestillos de la placa. Desmárcalo para usar gajos ya impresos sin ranuras.</span></label>
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="moldClip" checked><span>Perfiles de cierre en cola de milano: las pestañas de los gajos engordan 2 mm en el borde y un perfil en C impreso se desliza sobre cada junta y las aprieta a todo lo largo (alinea y sella; los pernos quedan de seguro).</span></label>
         <label class="f"><span>Base con núcleo</span><select id="moldBase"><option value="cuartos" selected>4 cuartos con piso (se embonan)</option><option value="mitades">2 mitades con piso</option><option value="entera">Entera</option></select><small class="hint">Partida: impresiones cortas en vez de un bloque; espigas de unión en las juntas, los gajos atornillados la cierran y el drenaje y los alambres son espigas que traban los trozos.</small></label>
-        <label class="f"><span>Placa de patas</span><select id="moldPlate"><option value="calada" selected>Calada: marco, copas de patas y medallón</option><option value="maciza">Entera (fondo liso del molde)</option></select><small class="hint">Calada: el fondo de la maceta se alisa con espátula apoyada en el marco; ahorra la mayor parte de la placa.</small></label>
+        <label class="f"><span>Placa de patas</span><select id="moldPlate"><option value="maciza" selected>Entera: base cerrada y a nivel, con respiraderos</option><option value="calada">Calada: más liviana, el fondo se alisa con espátula</option></select><small class="hint">Entera: la base sale plana y el mortero no se sale; por dentro el laminador la rellena con una malla ligera. Calada: ahorra filamento, pero el fondo se alisa a mano por las ventanas.</small></label>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnMold" type="button">STL sueltos (ZIP)</button><button class="btn ghost" id="btnLink" type="button">Enlace a este diseño</button></div>
       <div id="moldOut" class="mold-out"></div>
@@ -2502,16 +2502,28 @@
           bars(wins[0],cen2D(med),s.L>=s.W?[[0,1],[0,-1]]:[[1,0],[-1,0]]); }
         notes.push(`Placa calada: marco de ${calada.RW} mm, ${wins.length===1?'una ventana':wins.length+' ventanas'}${calada.t[0]||calada.t[1]?' (corrida '+Math.round(Math.hypot(calada.t[0],calada.t[1]))+' mm para que quepa el sello)':''}, ${cups.length?cups.length+' copas de patas, ':''}${band.length?band.length+' patas dentro del macizo, ':''}${med?'medallón con el sello':sealBand?'sello tallado en el macizo':'sin sello'}. El fondo de la maceta se alisa con espátula apoyada en el marco.`);
       }
+      // RESPIRADEROS de la placa entera (por defecto desde que el usuario coló con la calada y el mortero se salía por las ventanas,
+      // dejando la base desnivelada): con la base cerrada, el aire y el mortero que sobra salen por 2 o 3 agujeros de Ø 4 mm a lo
+      // largo del eje largo, lejos de las patas (6 mm), del logotipo, de los orificios de drenaje y alambre y del faldón. Medido en
+      // Bambu (rectangular 28,6 × 20,1 × 9): entera con lightning 201 g y 4 h 26; una piel de 1,2 mm con rejilla dibujada cada 25 mm
+      // salía peor (251 g y 6 h 05): el relleno lightning ya es esa malla bajo la piel. La calada abierta: 125 g y 3 h 04.
+      const vts=[]; if(!calada){ const fin=ringC(xs+CLR-12,SK), avoid=fh.map(Q=>offLoop(Q,6)), hp=[...P.drains,...P.wires];
+        let sb=null; if(seal){ sb=[1e9,1e9,-1e9,-1e9]; seal.regions.forEach(r=>r.L.forEach(([x,z])=>{ sb[0]=Math.min(sb[0],x-6); sb[1]=Math.min(sb[1],z-6); sb[2]=Math.max(sb[2],x+6); sb[3]=Math.max(sb[3],z+6); })); }
+        const okp=p=>pip(fin,p)&&!avoid.some(O=>pip(O,p))&&!(sb&&p[0]>sb[0]&&p[0]<sb[2]&&p[1]>sb[1]&&p[1]<sb[3])&&hp.every(h=>Math.hypot(p[0]-h[0],p[1]-h[1])>10)&&vts.every(v=>Math.hypot(p[0]-v[0],p[1]-v[1])>25);
+        const lng=s.L>=s.W, Lh=(lng?s.L:s.W)/2, tg=[[0,0],[-0.45*Lh,0],[0.45*Lh,0]].map(([a,b2])=>lng?[a,b2]:[b2,a]);
+        tg.forEach(t=>{ let best=null, bd=1e9; for(let dx=-40;dx<=40;dx+=4) for(let dz=-40;dz<=40;dz+=4){ const p=[t[0]+dx,t[1]+dz], d=Math.hypot(dx,dz); if(d<bd&&okp(p)){ bd=d; best=p; } } if(best) vts.push(best); }); }
+      const vh=vts.map(v=>circle(v,2,20));
+      if(!calada&&ft>0) notes.push(`Placa entera: la base de la maceta sale plana y a nivel (el laminador la rellena por dentro con una malla ligera, lightning). ${vts.length?`${vts.length} respiradero${vts.length>1?'s':''} de Ø 4 mm dejan salir el aire y el mortero que sobra; las puntitas se cortan al desmoldar.`:'No hay sitio para respiraderos: el aire sale por los huecos de las patas.'}`);
       if(calada){ }
       else if(seal&&s.sealMode==='up'){
         // en relieve sobre la maceta: el logotipo va hundido en la placa
-        prism(A,lo,fh,y0,ft-dp,XZ);
-        prism(A,lo,[...fh,...seal.regions.filter(r=>r.d===0).map(r=>r.L)],ft-dp-0.2,ft,XZ);   // 0,2 mm dentro de la capa de abajo: sin caras coincidentes
+        prism(A,lo,[...fh,...vh],y0,ft-dp,XZ);
+        prism(A,lo,[...fh,...vh,...seal.regions.filter(r=>r.d===0).map(r=>r.L)],ft-dp-0.2,ft,XZ);   // 0,2 mm dentro de la capa de abajo: sin caras coincidentes
         seal.regions.filter(r=>r.d%2===1).forEach(r=>prism(A,r.L,r.kids,ft-dp-0.2,ft,XZ));
       } else if(INS&&ft-PD-y0>=1.5&&!fh.some(P=>P.some(p=>pip(POC,p))||POC.some(p=>pip(P,p)))){
-        prism(A,lo,fh,y0,ft-PD,XZ); prism(A,lo,[...fh,POC],ft-PD-0.2,ft,XZ); insUsed=true;
+        prism(A,lo,[...fh,...vh],y0,ft-PD,XZ); prism(A,lo,[...fh,...vh,POC],ft-PD-0.2,ft,XZ); insUsed=true;
       } else {
-        prism(A,lo,fh,y0,ft,XZ);
+        prism(A,lo,[...fh,...vh],y0,ft,XZ);
         // rehundido en la maceta: el logotipo sobresale de la placa
         if(seal) seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(A,r.L,r.kids,ft-0.3,ft+dp,XZ));
       }
@@ -3597,8 +3609,8 @@
       '  2. Pon la base con el núcleo sobre una mesa nivelada.',
       '  3. Acerca los gajos del molde exterior: el nervio de abajo de cada gajo entra en la ranura del canto de la base.',
       `  4. Une los gajos por sus pestañas: ${hw.bolt?'un perno por cada par de agujeros, arandela a cada lado y tuerca mariposa apretada a mano (la punta de la gota deja pasar el perno aunque la impresión cierre un poco el agujero)':'pasa un pasador por cada par de agujeros y clava su cuña hasta que apriete'}.`,
-      '  5. Mezcla el mortero (1 cemento : 2 arena fina tamizada, fibra, agua 0,45) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa.',
-      ...(s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde${MD.click?', la lengüeta entra en la ranura del canto de los gajos (centra y sella la junta) y los cuatro pestillos hacen clic en la ranura exterior; para soltarla, separa los pestillos con el pulgar':''}. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.${MD.plate==='calada'?' Es calada: alisa el mortero de las ventanas con la espátula apoyada en el marco.':''}`:s.feet>0?(MD.plate==='calada'?'Es calada: llena las copas de las patas con mortero firme y alisa el mortero de las ventanas con una espátula apoyada en el marco y en las copas; esa cara es el fondo de la maceta y el medallón deja el sello.':'Llena los huecos de las patas y enrasa la cara de la placa.'):'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
+      '  5. Mezcla el mortero (1 cemento : 2 arena fina tamizada, fibra, agua 0,45) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa con una regla apoyada en el canto de los gajos: ese es el nivel de la base.',
+      ...(s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde${MD.click?', la lengüeta entra en la ranura del canto de los gajos (centra y sella la junta) y los cuatro pestillos hacen clic en la ranura exterior; para soltarla, separa los pestillos con el pulgar':''}. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.${MD.plate==='calada'?' Es calada: alisa el mortero de las ventanas con la espátula apoyada en el marco.':' La placa entera deja la base plana y a nivel; el aire y el poco mortero que sobra salen por los respiraderos.'}`:s.feet>0?(MD.plate==='calada'?'Es calada: llena las copas de las patas con mortero firme y alisa el mortero de las ventanas con una espátula apoyada en el marco y en las copas; esa cara es el fondo de la maceta y el medallón deja el sello.':'La placa entera deja la base plana y a nivel: llena por arriba los huecos de las patas con mortero firme, apretando con una espátula, y enrásalos; el aire y el poco mortero que sobra salen por los respiraderos (corta las puntitas al desmoldar).'):'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
       `  7. Cubre con plástico. Desmolda a las 24–48 h: quita la placa, ${hw.bolt?'afloja las mariposas y saca los pernos':'saca cuñas y pasadores'}, abre los gajos y levanta la maceta del núcleo.`,
       '  8. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad.']));
     if(MD.notes.length) L.push('','NOTAS',...MD.notes.map(t=>'  - '+t));
@@ -3880,7 +3892,7 @@
       const hf=gh('feet'); if(hf) row('Patas',hf.txt.replace('recomendado ','')+' cm de alto',!hf.bad,'Altura patas',cmT(s.feet));
       if(s.mode==='mold'){
         row('Base con núcleo','4 cuartos con piso',s.moldBase==='cuartos','Base con núcleo',s.moldBase==='entera'?'entera':'2 mitades');
-        if(s.feet>0) row('Placa de patas','calada',s.moldPlate==='calada','Placa de patas','entera');
+        if(s.feet>0) row('Placa de patas','entera (base a nivel)',s.moldPlate!=='calada','Placa de patas','calada');
         row('Unión de los gajos','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
         row('Clic y sellado de la placa','activado (con gajos nuevos)',!!s.moldClick,'Clic y sellado de la placa','desactivado');
         row('Logotipo','rehundido (no se parte)',s.sealMode==='down','Relieve del sello','en relieve');
