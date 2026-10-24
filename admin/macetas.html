@@ -306,11 +306,17 @@
     </details>
     <details class="gloss" id="cajaBox" open style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Piso y paredes para colar el yeso</summary>
-      <p class="mold-lead" style="margin:4px 0 8px">Solo la caja donde se cuela el yeso: un piso con el lomo en V donde montan las paredes, y cuatro paredes con orejas y nervios en las esquinas para tus <b>ganchos de presión</b>. Si el piso no cabe en la cama va en dos tramos con espigas y pestañas para un gancho. Se imprime una vez para la medida que pongas.</p>
+      <p class="mold-lead" style="margin:4px 0 8px">Solo la caja donde se cuela el yeso, armada con tus <b>ganchos de presión</b>. <b>Modular</b>: módulos de pared de 15 cm unidos nervio contra nervio y en molinete en las esquinas (sirven para cualquier medida) y losetas de piso de 15 × 15 cm; para una caja más grande solo imprimes los módulos y losetas que faltan. Sin «Modular», piezas exactas para esta medida: piso con lomo en V y paredes con orejas y nervios.</p>
       <div class="grid2">
         <label class="f"><span>Largo interior <b>cm</b></span><input id="cjL" type="number" step="0.5" min="6" max="60" value="33"></label>
         <label class="f"><span>Ancho interior <b>cm</b></span><input id="cjW" type="number" step="0.5" min="6" max="26.5" value="26"></label>
         <label class="f"><span>Alto <b>cm</b></span><input id="cjH" type="number" step="0.5" min="2" max="30" value="15"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="cjMod" checked><span><b>Modular ampliable</b>: módulos de pared de 15 cm y losetas de piso de 15 × 15 cm que se reutilizan; para una caja más grande solo imprimes los que faltan</span></label>
+      <label class="check"><input type="checkbox" id="cjFloor" checked><span>Piso de losetas impresas (sin marcar: tabla lisa de porcelanato, vidrio o melamina)</span></label>
+      <div class="grid2">
+        <label class="f"><span>Ya tengo · módulos de pared</span><input id="cjHaveW" type="number" step="1" min="0" max="60" value="0"></label>
+        <label class="f"><span>Ya tengo · losetas de piso</span><input id="cjHaveF" type="number" step="1" min="0" max="60" value="0"></label>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCaja3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnCajaFit" type="button" title="Toma la medida de la caja más grande del molde de yeso de la maceta que tienes elegida">Tomar la medida de mi molde de yeso</button></div>
       <div class="mold-out" id="cajaOut" style="margin-top:8px"></div>
@@ -550,7 +556,7 @@
     s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
     s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; }
-    if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10)}; }
+    if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       s.pModel=$('pModel').value; s.pLipP=$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
       if(s.pLipP==='sin'&&s.rim!=='kittate'){ s.rimDesign=s.rim; s.rim='kittate'; }   // sin labio: borde recto
@@ -3080,6 +3086,38 @@
     // corte por un plano alejado de las juntas de las paredes, espigas de unión y, por fuera de las paredes, una OREJA a cada lado
     // del corte con pestañas verticales para un gancho (lengüeta en V en una y ranura en la otra, así quedan al ras). Paredes con
     // orejas y nervios en las esquinas (las de siempre), partidas en tramos con nervios si no caben.
+    // MODULAR AMPLIABLE (s.boxKit.modular; el usuario quiere reutilizar las piezas y agrandar la caja para macetas más grandes):
+    // MÓDULOS DE PARED de MODU.m mm × alto × 3 mm con un nervio de MODU.fl mm en cada extremo (por fuera); dos módulos se unen
+    // nervio contra nervio con un gancho de presión, y en las esquinas va en MOLINETE: el nervio del último módulo de una pared se
+    // aprieta con un gancho contra la cara de la pared siguiente en cualquier punto, así la caja sale de cualquier medida. LOSETAS
+    // de piso de MODU.m × MODU.m mm (placa de 3 mm con nervios de 6 mm por debajo en los bordes y en cruz; se imprimen con la cara
+    // lisa en la cama) que se juntan con ganchos en los nervios. «Ya tengo»: el 3MF solo trae los módulos y losetas que faltan.
+    const MODU={m:150,t:3,fl:12,ft:3,fr:6,rw:3};
+    if(s.boxKit&&s.boxKit.modular){ const BK=s.boxKit, hx=BK.L/2, hy=BK.W/2, H=BK.H, M=MODU.m, t=MODU.t, kparts=[], WL=[], FLR=adder();
+      const z0=BK.floor?MODU.ft+MODU.fr:0, nL=Math.ceil((2*hx+t+22)/M), nW=Math.ceil((2*hy+t+22)/M), LL=nL*M, LW=nW*M;
+      const mod=adder(); prism(mod,rect(0,0,M,H),[],0,t,id); prism(mod,rect(0,0,4,H),[],t-0.3,t+MODU.fl,id); prism(mod,rect(M-4,0,M,H),[],t-0.3,t+MODU.fl,id);
+      const tile=adder(); prism(tile,rect(0,0,M,M),[],0,MODU.ft,id); const r=MODU.rw, F2=MODU.ft+MODU.fr;
+      [rect(0,0,M,r),rect(0,M-r,M,M),rect(0,r-0.3,r,M-r+0.3),rect(M-r,r-0.3,M,M-r+0.3),rect(M/2-1.5,r-0.3,M/2+1.5,M-r+0.3),rect(r-0.3,M/2-1.5,M/2-1.2,M/2+1.5),rect(M/2+1.2,M/2-1.5,M-r+0.3,M/2+1.5)].forEach(R=>prism(tile,R,[],MODU.ft-0.3,F2,id));
+      // paredes en molinete, de módulos (visor: caja del panel + nervios hacia afuera)
+      const box3=(A,x0,y0,x1,y1,za,zb)=>prism(A,rect(Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)),[],za,zb,id);
+      const wall=(n,ax,sgn,org,dir,dirOut)=>{ for(let k=0;k<n;k++){ const A=adder(), a=org+dir*k*M, b2=org+dir*(k+1)*M;
+          if(ax==='x'){ const y0=sgn>0?hy:-hy-t, y1=y0+t, yo=sgn>0?hy+t:-hy-t; box3(A,a,y0,b2,y1,z0,z0+H); [a,b2-dir*4].forEach(e=>box3(A,e,yo-sgn*0.3,e+dir*4,yo+sgn*MODU.fl,z0,z0+H)); }
+          else { const x0=sgn>0?hx:-hx-t, x1=x0+t, xo=sgn>0?hx+t:-hx-t; box3(A,x0,a,x1,b2,z0,z0+H); [a,b2-dir*4].forEach(e=>box3(A,xo-sgn*0.3,e,xo+sgn*MODU.fl,e+dir*4,z0,z0+H)); }
+          WL.push({T:A.T,dir:dirOut,kind:'univ'}); } };
+      wall(nL,'x',1,-hx,1,[0,1]); wall(nW,'y',1,hy,-1,[1,0]); wall(nL,'x',-1,hx,-1,[0,-1]); wall(nW,'y',-1,-hy,1,[-1,0]);
+      // piso de losetas bajo toda la huella del molinete
+      // el piso solo cubre el interior, las paredes y 10 mm: las puntas del molinete que sobresalen quedan sujetas por los ganchos
+      const xs0=Math.min(-hx-t,hx-LL), xs1=Math.max(hx+t,-hx+LL), ys0=Math.min(-hy-t,hy-LW), ys1=Math.max(hy+t,-hy+LW), nx=Math.ceil((2*hx+2*t+20)/M), ny=Math.ceil((2*hy+2*t+20)/M);
+      const fx0=-nx*M/2, fy0=-ny*M/2;
+      if(BK.floor) for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){ for(let q=0;q<tile.T.length;q+=3) FLR.T.push(fx0+i*M+tile.T[q],fy0+j*M+tile.T[q+1],F2-tile.T[q+2]); }   // en uso, nervios abajo
+      else prism(FLR,rect(xs0-30,ys0-30,xs1+30,ys1+30),[],-5,0,id);
+      const needW=2*nL+2*nW, needF=BK.floor?nx*ny:0, mkW=Math.max(0,needW-(BK.haveW||0)), mkF=Math.max(0,needF-(BK.haveF||0));
+      for(let i=0;i<mkW;i++) kparts.push({key:'paredMod',name:`Módulo de pared ${i+1} de ${mkW} (${M/10} × ${String(H/10).replace('.',',')} cm, acostado)`,file:`caja-modulo-pared-${i+1}`,T:mod.T,map:id,color:0x8fb6cc});
+      for(let i=0;i<mkF;i++) kparts.push({key:'loseta',name:`Loseta de piso ${i+1} de ${mkF} (${M/10} × ${M/10} cm, cara lisa en la cama)`,file:`caja-loseta-${i+1}`,T:tile.T,map:id,color:0x78acc0});
+      const nc=H<40?1:Math.ceil(H/55), gW=nc*(4+2*(nL-1)+2*(nW-1)), gF=BK.floor?2*((nx-1)*ny+nx*(ny-1)):0, c1=x=>(Math.round(x)/10).toFixed(1).replace('.',',');
+      const info={modular:true,L:BK.L,W:BK.W,H,nL,nW,needW,needF,mkW,mkF,nx,ny,ganchos:gW+gF,floor:!!BK.floor};
+      const note=`Caja modular de ${c1(BK.L)} × ${c1(BK.W)} cm por dentro y ${c1(H)} cm de alto: ${needW} módulos de pared de ${M/10} cm (${nL} por pared larga y ${nW} por pared corta, en molinete)${BK.floor?` y un piso de ${nx} × ${ny} losetas de ${M/10} × ${M/10} cm`:' sobre una tabla lisa'}. ${mkW||mkF?`Imprime ${mkW?mkW+' módulo'+(mkW>1?'s':''):''}${mkW&&mkF?' y ':''}${mkF?mkF+' loseta'+(mkF>1?'s':''):''} (ya tienes ${BK.haveW||0} módulos y ${BK.haveF||0} losetas).`:'Ya tienes todas las piezas: no hace falta imprimir nada.'} Ganchos de presión: ${gW+gF} (${gW} en las paredes${gF?`, ${gF} en el piso`:''}). Para una caja más grande solo se imprimen los módulos y losetas que faltan.`;
+      return {k:1,one:true,parts:kparts,plaster:[],boxes:[{key:'cajaU',label:'Caja modular',shell:FLR.T,walls:WL,model:[]}],V:{},litres:0,notes:[note],knock,boxKit:info,modTris:{mod:mod.T,tile:tile.T}}; }
     if(s.boxKit){ const BK=s.boxKit, hx=BK.L/2, hy=BK.W/2, F=5, top=F+BK.H, Wt=PL.wall, EAR=24, EW=16, FH=16, S=adder(), kparts=[];
       const Lf=2*(hx+Wt), Wf=2*(hy+Wt), bx=s.bedX||330, by=s.bedY||320, fitsT=(a,b2)=>(a<=bx-1&&b2<=by-1)||(a<=by-1&&b2<=bx-1);
       prism(S,rect(-hx-Wt,-hy-Wt,hx+Wt,hy+Wt),[],0,F,id);
@@ -3469,9 +3507,10 @@
   const boxKitState=s=>Object.assign({},s,{boxKit:s.cajaDims||{L:330,W:260,H:150},pWalls:'impresas',pFloor:'impreso'});
   function boxKitGroup(THREE,s,b,opt={}){ const PM=buildPlaster(THREE,boxKitState(s),b), G=new THREE.Group(), bx=PM.boxes[0], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; };
     const mk=(T,color,extra)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(toV(T),3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.75,side:THREE.DoubleSide,flatShading:true},extra||{}))); };
-    G.add(mk(bx.shell,0x78acc0)); const WL=bx.walls.map(w=>{ const m=mk(w.T,0x8fb6cc,{transparent:true,opacity:0.55,depthWrite:false}); G.add(m); return {m,d:new THREE.Vector3(w.dir[0],0,-w.dir[1])}; });
+    G.add(mk(bx.shell,PM.boxKit&&PM.boxKit.modular&&!PM.boxKit.floor?0xf1eee6:0x78acc0)); const WL=bx.walls.map(w=>{ const m=mk(w.T,0x8fb6cc,{transparent:true,opacity:0.55,depthWrite:false}); G.add(m); return {m,d:new THREE.Vector3(w.dir[0],0,-w.dir[1])}; });
     const setExplode=t=>WL.forEach(w=>w.m.position.copy(w.d).multiplyScalar(t*45)); setExplode(opt.explode??0);
     const K=PM.boxKit, c1=x=>(Math.round(x)/10).toFixed(1).replace('.',',');
+    if(K.modular){ G.userData={setExplode,box:new THREE.Box3().setFromObject(G),plasterMsg:PM.notes[0]+' Las paredes van en molinete: el nervio del último módulo de cada pared se aprieta con un gancho contra la pared siguiente. Mueve «Armado ↔ Desarmado» para ver las piezas por separado.'}; return G; }
     G.userData={setExplode,box:new THREE.Box3().setFromObject(G),plasterMsg:`Caja para colar el yeso, solo piso y paredes: ${c1(K.L)} × ${c1(K.W)} cm por dentro y ${c1(K.H)} cm de alto. ${K.cut!=null?'El piso va en 2 tramos, unidos por dos orejas con pestañas a los lados del corte, por fuera de las paredes: un gancho en cada una. ':''}Las paredes montan con la ranura de abajo en el lomo en V del piso y en las esquinas se aprietan con ganchos de presión (${K.ganchos} en total). Mueve «Armado ↔ Desarmado» para ver las piezas por separado.`};
     return G; }
   function plasterGroup(THREE,s,b,opt={}){
@@ -4146,7 +4185,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -4422,7 +4461,7 @@
     if(!last3) return; await ensureAuto(t=>{ $(outId).textContent=t; }); const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
     const P=await exportPieces(s,b,kit), what=kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?'molde-yeso':s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
-    const nm=kit==='box'?`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const nm=kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
     if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
@@ -4449,7 +4488,7 @@
   $('v3play').addEventListener('click',()=>{ const ud=V3&&V3.pot&&V3.pot.userData; if(!ud||!ud.setProc) return; const t0=performance.now(); $('v3exp').value=1; ud.setExplode(1);
     const step=()=>{ const dt=(performance.now()-t0)/1000; if(dt<3){ const u=dt/3; $('v3proc').value=u; ud.setProc(u); } else if(dt<4.5){ $('v3proc').value=1; ud.setProc(1); const t=1-(dt-3)/1.5; $('v3exp').value=t; ud.setExplode(t); } else { $('v3exp').value=0; ud.setExplode(0); return; } requestAnimationFrame(step); }; step(); });
   $('v3mold').addEventListener('input',()=>setMode($('v3mold').checked?'mold':(MODE==='mold'||MODE==='skin'?'cement':MODE)));
-  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','moldClip','printer','bedXY','skinT','pShrink','pThick','pSplit','pCast','pDeco','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
+  ['moldParts','sealKind','sealMode','moldWall','moldCore','moldJoin','moldPlate','moldBase','moldClick','moldClip','printer','bedXY','skinT','pShrink','pThick','pSplit','pCast','pDeco','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','spW','spD','spFrame','spCurve','spInv','spSoft'].forEach(id=>$(id).addEventListener('input',()=>{ $('moldOut').textContent=''; render(); }));
   $('stlWhat').addEventListener('change',()=>syncStlUI($('matClay').checked));  $('btnFit').addEventListener('click',fitToTree);
   ['treeH','treeW','trunk'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') fitToTree(); }));
   $('v3close').addEventListener('click',()=>$('dlg3d').close());
@@ -4478,7 +4517,7 @@
   window.addEventListener('afterprint',()=>fit(true));
   sel.value='chokkan'; applyPreset('chokkan');
   // Estado por URL: ?preset=chokkan&L=28.6&…&mode=mold (cualquier parámetro con el id de un campo), para volver a un diseño o compartirlo
-  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','moldClick','moldClip'];
+  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','moldClick','moldClip'];
   (function applyUrl(){ const q=new URLSearchParams(location.search); if(![...q.keys()].some(k=>k==='preset'||URL_F.includes(k)||k==='mode')) return;
     if(q.get('preset')&&q.get('preset')!=='custom'&&[...sel.options].some(o=>o.value===q.get('preset'))){ sel.value=q.get('preset'); applyPreset(q.get('preset')); }
     URL_F.forEach(id=>{ if(!q.has(id)||!$(id)) return; const el=$(id); if(el.type==='checkbox') el.checked=q.get(id)==='1'; else el.value=q.get(id); el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); });
