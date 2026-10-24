@@ -306,13 +306,13 @@
     </details>
     <details class="gloss" id="cajaBox" open style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Piso y paredes para colar el yeso</summary>
-      <p class="mold-lead" style="margin:4px 0 8px">Solo la caja donde se cuela el yeso, armada con tus <b>ganchos de presión</b>. <b>Modular</b>: módulos de pared de 15 cm unidos nervio contra nervio y en molinete en las esquinas (sirven para cualquier medida) y losetas de piso de 15 × 15 cm; para una caja más grande solo imprimes los módulos y losetas que faltan. Sin «Modular», piezas exactas para esta medida: piso con lomo en V y paredes con orejas y nervios.</p>
+      <p class="mold-lead" style="margin:4px 0 8px">Solo la caja donde se cuela el yeso, armada con tus <b>ganchos de presión</b>. <b>Modular</b>: módulos de pared de 15 cm unidos nervio contra nervio y en molinete en las esquinas (sirven para cualquier medida) y losetas de piso de 14,8 × 14,8 cm; para una caja más grande solo imprimes los módulos y losetas que faltan. Sin «Modular», piezas exactas para esta medida: piso con lomo en V y paredes con orejas y nervios.</p>
       <div class="grid2">
         <label class="f"><span>Largo interior <b>cm</b></span><input id="cjL" type="number" step="0.5" min="6" max="60" value="33"></label>
         <label class="f"><span>Ancho interior <b>cm</b></span><input id="cjW" type="number" step="0.5" min="6" max="26.5" value="26"></label>
         <label class="f"><span>Alto <b>cm</b></span><input id="cjH" type="number" step="0.5" min="2" max="30" value="15"></label>
       </div>
-      <label class="check"><input type="checkbox" id="cjMod" checked><span><b>Modular ampliable</b>: módulos de pared de 15 cm y losetas de piso de 15 × 15 cm que se reutilizan; para una caja más grande solo imprimes los que faltan</span></label>
+      <label class="check"><input type="checkbox" id="cjMod" checked><span><b>Modular ampliable</b>: módulos de pared de 15 cm y losetas de piso de 14,8 × 14,8 cm que se reutilizan; para una caja más grande solo imprimes los que faltan</span></label>
       <label class="check"><input type="checkbox" id="cjFloor" checked><span>Piso de losetas impresas (sin marcar: tabla lisa de porcelanato, vidrio o melamina)</span></label>
       <div class="grid2">
         <label class="f"><span>Ya tengo · módulos de pared</span><input id="cjHaveW" type="number" step="1" min="0" max="60" value="0"></label>
@@ -3090,14 +3090,25 @@
     // MÓDULOS DE PARED de MODU.m mm × alto × 3 mm con un nervio de MODU.fl mm en cada extremo (por fuera); dos módulos se unen
     // nervio contra nervio con un gancho de presión, y en las esquinas va en MOLINETE: el nervio del último módulo de una pared se
     // aprieta con un gancho contra la cara de la pared siguiente en cualquier punto, así la caja sale de cualquier medida. LOSETAS
-    // de piso de MODU.m × MODU.m mm (placa de 3 mm con nervios de 6 mm por debajo en los bordes y en cruz; se imprimen con la cara
+    // de piso de MODU.p × MODU.p mm (placa de 3 mm con nervios de 6 mm por debajo en los bordes y en cruz; se imprimen con la cara
     // lisa en la cama) que se juntan con ganchos en los nervios. «Ya tengo»: el 3MF solo trae los módulos y losetas que faltan.
-    const MODU={m:150,t:3,fl:12,ft:3,fr:6,rw:3};
+    const MODU={m:150,t:3,fl:12,ft:3,fr:6,rw:3,th:1.8,td:1.2,c:0.2,p:148};
     if(s.boxKit&&s.boxKit.modular){ const BK=s.boxKit, hx=BK.L/2, hy=BK.W/2, H=BK.H, M=MODU.m, t=MODU.t, kparts=[], WL=[], FLR=adder();
       const z0=BK.floor?MODU.ft+MODU.fr:0, nL=Math.ceil((2*hx+t+22)/M), nW=Math.ceil((2*hy+t+22)/M), LL=nL*M, LW=nW*M;
       const mod=adder(); prism(mod,rect(0,0,M,H),[],0,t,id); prism(mod,rect(0,0,4,H),[],t-0.3,t+MODU.fl,id); prism(mod,rect(M-4,0,M,H),[],t-0.3,t+MODU.fl,id);
-      const tile=adder(); prism(tile,rect(0,0,M,M),[],0,MODU.ft,id); const r=MODU.rw, F2=MODU.ft+MODU.fr;
-      [rect(0,0,M,r),rect(0,M-r,M,M),rect(0,r-0.3,r,M-r+0.3),rect(M-r,r-0.3,M,M-r+0.3),rect(M/2-1.5,r-0.3,M/2+1.5,M-r+0.3),rect(r-0.3,M/2-1.5,M/2-1.2,M/2+1.5),rect(M/2+1.2,M/2-1.5,M-r+0.3,M/2+1.5)].forEach(R=>prism(tile,R,[],MODU.ft-0.3,F2,id));
+      // ENCAJE DE LAS LOSETAS (el usuario pidió que el piso quede a nivel y no se cuele el yeso entre losetas): el nervio del borde
+      // lleva en los lados +x y +y una LENGÜETA en V (sale MODU.td mm, alto 2·MODU.th en la cara del nervio) y en los lados −x y −y la
+      // RANURA con los mismos flancos, MODU.c mm más alta (flancos paralelos: holgura normal de unos 0,11 mm), así dos losetas vecinas quedan al mismo nivel y la junta es un laberinto; los ganchos aprietan los dos nervios. Todas
+      // las losetas van con las lengüetas hacia el mismo lado. Impresas con la cara lisa en la cama, la cara de abajo de la lengüeta
+      // y el techo de la ranura quedan a más de 50° (sin soportes). La lengüeta se detiene 2 mm antes de las esquinas de la ranura.
+      const P=MODU.p, tile=adder(); prism(tile,rect(0,0,P,P),[],0,MODU.ft,id); const r=MODU.rw, F2=MODU.ft+MODU.fr, zm=(MODU.ft+F2)/2, th=MODU.th, td=MODU.td, gc=MODU.c;
+      const YZ=(u,v,w)=>[w,u,v], ribG=[[0,MODU.ft-0.3],[r,MODU.ft-0.3],[r,F2],[0,F2],[0,zm+th+gc],[(th+gc)*td/th,zm],[0,zm-th-gc]];
+      prism(tile,ribG,[],r-0.3,P-r+0.3,XZ);                                   // −x: nervio con ranura
+      prism(tile,ribG,[],0,P,YZ);                                             // −y: nervio con ranura
+      prism(tile,rect(P-r,r-0.3,P,P-r+0.3),[],MODU.ft-0.3,F2,id); prism(tile,rect(0,P-r,P,P),[],MODU.ft-0.3,F2,id);
+      prism(tile,[[P-0.3,zm-th-0.3*th/td],[P+td,zm],[P-0.3,zm+th+0.3*th/td]],[],r+2,P-r-2,XZ);     // +x: lengüeta
+      prism(tile,[[P-0.3,zm-th-0.3*th/td],[P+td,zm],[P-0.3,zm+th+0.3*th/td]],[],r+2,P-r-2,YZ);     // +y: lengüeta
+      [rect(P/2-1.5,r-0.3,P/2+1.5,P-r+0.3),rect(r-0.3,P/2-1.5,P/2-1.2,P/2+1.5),rect(P/2+1.2,P/2-1.5,P-r+0.3,P/2+1.5)].forEach(R=>prism(tile,R,[],MODU.ft-0.3,F2,id));
       // paredes en molinete, de módulos (visor: caja del panel + nervios hacia afuera)
       const box3=(A,x0,y0,x1,y1,za,zb)=>prism(A,rect(Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)),[],za,zb,id);
       const wall=(n,ax,sgn,org,dir,dirOut)=>{ for(let k=0;k<n;k++){ const A=adder(), a=org+dir*k*M, b2=org+dir*(k+1)*M;
@@ -3107,16 +3118,16 @@
       wall(nL,'x',1,-hx,1,[0,1]); wall(nW,'y',1,hy,-1,[1,0]); wall(nL,'x',-1,hx,-1,[0,-1]); wall(nW,'y',-1,-hy,1,[-1,0]);
       // piso de losetas bajo toda la huella del molinete
       // el piso solo cubre el interior, las paredes y 10 mm: las puntas del molinete que sobresalen quedan sujetas por los ganchos
-      const xs0=Math.min(-hx-t,hx-LL), xs1=Math.max(hx+t,-hx+LL), ys0=Math.min(-hy-t,hy-LW), ys1=Math.max(hy+t,-hy+LW), nx=Math.ceil((2*hx+2*t+20)/M), ny=Math.ceil((2*hy+2*t+20)/M);
-      const fx0=-nx*M/2, fy0=-ny*M/2;
-      if(BK.floor) for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){ for(let q=0;q<tile.T.length;q+=3) FLR.T.push(fx0+i*M+tile.T[q],fy0+j*M+tile.T[q+1],F2-tile.T[q+2]); }   // en uso, nervios abajo
+      const xs0=Math.min(-hx-t,hx-LL), xs1=Math.max(hx+t,-hx+LL), ys0=Math.min(-hy-t,hy-LW), ys1=Math.max(hy+t,-hy+LW), nx=Math.ceil((2*hx+2*t+20)/P), ny=Math.ceil((2*hy+2*t+20)/P);
+      const fx0=-nx*P/2, fy0=-ny*P/2;
+      if(BK.floor) for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){ for(let q=0;q<tile.T.length;q+=3) FLR.T.push(fx0+i*P+tile.T[q],fy0+j*P+tile.T[q+1],F2-tile.T[q+2]); }   // en uso, nervios abajo
       else prism(FLR,rect(xs0-30,ys0-30,xs1+30,ys1+30),[],-5,0,id);
       const needW=2*nL+2*nW, needF=BK.floor?nx*ny:0, mkW=Math.max(0,needW-(BK.haveW||0)), mkF=Math.max(0,needF-(BK.haveF||0));
       for(let i=0;i<mkW;i++) kparts.push({key:'paredMod',name:`Módulo de pared ${i+1} de ${mkW} (${M/10} × ${String(H/10).replace('.',',')} cm, acostado)`,file:`caja-modulo-pared-${i+1}`,T:mod.T,map:id,color:0x8fb6cc});
-      for(let i=0;i<mkF;i++) kparts.push({key:'loseta',name:`Loseta de piso ${i+1} de ${mkF} (${M/10} × ${M/10} cm, cara lisa en la cama)`,file:`caja-loseta-${i+1}`,T:tile.T,map:id,color:0x78acc0});
+      for(let i=0;i<mkF;i++) kparts.push({key:'loseta',name:`Loseta de piso ${i+1} de ${mkF} (${String(P/10).replace(".",",")} × ${String(P/10).replace(".",",")} cm, cara lisa en la cama)`,file:`caja-loseta-${i+1}`,T:tile.T,map:id,color:0x78acc0});
       const nc=H<40?1:Math.ceil(H/55), gW=nc*(4+2*(nL-1)+2*(nW-1)), gF=BK.floor?2*((nx-1)*ny+nx*(ny-1)):0, c1=x=>(Math.round(x)/10).toFixed(1).replace('.',',');
       const info={modular:true,L:BK.L,W:BK.W,H,nL,nW,needW,needF,mkW,mkF,nx,ny,ganchos:gW+gF,floor:!!BK.floor};
-      const note=`Caja modular de ${c1(BK.L)} × ${c1(BK.W)} cm por dentro y ${c1(H)} cm de alto: ${needW} módulos de pared de ${M/10} cm (${nL} por pared larga y ${nW} por pared corta, en molinete)${BK.floor?` y un piso de ${nx} × ${ny} losetas de ${M/10} × ${M/10} cm`:' sobre una tabla lisa'}. ${mkW||mkF?`Imprime ${mkW?mkW+' módulo'+(mkW>1?'s':''):''}${mkW&&mkF?' y ':''}${mkF?mkF+' loseta'+(mkF>1?'s':''):''} (ya tienes ${BK.haveW||0} módulos y ${BK.haveF||0} losetas).`:'Ya tienes todas las piezas: no hace falta imprimir nada.'} Ganchos de presión: ${gW+gF} (${gW} en las paredes${gF?`, ${gF} en el piso`:''}). Para una caja más grande solo se imprimen los módulos y losetas que faltan.`;
+      const note=`Caja modular de ${c1(BK.L)} × ${c1(BK.W)} cm por dentro y ${c1(H)} cm de alto: ${needW} módulos de pared de ${M/10} cm (${nL} por pared larga y ${nW} por pared corta, en molinete)${BK.floor?` y un piso de ${nx} × ${ny} losetas de ${String(P/10).replace(".",",")} × ${String(P/10).replace(".",",")} cm`:' sobre una tabla lisa'}. ${mkW||mkF?`Imprime ${mkW?mkW+' módulo'+(mkW>1?'s':''):''}${mkW&&mkF?' y ':''}${mkF?mkF+' loseta'+(mkF>1?'s':''):''} (ya tienes ${BK.haveW||0} módulos y ${BK.haveF||0} losetas).`:'Ya tienes todas las piezas: no hace falta imprimir nada.'} Ganchos de presión: ${gW+gF} (${gW} en las paredes${gF?`, ${gF} en el piso`:''}). Para una caja más grande solo se imprimen los módulos y losetas que faltan.${BK.floor?' Arma el piso con todas las losetas en el mismo sentido (lengüetas hacia la derecha y hacia el fondo): cada lengüeta entra en la ranura de la vecina y las deja a nivel; aprieta cada junta con sus ganchos por debajo.':''} SELLADO antes de colar: ${BK.floor?'cinta de embalaje por arriba a lo largo de todas las juntas entre losetas (dentro de la caja), ':''}cinta por dentro en las juntas verticales entre módulos y en las cuatro esquinas, y un cordón de plastilina por fuera al pie de todas las paredes${BK.floor?' contra el piso':' contra la tabla'}; pasa jabón de moldes o vaselina por dentro.`;
       return {k:1,one:true,parts:kparts,plaster:[],boxes:[{key:'cajaU',label:'Caja modular',shell:FLR.T,walls:WL,model:[]}],V:{},litres:0,notes:[note],knock,boxKit:info,modTris:{mod:mod.T,tile:tile.T}}; }
     if(s.boxKit){ const BK=s.boxKit, hx=BK.L/2, hy=BK.W/2, F=5, top=F+BK.H, Wt=PL.wall, EAR=24, EW=16, FH=16, S=adder(), kparts=[];
       const Lf=2*(hx+Wt), Wf=2*(hy+Wt), bx=s.bedX||330, by=s.bedY||320, fitsT=(a,b2)=>(a<=bx-1&&b2<=by-1)||(a<=by-1&&b2<=bx-1);
