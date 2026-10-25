@@ -251,6 +251,7 @@
       <label class="f" style="grid-column:1/-1" id="pInF"><span>Logotipo en el interior</span><select id="pIn"><option value="hundido" selected>Hundido 1 mm en el piso</option><option value="relieve">En relieve 1 mm sobre el piso</option><option value="none">Sin logotipo interior</option></select></label>
       <label class="f" style="grid-column:1/-1"><span>Impresora</span><select id="printer"><option value="a2l" selected>Bambu Lab A2L · 33 × 32 × 32,5 cm</option><option value="a1">Bambu Lab A1 / P1S / X1C · 25,6 cm</option><option value="mini">Bambu Lab A1 mini · 18 cm</option><option value="otra">Otra (cama cuadrada)</option></select></label>
       <label class="f"><span>Cama de otra impresora <b>cm</b></span><input id="bedXY" type="number" step="1" min="10" max="60" value="22"></label>
+      <label class="f" style="grid-column:1/-1"><span>Filamento del 3MF</span><select id="pFil"><option value="PLA" selected>PLA (Bambu PLA Basic)</option><option value="PETG">PETG (Bambu PETG HF): más tenaz, aguanta agua, sol y cemento</option></select><small class="hint">El 3MF sale con el perfil de ese filamento: temperaturas, cama y ventilador ya puestos.</small></label>
     </div>
     <details class="gloss" id="tableBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Mesa de exhibición</summary>
@@ -318,6 +319,7 @@
         <label class="f"><span>Ya tengo · módulos de pared</span><input id="cjHaveW" type="number" step="1" min="0" max="60" value="0"></label>
         <label class="f"><span>Ya tengo · losetas de piso</span><input id="cjHaveF" type="number" step="1" min="0" max="60" value="0"></label>
       </div>
+      <label class="f" style="margin-top:8px"><span>Filamento del 3MF</span><select id="cjFil"><option value="PLA" selected>PLA (Bambu PLA Basic)</option><option value="PETG">PETG (Bambu PETG HF)</option></select></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCaja3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnCajaFit" type="button" title="Toma la medida de la caja más grande del molde de yeso de la maceta que tienes elegida">Tomar la medida de mi molde de yeso</button></div>
       <div class="mold-out" id="cajaOut" style="margin-top:8px"></div>
     </details>
@@ -4267,6 +4269,8 @@
   $('btnCalc').addEventListener('click',calcThis); $('btnCalcAll').addEventListener('click',calcAll);
   $('printer').addEventListener('change',()=>{ const w={a2l:150,a1:110,mini:70}[$('printer').value]; if(w) $('cW').value=w; });
   ['cMat','cPrice','cInfill','cWalls','cLayer','cRec','cKwh','cW','cPattern'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
+  // un solo filamento para el 3MF y la calculadora
+  ['pFil','cjFil','cMat'].forEach(id=>$(id).addEventListener('input',()=>{ const v=$(id).value; ['pFil','cjFil','cMat'].forEach(j=>{ if($(j).value!==v) $(j).value=v; }); $('calcOut').textContent=''; update3D(false); }));
   // ---------- Mesa de exhibición: exportar (Impresión 3D: STL; Molde 3D: kit de silicona) ----------
   // Impresa boca abajo: (x, Y, z) → (x, z, Ht − Y), una rotación (no espeja).
   function tablePrintTris(THREE,s){ const TS=tableSolids(THREE,s), T=[]; TS.solids.forEach(S=>{ for(let i=0;i<S.length;i+=3) T.push(S[i],S[i+2],TS.Ht-S[i+1]); }); return T; }
@@ -4416,7 +4420,10 @@
   // cada pieza. Así Bambu abre el archivo sin el aviso «configuración no válida» y con todo listo para laminar. La malla va
   // como la escribe Bambu: un objeto por archivo en 3D/Objects y un objeto envoltorio con su componente en 3dmodel.model.
   const BBL_VER='02.08.02.61', BBL_CFG={};
-  async function bambuConfig(){ const k={a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]; if(!k) return null; if(BBL_CFG[k]) return BBL_CFG[k];
+  // FILAMENTO (#pFil, espejo en #cjFil y en «Filamento» de la calculadora #cMat): con PETG se usa admin/bambu/<impresora>-petg.json,
+  // la misma configuración con las claves de filamento de «Bambu PETG HF @BBL …» de fábrica (herencia aplanada: 240/230 °C,
+  // Textured PEI a 70 °C, ventilador 30–50 %, 1,28 g/cm³); el usuario pidió que el 3MF ya saliera listo para PETG.
+  async function bambuConfig(){ const k0={a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]; if(!k0) return null; const k=k0+($('pFil').value==='PETG'?'-petg':''); if(BBL_CFG[k]) return BBL_CFG[k];
     try{ const r=await fetch('bambu/'+k+'.json?v=1'); if(!r.ok) return null; const t=await r.text(); JSON.parse(t); BBL_CFG[k]=t; return t; }catch(e){ return null; } }
   async function make3MF(objs,s,title){
     const plates=Array.isArray(objs[0])?objs:[objs]; objs=[].concat(...plates);
@@ -4498,7 +4505,7 @@
     const P=await exportPieces(s,b,kit), what=kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?'molde-yeso':s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
     const nm=kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
-    if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}.3mf`); }
+    if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}${$('pFil').value==='PETG'?'-petg':''}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
     let leeme=false; if(s.mode==='plaster'&&!kit){ const txt=await exportPlaster(true); if(txt){ await new Promise(r=>setTimeout(r,700)); download(new Blob([txt],{type:'text/plain;charset=utf-8'}),`LEEME-${what}-${nm}.txt`); leeme=true; } }
     const lista=beds.map((bd,k)=>`cama ${k+1}: ${bd.map(p=>p.name.split(' — ')[0].toLowerCase()).join(', ')}${bd[0]&&bd[0].big?' (no cabe en la cama: pártela en el laminador)':''}`).join(' · ');
@@ -4554,7 +4561,7 @@
   window.addEventListener('afterprint',()=>fit(true));
   sel.value='chokkan'; applyPreset('chokkan');
   // Estado por URL: ?preset=chokkan&L=28.6&…&mode=mold (cualquier parámetro con el id de un campo), para volver a un diseño o compartirlo
-  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','moldClick','moldClip'];
+  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','pFil','moldClick','moldClip'];
   (function applyUrl(){ const q=new URLSearchParams(location.search); if(![...q.keys()].some(k=>k==='preset'||URL_F.includes(k)||k==='mode')) return;
     if(q.get('preset')&&q.get('preset')!=='custom'&&[...sel.options].some(o=>o.value===q.get('preset'))){ sel.value=q.get('preset'); applyPreset(q.get('preset')); }
     URL_F.forEach(id=>{ if(!q.has(id)||!$(id)) return; const el=$(id); if(el.type==='checkbox') el.checked=q.get(id)==='1'; else el.value=q.get(id); el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); });
