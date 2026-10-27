@@ -356,9 +356,13 @@
       <label class="check"><input type="checkbox" id="slvE" checked><span><b>Texto</b>: LEGADO BONSÁI</span></label>
       <label class="check"><input type="checkbox" id="slvA"><span><b>Sello circular</b>: el logotipo dentro de un doble aro</span></label>
       <label class="check"><input type="checkbox" id="slvD"><span><b>Firma lineal</b>: el árbol y el texto en una línea</span></label>
+      <p class="mold-lead" style="margin:8px 0 4px"><b>Relieve de montaña</b>: el Pasochoa del grabado de tu guía de cuidados, la montaña que representa nuestro legado. El grabado se vuelve relieve: donde es más oscuro (trazos y sombras) el sello sube más y la arcilla queda más honda.</p>
+      <label class="check"><input type="checkbox" id="slvM" checked><span><b>Montaña Pasochoa</b>: la cordillera con el pino, como en la guía</span></label>
+      <label class="check"><input type="checkbox" id="slvG" checked><span><b>Logotipo con montaña</b>: el árbol y LEGADO BONSÁI arriba y la montaña debajo</span></label>
       <div class="grid2" style="margin-top:6px">
         <label class="f" style="grid-column:1/-1"><span>Qué deja en la arcilla</span><select id="slMode"><option value="hundido" selected>Grabado hundido (el sello lleva el dibujo en relieve)</option><option value="relieve">Dibujo en relieve (el sello lleva el dibujo hundido)</option></select></label>
-        <label class="f"><span>Ancho del dibujo <b>cm</b></span><input id="slW" type="number" step="0.5" min="1.5" max="10" value="4"></label>
+        <label class="f"><span>Ancho del logotipo <b>cm</b></span><input id="slW" type="number" step="0.5" min="1.5" max="10" value="4"></label>
+        <label class="f"><span>Ancho del relieve de montaña <b>cm</b></span><input id="slWm" type="number" step="0.5" min="4" max="12" value="7"></label>
         <label class="f"><span>Profundidad <b>mm</b></span><select id="slD"><option value="0.8">0,8 · fino</option><option value="1.2" selected>1,2 · normal</option><option value="1.6">1,6 · marcado</option><option value="2">2 · profundo</option></select></label>
         <label class="f"><span>Borde</span><select id="slFrame"><option value="borde" selected>Con borde (sello japonés)</option><option value="no">Sin borde</option></select></label>
         <label class="f"><span>Mango</span><select id="slHandle"><option value="perilla" selected>Perilla con punta (una pieza)</option><option value="plano">Placa plana (para pegar a un taco)</option></select></label>
@@ -620,7 +624,7 @@
       else s.lunaOff=true; }
     s.belt=s.body==='cinturon'?(+$('beltPos').value||0.5):0.5;
     if(s.mode==='yeso2'){ s.mode='plaster'; s.v2Mode=true; }
-    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
+    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D','M','G'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),wm:Math.min(120,Math.max(40,(+$('slWm').value||7)*10)),d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
     if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       s.pModel=$('pModel').value; s.pLipP=s.v2Mode?'diseno':$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
@@ -3984,7 +3988,44 @@
   // placa (sin voladizo) y la cara arriba. La perilla tiene punta hacia arriba del logotipo. «hundido»: el dibujo va en
   // relieve en el sello (deja un grabado); «relieve»: el fondo va en relieve y el dibujo hundido (deja el logotipo en relieve).
   // Los relieves se meten 0,2 mm en la placa: sólidos solapados, nunca caras coincidentes (stlOrient).
-  async function prepareSello(s){ for(const k of (s.sello||{}).keys||[]) try{ await loadSealArt(SEALS[k].art); }catch(e){} }
+  async function prepareSello(s){ for(const k of (s.sello||{}).keys||[]) try{ if(SELLO_HF[k]) await selloArt(k); else await loadSealArt(SEALS[k].art); }catch(e){} }
+  // RELIEVE DE MONTAÑA (pedido del usuario: el Pasochoa de la guía de cuidados, «la representación de nuestro legado»): el
+  // grabado montana-principal.svg tiene trazos de décimas de mm que no se pueden pasar a contornos imprimibles, así que va
+  // como CAMPO DE ALTURAS (sprigField: tinta = alto, suavizado 0,35 mm): sombras y trazos del grabado suben en el sello y
+  // quedan hondos en la arcilla. «M» = la montaña sola (sin el 16 % de cielo de arriba); «G» = logotipo vertical arriba y
+  // la montaña debajo, como la tarjeta de la guía. Se componen en un lienzo con el arte original, sin redibujar nada.
+  const SELLO_HF={M:'Montaña Pasochoa',G:'Logotipo con montaña'}, SELLO_IMG={};
+  const selloName=k=>SELLO_HF[k]||SEALS[k].name;
+  async function selloArt(k){ if(SELLO_IMG[k]) return SELLO_IMG[k];
+    const load=src=>new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src=src; });
+    const mt=await load('../assets/img/ilustraciones/montana-principal.svg'), W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, mH=W*mh*(1-top)/mw, cv=document.createElement('canvas');
+    if(k==='M'){ cv.width=W; cv.height=Math.round(mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,0,W,mH); }
+    else { const lg=await load('../assets/img/logo/legado-logo-vertical-negro.svg'), lw=W*0.5, lh=lw*lg.naturalHeight/lg.naturalWidth, gap=W*0.05;
+      cv.width=W; cv.height=Math.round(lh+gap+mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,lh+gap,W,mH); }
+    return SELLO_IMG[k]=cv; }
+  // sólido del campo de alturas (sprigTris: superficie z0 + alto, paredes y fondo) en coordenadas del visor: centrado,
+  // base en y = base, sx = −1 espeja (cara del sello), sz = −1 lleva el arriba del dibujo hacia −z (visor)
+  function hfTris(fld,hmm,base,z0,sx,sz,T){ const A=sprigTris(Object.assign({},fld,{h:hmm}),{d:1},z0,0), ox=-fld.W/2+(fld.nx-1)*fld.c/2, oy=-fld.Hh/2+(fld.ny-1)*fld.c/2;
+    for(let i=0;i<A.length;i+=3) T.push(sx*(A[i]-ox),base+A[i+2],-sz*(A[i+1]-oy)); return T; }
+  // campo del relieve de montaña: el lienzo en una rejilla de 0,2 mm (o ancho/400), tinta = 1, con un suavizado de una celda
+  function selloField(k,im,W){ const key='sf|'+k+'|'+W; if(SPRIG_CACHE.has(key)) return SPRIG_CACHE.get(key);
+    const asp=im.height/im.width, Hh=W*asp, c=Math.max(0.2,W/400), nx=Math.round(W/c)+1, ny=Math.round(Hh/c)+1, cv=document.createElement('canvas'); cv.width=nx; cv.height=ny;
+    const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,nx,ny); g.drawImage(im,0,0,nx,ny); const px=g.getImageData(0,0,nx,ny).data, h=new Float32Array(nx*ny);
+    for(let i=0;i<nx*ny;i++) h[i]=1-(0.299*px[4*i]+0.587*px[4*i+1]+0.114*px[4*i+2])/255;
+    const f={nx,ny,c,h:boxBlur(h,nx,ny,1,1),W,Hh}; SPRIG_CACHE.set(key,f); return f; }
+  function boxBlur(src,nx,ny,rb,passes){ const A=new Float32Array(src), B=new Float32Array(nx*ny);
+    for(let pass=0;pass<passes;pass++){ for(let j=0;j<ny;j++){ let s2=0; for(let i=-rb;i<=rb;i++) s2+=A[j*nx+Math.min(nx-1,Math.max(0,i))]; for(let i=0;i<nx;i++){ B[j*nx+i]=s2/(2*rb+1); s2+=A[j*nx+Math.min(nx-1,i+rb+1)]-A[j*nx+Math.max(0,i-rb)]; } }
+      for(let i=0;i<nx;i++){ let s2=0; for(let j=-rb;j<=rb;j++) s2+=B[Math.min(ny-1,Math.max(0,j))*nx+i]; for(let j=0;j<ny;j++){ A[j*nx+i]=s2/(2*rb+1); s2+=B[Math.min(ny-1,j+rb+1)*nx+i]-B[Math.max(0,j-rb)*nx+i]; } } }
+    return A; }
+  // alturas 0..1 del relieve en dos escalas: la MASA (densidad de los trazos promediada en unos 2,5 mm: la cordillera y las
+  // colinas se levantan sobre el cielo blanco) y el DETALLE fino del grabado encima; cada una se normaliza por su percentil
+  // (85 y 90 %: el grabado es claro y el tronco del pino, lo más oscuro, no debe aplastar la montaña) y el borde se funde a 0
+  // en 2 mm para que el relieve salga del plano sin escalón. Probado contra 3 mezclas: esta es la que mejor deja ver la cresta.
+  function hfMap(fld){ if(fld._hm) return fld._hm; const {nx,ny,c,h}=fld, n=nx*ny, co=boxBlur(h,nx,ny,Math.max(1,Math.round(2.5/c)),3);
+    const pct=(A,q)=>{ const s3=Array.from(A).sort((x,y)=>x-y); return s3[Math.floor(q*(n-1))]||1; }, cn=pct(co,0.85), fn=pct(h,0.9), fe=2/c, out=new Float32Array(n);
+    for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const q=j*nx+i, e=Math.min(i,j,nx-1-i,ny-1-j)/fe, f=e>=1?1:e*e*(3-2*e); out[q]=Math.pow(Math.min(1,0.55*Math.min(1,co[q]/cn)+0.6*Math.min(1,h[q]/fn)),0.9)*f; }
+    return fld._hm=out; }
+  const rectIn=(F,d)=>{ const a=F.w/2-d, b2=F.h/2-d; return [[a,b2],[-a,b2],[-a,-b2],[a,-b2]]; };
   // view: en el visor el arriba del logotipo va hacia −z (hacia el fondo de la escena), así se lee derecho desde el frente
   function selloFace(k,w,notes,view){
     const sh=sealShape(k,[0,0],w,notes); if(!sh) return null; let mn=[1e9,1e9],mx=[-1e9,-1e9]; sh.regions.forEach(r=>r.L.forEach(([x,z])=>{ mn=[Math.min(mn[0],x),Math.min(mn[1],z)]; mx=[Math.max(mx[0],x),Math.max(mx[1],z)]; }));
@@ -3997,8 +4038,10 @@
     [[hw-rc,hh-rc,0],[-(hw-rc),hh-rc,1],[-(hw-rc),-(hh-rc),2],[hw-rc,-(hh-rc),3]].forEach(([x,z,q])=>{ for(let i=0;i<=10;i++){ const a=(q+i/10)*Math.PI/2; P.push([x+rc*Math.cos(a),z+rc*Math.sin(a)]); } }); return P; }
   function rayR(P,dx,dz){ let best=0; for(let i=0,m=P.length;i<m;i++){ const a=P[i], c=P[(i+1)%m], ex=c[0]-a[0], ez=c[1]-a[1], den=dx*ez-dz*ex; if(Math.abs(den)<1e-12) continue; const t=(a[0]*ez-a[1]*ex)/den, u=(a[0]*dz-a[1]*dx)/den; if(u>=-1e-9&&u<=1+1e-9&&t>best) best=t; } return best; }
   function selloSolid(THREE,s,k,view){
-    const notes=[], F=selloFace(k,s.sello.w,notes,view); if(!F) return null;
-    const S=s.sello, mir=L=>L.map(([x,z])=>[-x,z]).reverse(), reg=F.regions.map(r=>({L:mir(r.L),d:r.d,kids:r.kids.map(mir)})), PO=selloPlate(k,F,0), M=144, T=[];
+    const notes=[], S=s.sello, HF=!!SELLO_HF[k]; let F, fld=null;
+    if(HF){ const im=SELLO_IMG[k]; if(!im) return null; fld=selloField(k,im,S.wm); F={w:(fld.nx-1)*fld.c,h:(fld.ny-1)*fld.c,regions:[]}; }
+    else { F=selloFace(k,S.w,notes,view); if(!F) return null; }
+    const mir=L=>L.map(([x,z])=>[-x,z]).reverse(), reg=F.regions.map(r=>({L:mir(r.L),d:r.d,kids:r.kids.map(mir)})), PO=selloPlate(k,F,0), M=144, T=[];
     const dirs=Array.from({length:M},(_,j)=>{ const a=j/M*2*Math.PI; return [Math.cos(a),Math.sin(a)]; }), RP=dirs.map(([dx,dz])=>rayR(PO,dx,dz)), Rmax=Math.max(...RP), Rmin=Math.min(...RP), tp=3;
     let rings;
     if(S.handle==='plano') rings=[[0,RP],[tp+1,RP]];
@@ -4010,12 +4053,22 @@
     for(let j=0;j<M;j++){ const q=(j+1)%M; tri([0,0,0],P3(q,r0),P3(j,r0)); tri([0,yt,0],P3(j,rt),P3(q,rt)); }
     // cara del sello
     const y0=yt-0.2, y1=yt+S.d, bw=Math.max(1.2,0.035*Math.max(F.w,F.h));
-    if(S.mode==='relieve'){ prismXZ(THREE,selloPlate(k,F,0.5),reg.filter(r=>r.d===0).map(r=>r.L),y0,y1,T); reg.filter(r=>r.d%2===1).forEach(r=>prismXZ(THREE,r.L,r.kids,y0,y1,T)); }
+    if(HF){ const hh=hfMap(fld), sz=view?-1:1;
+      if(S.mode==='relieve'){ hfTris(fld,hh.map(v=>S.d*(1-v)),y0,0.2,-1,sz,T); prismXZ(THREE,selloPlate(k,F,0.5),[rectIn(F,0.15)],y0,y1,T); }
+      else { hfTris(fld,hh.map(v=>S.d*v),y0,0.2,-1,sz,T); if(S.frame) prismXZ(THREE,selloPlate(k,F,0.6),[selloPlate(k,F,0.6+bw)],y0,y1,T); } }
+    else if(S.mode==='relieve'){ prismXZ(THREE,selloPlate(k,F,0.5),reg.filter(r=>r.d===0).map(r=>r.L),y0,y1,T); reg.filter(r=>r.d%2===1).forEach(r=>prismXZ(THREE,r.L,r.kids,y0,y1,T)); }
     else { reg.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,y0,y1,T)); if(S.frame&&k!=='A') prismXZ(THREE,selloPlate(k,F,0.6),[selloPlate(k,F,0.6+bw)],y0,y1,T); }
-    return {T,name:`${/^Sello/.test(SEALS[k].name)?'':'Sello '}${SEALS[k].name} · ${cm(F.w)} cm · ${S.mode==='relieve'?'deja el dibujo en relieve':'deja el dibujo grabado'}`,F,reg0:F.regions,PO,notes,H:y1};
+    return {T,name:`${/^Sello/.test(selloName(k))?'':'Sello '}${selloName(k)} · ${cm(F.w)} cm · ${S.mode==='relieve'?'deja el dibujo en relieve':'deja el dibujo grabado'}`,F,fld,reg0:F.regions,PO,notes,H:y1};
   }
   // la marca en la arcilla (solo visor): placa de barro con el dibujo derecho, hundido o en relieve
-  function selloClay(THREE,s,k,F){ const T=[], S=s.sello, out=selloPlate(k,F,-7), tt=8;
+  function selloClay(THREE,s,k,F,fld){ const T=[], S=s.sello, out=selloPlate(k,F,-7), tt=8;
+    if(fld){ const hh=hfMap(fld), rect=rectIn(F,0.15);
+      if(S.mode==='relieve'){ prismXZ(THREE,out,[],0,tt,T); hfTris(fld,hh.map(v=>S.d*v),tt-0.05,0.05,1,-1,T); }
+      else { prismXZ(THREE,out,[],0,tt-S.d,T);
+        if(S.frame){ prismXZ(THREE,out,[selloPlate(k,F,0.6)],tt-S.d-0.05,tt,T); prismXZ(THREE,selloPlate(k,F,0.6+Math.max(1.2,0.035*Math.max(F.w,F.h))),[rect],tt-S.d-0.05,tt,T); }
+        else prismXZ(THREE,out,[rect],tt-S.d-0.05,tt,T);
+        hfTris(fld,hh.map(v=>S.d*(1-v)),tt-S.d-0.05,0.05,1,-1,T); }
+      return T; }
     if(S.mode==='relieve'){ prismXZ(THREE,out,[],0,tt,T); F.regions.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,tt-0.05,tt+S.d,T)); }
     else { const d0=F.regions.filter(r=>r.d===0).map(r=>r.L); prismXZ(THREE,out,[],0,tt-S.d,T);
       if(S.frame&&k!=='A'){ prismXZ(THREE,out,[selloPlate(k,F,0.6)],tt-S.d-0.05,tt,T); prismXZ(THREE,selloPlate(k,F,0.6+Math.max(1.2,0.035*Math.max(F.w,F.h))),d0,tt-S.d-0.05,tt,T); }
@@ -4025,14 +4078,14 @@
   function selloGroup(THREE,s){
     const G=new THREE.Group(), S=s.sello, mesh=(T,col,rough)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:col,roughness:rough,side:THREE.DoubleSide})); };
     let x=0; const notes=[];
-    S.keys.forEach(k=>{ const st=selloSolid(THREE,s,k,true); if(!st){ notes.push(`${SEALS[k].name}: no se pudo cargar el logotipo.`); return; } notes.push(...st.notes);
+    S.keys.forEach(k=>{ const st=selloSolid(THREE,s,k,true); if(!st){ notes.push(`${selloName(k)}: no se pudo cargar el dibujo.`); return; } notes.push(...st.notes);
       const span=Math.max(...st.PO.map(p=>Math.abs(p[0])))*2+14, cx=x+span/2, ms=mesh(st.T,0xcfb27a,0.55); ms.position.x=cx; G.add(ms);
-      const depth=Math.max(...st.PO.map(p=>Math.abs(p[1])))*2, cl=mesh(selloClay(THREE,s,k,st.F),0x9c6b4e,0.95); cl.position.set(cx,0,depth+30); G.add(cl);
-      const lh=Math.max(5,span*0.07), l1=label3(THREE,`${SEALS[k].name} · sello (espejado)`,lh), l2=label3(THREE,'Así queda en la arcilla (vista de frente)',lh,true);
+      const depth=Math.max(...st.PO.map(p=>Math.abs(p[1])))*2, cl=mesh(selloClay(THREE,s,k,st.F,st.fld),0x9c6b4e,0.95); cl.position.set(cx,0,depth+30); G.add(cl);
+      const lh=Math.max(5,span*0.07), l1=label3(THREE,`${selloName(k)} · sello (espejado)`,lh), l2=label3(THREE,'Así queda en la arcilla (vista de frente)',lh,true);
       l1.position.set(cx,st.H+lh*0.4,0); l2.position.set(cx,1,depth+30+depth/2+9); G.add(l1,l2); x+=span+18; });
     G.children.forEach(o=>{ o.position.x-=x/2; });
     G.userData.box=new THREE.Box3().setFromObject(G);
-    G.userData.plasterMsg=S.keys.length?`${S.keys.length} sello${S.keys.length>1?'s':''} de ${cm(S.w)} cm de ancho de dibujo, ${String(S.d).replace('.',',')} mm de ${S.mode==='relieve'?'fondo en relieve: la arcilla queda con el dibujo en relieve':'dibujo en relieve: la arcilla queda grabada'}. Atrás el sello tal como se imprime (cara arriba, espejada); adelante, la marca en la arcilla.${notes.some(x=>/omite/.test(x))?' Algún detalle muy pequeño (como el acento) no cabe a este tamaño: sube el ancho del dibujo para que salga.':''}${notes.some(x=>/engrosan/.test(x))?' Los trazos más finos se engrosan a 0,7 mm para que se impriman y se marquen.':''}`:'Elige al menos una variante.';
+    G.userData.plasterMsg=S.keys.length?`${S.keys.length} sello${S.keys.length>1?'s':''} (${[S.keys.some(k=>!SELLO_HF[k])?`logotipos de ${cm(S.w)} cm`:'',S.keys.some(k=>SELLO_HF[k])?`relieves de montaña de ${cm(S.wm)} cm`:''].filter(Boolean).join(' y ')} de ancho), ${String(S.d).replace('.',',')} mm de ${S.mode==='relieve'?'fondo en relieve: la arcilla queda con el dibujo en relieve':'dibujo en relieve: la arcilla queda grabada'}. Atrás el sello tal como se imprime (cara arriba, espejada); adelante, la marca en la arcilla.${notes.some(x=>/omite/.test(x))?' Algún detalle muy pequeño (como el acento) no cabe a este tamaño: sube el ancho del dibujo para que salga.':''}${notes.some(x=>/engrosan/.test(x))?' Los trazos más finos se engrosan a 0,7 mm para que se impriman y se marquen.':''}`:'Elige al menos una variante.';
     return G;
   }
   function boxKitGroup(THREE,s,b,opt={}){ const PM=buildPlaster(THREE,boxKitState(s),b), G=new THREE.Group(), bx=PM.boxes[0], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; };
@@ -5078,7 +5131,7 @@
     if(!last3) return; await ensureAuto(t=>{ $(outId).textContent=t; }); const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
     const P=await exportPieces(s,b,kit), what=kit==='sello'?'sellos-legado-bonsai':kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?(s.pskinMode?'contramolde-yeso':s.v2Mode?'molde-yeso-v2':'molde-yeso'):s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
-    const nm=kit==='sello'?`${String(s.sello.w/10).replace('.',',')}cm-${s.sello.mode==='relieve'?'relieve':'grabado'}`:kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const nm=kit==='sello'?[s.sello.keys.some(k=>!SELLO_HF[k])?`${String(s.sello.w/10).replace('.',',')}cm`:'',s.sello.keys.some(k=>SELLO_HF[k])?`montana-${String(s.sello.wm/10).replace('.',',')}cm`:'',s.sello.mode==='relieve'?'relieve':'grabado'].filter(Boolean).join('-'):kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
     if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}${$('pFil').value==='PETG'?'-petg':''}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
@@ -5097,7 +5150,7 @@
   $('btnSelloStl').addEventListener('click',async()=>{ if(!last3||!last3.s.selloMode) return; const {s,b}=last3; if(!s.sello.keys.length){ $('selloOut').textContent='Elige al menos una variante.'; return; } $('selloOut').textContent='Preparando los STL…';
     const P=await exportPieces(s,b,'sello'), files=P.map((p,i)=>({name:`${String(i+1).padStart(2,'0')}-sello-${s.sello.keys[i]}-${String(s.sello.w/10).replace('.',',')}cm.stl`,data:new Uint8Array(stlBinary(p.V,p.F))}));
     download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (perilla en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
-  ['slvC','slvB','slvE','slvA','slvD','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
+  ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
