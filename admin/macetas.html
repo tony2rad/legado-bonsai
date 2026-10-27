@@ -70,6 +70,9 @@
   .v3views .btn,.v3bar .btn.ghost{padding:5px 9px;font-size:12px}
   @media (max-width:760px){ .v3body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 40%} #v3side{border-left:0;border-top:1px solid var(--line)} }
   #v3canvas{width:100%;height:100%;display:block;touch-action:none;background:radial-gradient(circle at 50% 35%,var(--glaze-soft),var(--bg))}
+  #v2Foto{margin:8px 0 6px}
+  #v2Foto img{display:block;width:100%;border-radius:8px;border:1px solid var(--line)}
+  #v2Foto figcaption{font-size:12px;color:var(--muted);margin-top:4px}
   #v3steps{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.4}
   #v3steps[hidden]{display:none}
   #v3steps .btn{padding:2px 9px}
@@ -180,6 +183,7 @@
         <label><input type="radio" name="mode" id="modePskin" value="pskin"><span>Contramolde de yeso</span></label>
       </div>
       <p class="mode-hint" id="modeHint"></p>
+      <figure id="v2Foto" hidden><img id="v2FotoImg" alt="Maceta terminada"><figcaption id="v2FotoCap"></figcaption></figure>
       <details class="gloss ficha-box" id="fichaBox" open><summary>Ficha de la maceta terminada</summary><p class="mold-lead" style="margin:2px 0 4px">Largo, ancho y alto son <b>siempre de la maceta terminada</b> (cocida o fraguada), no del molde. Aquí ves lo que sale, el <b>espacio útil</b> para raíces y sustrato (por dentro) y, aparte, el tamaño del molde.</p><dl class="ficha" id="ficha"></dl></details>
       <details class="gloss ficha-box reco-box" id="recoBox" open><summary>Recomendación final</summary><p class="mold-lead" style="margin:2px 0 4px">Lo que conviene para esta maceta en esta sección. Lo que no coincide dice en qué campo cambiarlo.</p><dl class="ficha" id="reco"></dl></details>
       <div hidden><input type="radio" name="mat" id="matClay" value="clay" checked><input type="radio" name="mat" id="matCement" value="cement"></div>
@@ -3783,13 +3787,16 @@
       A_tab:['A',BA.shell.concat(BA.model),bx,0x78acc0],A_inf:['A',wd([0,-1]),bx,0xa7b9c8],A_sup:['A',wd([0,1]),bx,0xa7b9c8],A_ext1:['A',wd([1,0]),bx,0xa7b9c8],A_ext2:['A',wd([-1,0]),bx,0xa7b9c8],
       A_yeso:['A',Yk('yesoA'),pA,'yeso'],B_yeso:['A',Yk('yesoA'),pA,'yeso'],
       M_tap:['M',Yk('yesoC'),id3,'yeso'],M_A:['M',Yk('yesoA'),id3,'yeso',[0,0,240]],M_B:['M',Yk('yesoB'),id3,'yeso',[0,0,-240]],M_bar:['M',PM.master,id3,'slip',[0,160,0]]};
-    const lanes={F:new THREE.Group(),A:new THREE.Group(),M:new THREE.Group()}, act={};
+    const lanes={F:new THREE.Group(),A:new THREE.Group(),M:new THREE.Group(),P:new THREE.Group()}, act={};
+    // la maceta terminada (cocida, a tamaño real), siempre a la vista a la derecha del molde
+    { const fin=potGroup(THREE,s,b,{tree:true,cut:false}), lh=Math.max(13,Math.max(s.L,s.W,s.H)*PM.k*0.085); lanes.P.add(fin); const fb=new THREE.Box3().setFromObject(fin);
+      const lab=label3(THREE,`Maceta terminada · encoge ${Math.round((1-1/PM.k)*100)} %`,lh,true); lab.position.set((fb.min.x+fb.max.x)/2,fb.max.y+lh*0.7,(fb.min.z+fb.max.z)/2); lanes.P.add(lab); }
     Object.entries(DEF).forEach(([id,[ln,T,f,col,from]])=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(conv(T,f),3)); g.computeVertexNormals();
       const slip=col==='slip', mat=new THREE.MeshStandardMaterial({color:slip?0x5f9e94:col==='yeso'?0xf1ede4:col,roughness:0.75,flatShading:true,side:THREE.DoubleSide,transparent:true,opacity:0});
       const mesh=new THREE.Mesh(g,mat); mesh.visible=false; lanes[ln].add(mesh); act[id]={mesh,mat,from:new THREE.Vector3(...(from||[0,150,0])),max:slip?0.6:1,plane:new THREE.Plane(new THREE.Vector3(0,-1,0),0)}; });
-    let x0=0; ['F','A','M'].forEach(k=>{ const g=lanes[k]; G.add(g); const bb=new THREE.Box3().setFromObject(g); g.position.set(x0-bb.min.x,-bb.min.y,-(bb.min.z+bb.max.z)/2); x0+=bb.max.x-bb.min.x+90; });
+    let x0=0; ['F','A','M','P'].forEach(k=>{ const g=lanes[k]; G.add(g); const bb=new THREE.Box3().setFromObject(g); g.position.set(x0-bb.min.x,-bb.min.y,-(bb.min.z+bb.max.z)/2); x0+=bb.max.x-bb.min.x+90; });
     G.position.x=-x0/2; G.updateMatrixWorld(true);
-    const focus={}; ['F','A','M'].forEach(k=>focus[k]=new THREE.Box3().setFromObject(lanes[k])); focus.ALL=focus.F.clone().union(focus.A);
+    const focus={}; ['F','A','M','P'].forEach(k=>focus[k]=new THREE.Box3().setFromObject(lanes[k])); focus.ALL=focus.F.clone().union(focus.A);
     Object.values(act).forEach(a=>{ a.zb=new THREE.Box3().setFromObject(a.mesh); });
     const BOX=['F_tab','F_ani','A_tab','A_inf','A_sup','A_ext1','A_ext2'], two=I.mT>1||I.mE>1?' (va en tramos)':'';
     const ST=[
@@ -3808,7 +3815,8 @@
       {f:'ALL',hide:BOX,text:'Retira las cajas impresas (se guardan para el próximo molde). Te quedan 3 piezas de yeso: el tapón y las mitades A y B. Déjalas secar 7–10 días.'},
       {f:'M',hide:['F_yeso','B_yeso'],show:['M_tap'],text:'Molde de yeso: el tapón va sobre la mesa, con las patas hacia arriba.'},
       {f:'M',show:['M_A','M_B'],text:'Las dos mitades se cierran alrededor del tapón y lo traban por su borde inclinado. Átalas con una correa o liga ancha.'},
-      {f:'M',show:['M_bar'],text:`Listo para colar: la barbotina (verde) entra por el cuello y llena el hueco con la forma de la maceta. Espera unos ${castMin(s)} min, vacía el sobrante y abre cuando la pieza suelte; corta el cuello a ras del labio.`}];
+      {f:'M',show:['M_bar'],text:`Listo para colar: la barbotina (verde) entra por el cuello y llena el hueco con la forma de la maceta. Espera unos ${castMin(s)} min, vacía el sobrante y abre cuando la pieza suelte; corta el cuello a ras del labio.`},
+      {f:'P',text:`Así queda la maceta: sale del molde ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % más grande y al secar y cocer encoge ${Math.round((1-1/PM.k)*100)} % hasta su medida final: ${s.type==='round'?`Ø ${cm(s.L)} × ${cm(s.H)}`:`${cm(s.L)} × ${cm(s.W)} × ${cm(s.H)}`} cm.`}];
     const N=ST.length, ease=t=>t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
     const put=(a,vis,fill,off,hi)=>{ a.mesh.visible=vis>0.01; a.mat.opacity=vis*a.max; a.mat.depthWrite=vis*a.max>0.95; a.mesh.position.copy(a.from).multiplyScalar(off); a.mat.emissive.setHex(hi?0x3a2e00:0);
       if(fill<1){ a.plane.constant=a.zb.min.y+(a.zb.max.y-a.zb.min.y)*fill; a.mat.clippingPlanes=[a.plane]; } else a.mat.clippingPlanes=[]; };
@@ -3828,7 +3836,20 @@
     Object.values(act).forEach(a=>{ a.mesh.visible=true; }); const box=new THREE.Box3().setFromObject(G); Object.values(act).forEach(a=>{ a.mesh.visible=false; });
     G.userData={setExplode(){},box,steps:true,stepGo:k=>{ V2A.playing=false; go(k); },toggle:()=>{ V2A.playing=!V2A.playing; if(V2A.playing&&V2A.step>=N-1) go(0); else go(V2A.step); },
       plasterMsg:'Molde de yeso v2 · armado paso a paso (◀ ⏸ ▶ bajo el visor). '+PM.notes.filter(t=>/^(Molde de yeso v2|Yeso:|Cajas con filos)/.test(t)).join(' ')};
-    go(Math.min(V2A.step,N-1)); requestAnimationFrame(tick); return G; }
+    go(Math.min(V2A.step,N-1)); requestAnimationFrame(tick); v2Photo(THREE,s,b); return G; }
+  // FOTO DE LA MACETA TERMINADA para el panel del molde de yeso v2 (y el ZIP): la maceta cocida con su árbol, renderizada con el
+  // mismo renderer en una escena aparte, sobre fondo crema, en vista 3/4; se rehace solo si cambia la forma.
+  function v2Photo(THREE,s,b){ const img=$('v2FotoImg'); if(!img||!V3||!V3.renderer) return;
+    const key=JSON.stringify([s.type,s.L,s.W,s.H,s.feet,s.flare,s.lip,s.rim,s.body,s.corner,s.foot,s.finish,s.panel,s.studs,s.lobes,s.t,PAN]); if(img.dataset.key===key) return;
+    const R=V3.renderer, sc=new THREE.Scene(); sc.background=new THREE.Color(0xf3efe6); sc.add(new THREE.HemisphereLight(0xffffff,0x8a8478,1.5));
+    const sun=new THREE.DirectionalLight(0xffffff,1.7); sun.position.set(-300,500,400); sc.add(sun); const fl=new THREE.DirectionalLight(0xffffff,0.5); fl.position.set(400,200,-300); sc.add(fl);
+    const pot=potGroup(THREE,s,b,{tree:false,cut:false}); sc.add(pot); const bb=new THREE.Box3().setFromObject(pot), c=bb.getCenter(new THREE.Vector3()), r=bb.getSize(new THREE.Vector3()).length()/2;
+    const size=new THREE.Vector2(); R.getSize(size); const cam=new THREE.PerspectiveCamera(30,size.x/Math.max(1,size.y),1,20000);
+    cam.position.copy(c).add(new THREE.Vector3(0.55,0.4,0.72).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*1.05)); cam.lookAt(c);
+    const cp=R.clippingPlanes; R.clippingPlanes=[]; R.render(sc,cam); img.src=R.domElement.toDataURL('image/jpeg',0.9); R.clippingPlanes=cp; img.dataset.key=key;
+    pot.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
+    $('v2FotoCap').textContent=`Maceta terminada (cocida): ${s.type==='round'?`Ø ${cm(s.L)} × ${cm(s.H)}`:`${cm(s.L)} × ${cm(s.W)} × ${cm(s.H)}`} cm. El molde la copia ${(Math.round((PM_k(s)-1)*1000)/10).toString().replace('.',',')} % más grande.`; $('v2Foto').hidden=false; }
+  const PM_k=s=>s.pk||1/(1-0.12);
   function pskinGroup(THREE,s,b,opt={}){ const PM=buildPlaster(THREE,s,b), G=new THREE.Group(), P=PM.ps;
     const toV=T=>{ const A=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ A[i]=T[i]; A[i+1]=T[i+2]; A[i+2]=-T[i+1]; } return A; };
     const mk=(T,color,extra)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(toV(T),3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.75,side:THREE.DoubleSide,flatShading:true},extra||{}))); };
@@ -4016,7 +4037,8 @@
       'Cada STL ya viene orientado para imprimir sin soportes (piso en la cama). Los STL están en milímetros.','Impresión: 2 perímetros, 3 capas arriba y abajo y relleno «lightning» al 5 % (en Bambu Studio: ajustes del objeto → patrón de relleno Lightning). El modelo dentro de la caja queda como una cáscara sostenida por columnas ramificadas que el laminador levanta desde el piso solo bajo las superficies: al yeso solo le importa la superficie, y así la caja pesa un tercio menos que con relleno normal.','','PIEZAS IMPRESAS'];
     if(PM.v2){ L.length=0; L.push(...v2Leeme(PM,s,nm,dims)); if(textOnly) return '﻿'+L.join('\r\n')+'\r\n';
       L.push('','ARCHIVOS STL'); rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm · ${r.ov<100?'sin soportes':'voladizo de '+mmc(r.ov/10)+' cm²'}${r.fits?'':'  ← no cabe en la '+s.bedName}`));
-      files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')}); download(await zipFiles(files),`molde-yeso-v2-${slug(nm)}-${dims}.zip`); out.textContent=`ZIP descargado con ${files.length-1} archivos STL y LEEME.txt.`; return; }
+      { const src=$('v2FotoImg').getAttribute('src')||''; if(src.startsWith('data:image/jpeg;base64,')){ const bin=atob(src.split(',')[1]), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); files.push({name:'maceta-terminada.jpg',data:u8}); L.push('','  maceta-terminada.jpg: foto de la maceta terminada (cocida), para comparar con lo que sale del molde.'); } }
+      files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')}); download(await zipFiles(files),`molde-yeso-v2-${slug(nm)}-${dims}.zip`); out.textContent=`ZIP descargado con ${files.filter(f=>/\.stl$/.test(f.name)).length} archivos STL, LEEME.txt${files.some(f=>/\.jpg$/.test(f.name))?' y la foto de la maceta terminada':''}.`; return; }
     if(PM.pskin){ L.length=0; L.push(...pskinLeeme(PM,s,nm,dims)); if(textOnly) return '﻿'+L.join('\r\n')+'\r\n';
       L.push('','ARCHIVOS STL'); rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm${r.fits?'':'  ← no cabe en la '+s.bedName}`));
       files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')}); download(await zipFiles(files),`contramolde-yeso-${slug(nm)}-${dims}.zip`); out.textContent=`ZIP descargado con ${files.length-1} archivos STL y LEEME.txt.`; return; }
@@ -4183,7 +4205,7 @@
   function render(){
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
     $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('bedXY').disabled=s.printer!=='otra'; $('clayOpts').hidden=!clay&&!s.plasterMode; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
-    $('shrinkF').hidden=!clay; $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
+    $('shrinkF').hidden=!clay; $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!$('v2FotoImg').getAttribute('src'); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable||!!s.plasterMode;
