@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estudio STL</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#ffffff; --ink:#1f2422; --muted:#6b736f; --line:#dedad2;
+  --accent:#4f7f78; --accent-ink:#ffffff; --warn:#b26a1f; --bad:#b23a2f; --ok:#3d7a4a;
+  --view:#e9e6df;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171a19; --panel:#202523; --ink:#e7ebe9; --muted:#9aa49f; --line:#333a37;
+    --accent:#7fb3aa; --accent-ink:#0f1513; --warn:#e0a35a; --bad:#e57a6f; --ok:#79c08a; --view:#1b1f1e;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;height:100vh;display:flex;flex-direction:column}
+header{display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+header h1{font-size:16px;margin:0 8px 0 0}
+header .tabs{display:flex;gap:4px}
+button,select,input{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#status{margin-left:auto;color:var(--muted);font-size:13px}
+main{flex:1;display:grid;grid-template-columns:300px 1fr 330px;min-height:0}
+aside{overflow:auto;padding:12px 14px;background:var(--panel);border-right:1px solid var(--line)}
+aside.right{border-right:0;border-left:1px solid var(--line)}
+#view{position:relative;background:var(--view);min-height:300px}
+#view canvas{display:block}
+.vbar{position:absolute;top:10px;left:10px;display:flex;gap:4px;flex-wrap:wrap}
+.vbar button{font-size:12px;padding:4px 8px}
+details{border-bottom:1px solid var(--line);padding:6px 0}
+summary{cursor:pointer;font-weight:600;padding:4px 0}
+.row{display:grid;grid-template-columns:1fr 74px;gap:6px;align-items:center;margin:5px 0}
+.row label{font-size:13px;color:var(--muted)}
+.row input[type=number],.row select{width:100%;padding:3px 5px;border:1px solid var(--line);border-radius:5px;background:var(--bg)}
+.row input[type=range]{grid-column:1/3;width:100%;margin:0}
+.row.chk{grid-template-columns:1fr auto}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+.piece{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.sw{width:14px;height:14px;border-radius:3px}
+.piece small{display:block;color:var(--muted);font-size:12px}
+.piece .warn{color:var(--warn)}
+.note{font-size:12.5px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:10px;padding:1px 8px}
+canvas#plano{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+ol{padding-left:18px;margin:4px 0}
+ol li{margin:3px 0;font-size:13px}
+.err{color:var(--bad);font-weight:600}
+.okc{color:var(--ok)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td{padding:2px 4px;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right}
+.hidden{display:none !important}
+@media (max-width:900px){
+  main{grid-template-columns:1fr;grid-template-rows:auto 60vh auto}
+  aside{border:0;border-bottom:1px solid var(--line)}
+  body{height:auto}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<header>
+  <h1>Estudio STL</h1>
+  <div class="tabs">
+    <button id="tabProj" class="on">Proyecto paramétrico</button>
+    <button id="tabImp">Importar STL</button>
+  </div>
+  <select id="projSel" title="Proyecto">
+    <option value="barbotina">Maceta bonsái (foto 1) · molde de yeso para barbotina</option>
+    <option value="directo">Maceta bonsái (foto 1) · molde impreso, colado directo</option>
+  </select>
+  <span id="status">Cargando motor 3D…</span>
+</header>
+<main>
+  <aside id="left">
+    <div id="paramsBox"></div>
+    <div id="impBox" class="hidden">
+      <h3>Archivo</h3>
+      <input type="file" id="stlFile" accept=".stl">
+      <p class="note">Revisa si la malla es estanca (imprimible), mide y re-escala. También genera un molde de 2 piezas para piezas sin socavados.</p>
+      <div id="impParams"></div>
+      <button id="impMold" class="primary" disabled>Generar molde 2 piezas</button>
+    </div>
+    <h3>Proyectos guardados</h3>
+    <div class="row"><input id="saveName" placeholder="Nombre" style="grid-column:1/2;padding:3px 5px;border:1px solid var(--line);border-radius:5px;background:var(--bg)"><button id="saveBtn">Guardar</button></div>
+    <div class="row"><select id="savedSel"></select><button id="loadBtn">Abrir</button></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button id="expJson">Exportar .json</button>
+      <label><button id="impJsonBtn" type="button">Importar .json</button><input id="impJson" type="file" accept=".json" class="hidden"></label>
+      <button id="resetBtn">Valores de la foto</button>
+    </div>
+  </aside>
+  <section id="view">
+    <div class="vbar">
+      <span id="viewBtns" style="display:contents"></span>
+      <button id="cutBtn">Corte</button>
+      <button id="xrayBtn">Rayos X</button>
+      <button id="fitBtn">Encuadrar</button>
+    </div>
+    <div id="animBar" class="hidden" style="position:absolute;left:10px;right:10px;bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:6px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button id="animPrev">◀</button><button id="animPlay">⏸</button><button id="animNext">▶</button>
+        <span id="animStep" class="note"></span>
+        <span id="animFile" class="chip" style="margin-left:auto"></span>
+      </div>
+      <div id="animText" style="font-size:14px"></div>
+    </div>
+  </section>
+  <aside class="right">
+    <h3>Piezas STL</h3>
+    <div id="pieces"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <button id="zipBtn" class="primary">Descargar todo (.zip)</button>
+    </div>
+    <div id="calc"></div>
+    <h3>Mapa del diseño</h3>
+    <canvas id="plano" width="620" height="560"></canvas>
+    <div id="ficha"></div>
+    <div id="analisis"></div>
+    <h3>Proceso de vaciado</h3>
+    <ol id="guia"></ol>
+    <h3>Software necesario</h3>
+    <table>
+      <tr><td><b>Este generador</b> (Chrome o Edge)</td><td>genera STL</td></tr>
+      <tr><td><b>Laminador</b>: Bambu Studio (Bambu Lab A2L)</td><td>obligatorio</td></tr>
+      <tr><td><b>MeshLab</b> o 3D Builder</td><td>revisar mallas</td></tr>
+      <tr><td><b>Blender</b></td><td>escultura / render</td></tr>
+      <tr><td><b>FreeCAD</b></td><td>CAD a mano</td></tr>
+    </table>
+  </aside>
+</main>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import Module from 'https://cdn.jsdelivr.net/npm/manifold-3d@2.5.1/manifold.js';
+
+const $ = id => document.getElementById(id);
+const status = t => { $('status').textContent = t; };
+
+/* ================= Motor de sólidos (manifold) ================= */
+const wasm = await Module({ locateFile: f => 'https://cdn.jsdelivr.net/npm/manifold-3d@2.5.1/' + f });
+if (wasm.setup) wasm.setup();
+const { Manifold, Mesh } = wasm;
+
+let TMP = [];
+const track = m => { TMP.push(m); return m; };
+const U = list => { list = list.filter(Boolean); return list.length === 1 ? list[0] : track(Manifold.union(list)); };
+const D = (a, ...b) => { b = b.filter(Boolean); return b.length ? track(a.subtract(U(b))) : a; };
+const I = (a, b) => track(a.intersect(b));
+const box = (x0, x1, y0, y1, z0, z1) => track(Manifold.cube([x1 - x0, y1 - y0, z1 - z0]).translate([x0, y0, z0]));
+const cylZ = (x, y, r, z0, z1, seg = 48) => track(Manifold.cylinder(z1 - z0, r, r, seg).translate([x, y, z0]));
+const coneZ = (x, y, r0, r1, z0, z1) => track(Manifold.cylinder(z1 - z0, r0, r1, 40).translate([x, y, z0]));
+const sphere = (x, y, z, r) => track(Manifold.sphere(r, 32).translate([x, y, z]));
+const volOf = m => (m.volume ? m.volume() : m.getProperties().volume);
+
+function signedVol(V, T) {
+  let s = 0;
+  for (let t = 0; t < T.length; t += 3) {
+    const a = T[t] * 3, b = T[t + 1] * 3, c = T[t + 2] * 3;
+    s += V[a] * (V[b + 1] * V[c + 2] - V[b + 2] * V[c + 1]) - V[a + 1] * (V[b] * V[c + 2] - V[b + 2] * V[c]) + V[a + 2] * (V[b] * V[c + 1] - V[b + 1] * V[c]);
+  }
+  return s / 6;
+}
+const centroid = ring => { let x = 0, y = 0, z = 0; for (const p of ring) { x += p[0]; y += p[1]; z += p[2]; } const n = ring.length; return [x / n, y / n, z / n]; };
+
+// Sólido cerrado a partir de anillos 3D con el mismo número de puntos (tapas en abanico).
+function solidFromRings(rings) {
+  const N = rings[0].length, R = rings.length, V = [], T = [];
+  for (const ring of rings) for (const p of ring) V.push(p[0], p[1], p[2]);
+  const i0 = R * N, i1 = R * N + 1;
+  V.push(...centroid(rings[0]), ...centroid(rings[R - 1]));
+  for (let k = 0; k < R - 1; k++) for (let i = 0; i < N; i++) {
+    const a = k * N + i, b = k * N + (i + 1) % N, c = (k + 1) * N + (i + 1) % N, d = (k + 1) * N + i;
+    T.push(a, b, c, a, c, d);
+  }
+  const o = (R - 1) * N;
+  for (let i = 0; i < N; i++) { T.push(i0, (i + 1) % N, i); T.push(i1, o + i, o + (i + 1) % N); }
+  if (signedVol(V, T) < 0) for (let t = 0; t < T.length; t += 3) { const x = T[t + 1]; T[t + 1] = T[t + 2]; T[t + 2] = x; }
+  return track(new Manifold(new Mesh({ numProp: 3, vertProperties: new Float32Array(V), triVerts: new Uint32Array(T) })));
+}
+const loftZ = rings => solidFromRings(rings.map(r => r.pts.map(p => [p[0], p[1], r.z])));
+// Prisma de un polígono convexo (u,v) barrido a lo largo de Y (eje='y') o X (eje='x').
+function prismAlong(poly, axis, s0, s1) {
+  const mk = s => poly.map(([u, v]) => axis === 'y' ? [u, s, v] : [s, u, v]);
+  return solidFromRings([mk(s0), mk(s1)]);
+}
+const circlePoly = (cu, cv, r, n = 40) => Array.from({ length: n }, (_, i) => [cu + r * Math.cos(2 * Math.PI * i / n), cv + r * Math.sin(2 * Math.PI * i / n)]);
+
+/* ================= Contornos 2D ================= */
+function resampleClosed(pts, n) {
+  const m = pts.length, L = [0];
+  for (let i = 1; i <= m; i++) { const a = pts[i - 1], b = pts[i % m]; L.push(L[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+  const per = L[m], out = [];
+  let j = 0;
+  for (let k = 0; k < n; k++) {
+    const s = per * k / n;
+    while (L[j + 1] < s) j++;
+    const a = pts[j], b = pts[(j + 1) % m], seg = (L[j + 1] - L[j]) || 1, t = (s - L[j]) / seg;
+    out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+  }
+  return out;
+}
+function boxFilter(p, k) {
+  const n = p.length, out = new Array(n);
+  for (let i = 0; i < n; i++) {
+    let sx = 0, sy = 0;
+    for (let j = -k; j <= k; j++) { const q = p[(i + j + n) % n]; sx += q[0]; sy += q[1]; }
+    out[i] = [sx / (2 * k + 1), sy / (2 * k + 1)];
+  }
+  return out;
+}
+// Contorno de planta desplazado d mm (d<0 hacia adentro). Devuelve el primer cuadrante desde +X hasta +Y.
+function quadrant(S, d) {
+  const a = S.A + d, b = S.B + d, r0 = S.r0, bA = S.bulge * (S.B / S.A), bB = S.bulge, ns = 60, nc = 40;
+  const q = [];
+  let xj, yj, corner = [];
+  if (S.style === 'ovalada') {
+    for (let i = 0; i <= 2 * ns; i++) { const t = (Math.PI / 2) * i / (2 * ns); q.push([a * Math.cos(t), b * Math.sin(t)]); }
+    return { q, xj: a * 0.55, yj: b * 0.55 };
+  }
+  if (r0 < 0.5) { xj = a; yj = b; corner = [[a, b]]; }
+  else if (S.style === 'invertida') {
+    const R = r0 - d, cx = S.A, cy = S.B;
+    if (R <= Math.abs(d) + 0.2) { xj = a; yj = b; corner = [[a, b]]; }
+    else {
+      yj = cy - Math.sqrt(R * R - (a - cx) ** 2); xj = cx - Math.sqrt(R * R - (b - cy) ** 2);
+      const t1 = Math.atan2(yj - cy, a - cx); let t2 = Math.atan2(b - cy, xj - cx); if (t2 > t1) t2 -= 2 * Math.PI;
+      for (let i = 0; i <= nc; i++) { const t = t1 + (t2 - t1) * i / nc; corner.push([cx + R * Math.cos(t), cy + R * Math.sin(t)]); }
+    }
+  } else if (S.style === 'redondeada') {
+    const R = r0 + d, cx = S.A - r0, cy = S.B - r0;
+    if (R < 0.3) { xj = a; yj = b; corner = [[a, b]]; }
+    else { xj = cx; yj = cy; for (let i = 0; i <= nc; i++) { const t = (Math.PI / 2) * i / nc; corner.push([cx + R * Math.cos(t), cy + R * Math.sin(t)]); } }
+  } else {
+    const c = S.A + S.B - r0 + d * Math.SQRT2;
+    yj = c - a; xj = c - b;
+    if (yj >= b || xj >= a) { xj = a; yj = b; corner = [[a, b]]; } else corner = [[a, yj], [xj, b]];
+  }
+  if (yj <= 0.5 || xj <= 0.5) throw new Error('El radio de esquina es demasiado grande para estas medidas (pared, pie o conicidad).');
+  for (let i = 0; i < ns; i++) { const y = yj * i / ns; q.push([a + bA * (1 - (y / yj) ** 2), y]); }
+  q.push(...corner);
+  for (let i = 1; i <= ns; i++) { const x = xj * (1 - i / ns); q.push([x, b + bB * (1 - (x / xj) ** 2)]); }
+  return { q, xj, yj };
+}
+function makeRingFn(S) {
+  const cache = new Map();
+  return d => {
+    const key = d.toFixed(4);
+    if (cache.has(key)) return cache.get(key);
+    const { q } = quadrant(S, d);
+    const h1 = q.concat(q.slice(0, -1).reverse().map(([x, y]) => [-x, y]));
+    let full = h1.concat(h1.slice(1, -1).reverse().map(([x, y]) => [x, -y]));
+    if (S.suav > 0) {
+      full = resampleClosed(full, 720);
+      let per = 0; for (let i = 0; i < 720; i++) { const a = full[i], b = full[(i + 1) % 720]; per += Math.hypot(b[0] - a[0], b[1] - a[1]); }
+      const k = Math.round(S.suav / (per / 720) / 2);
+      if (k >= 1) full = boxFilter(boxFilter(full, k), k);
+    }
+    const ring = resampleClosed(full, S.N);
+    cache.set(key, ring);
+    return ring;
+  };
+}
+
+/* ================= Proyecto: maceta bonsái ================= */
+const BASE_GROUPS = [
+  { g: 'Planta (vista superior)', open: true, items: [
+    { k: 'largo', l: 'Largo exterior (X)', v: 220, min: 60, max: 600, s: 1 },
+    { k: 'ancho', l: 'Ancho exterior (Y)', v: 165, min: 40, max: 500, s: 1 },
+    { k: 'esquina', l: 'Tipo de esquina', v: 'invertida', opts: [['invertida', 'Invertida (foto)'], ['redondeada', 'Redondeada'], ['chaflan', 'Chaflán'], ['ovalada', 'Ovalada']] },
+    { k: 'rEsq', l: 'Radio de esquina', v: 16, min: 0, max: 80, s: 0.5 },
+    { k: 'abombado', l: 'Abombado de lados', v: 2, min: 0, max: 15, s: 0.5 },
+    { k: 'suavizado', l: 'Suavizado de aristas', v: 4, min: 0, max: 15, s: 0.5 },
+  ]},
+  { g: 'Alzado (perfil)', open: true, items: [
+    { k: 'alto', l: 'Alto total', v: 66, min: 20, max: 300, s: 1 },
+    { k: 'conicidad', l: 'Entrada hacia la base (por lado)', v: 8, min: 0, max: 40, s: 0.5 },
+    { k: 'barriga', l: 'Barriga del cuerpo', v: 1.5, min: 0, max: 10, s: 0.5 },
+    { k: 'labioAlto', l: 'Alto del labio', v: 10, min: 0, max: 30, s: 0.5 },
+    { k: 'labioSal', l: 'Salida del labio', v: 4, min: 0, max: 15, s: 0.5 },
+  ]},
+  { g: 'Paredes', items: [
+    { k: 'pared', l: 'Espesor de pared', v: 7, min: 2, max: 25, s: 0.5 },
+    { k: 'fondo', l: 'Espesor del fondo', v: 8, min: 2, max: 25, s: 0.5 },
+    { k: 'radioFondo', l: 'Radio interior del fondo', v: 4, min: 0, max: 15, s: 0.5 },
+  ]},
+  { g: 'Zócalo y pies', items: [
+    { k: 'pieAlto', l: 'Alto del zócalo', v: 12, min: 0, max: 40, s: 0.5 },
+    { k: 'pieEntrada', l: 'Entrada del zócalo', v: 3, min: -5, max: 30, s: 0.5 },
+    { k: 'pieMuro', l: 'Muro del zócalo', v: 8, min: 3, max: 25, s: 0.5 },
+    { k: 'zocaloInclinacion', l: 'Inclinación interior del zócalo (°)', v: 5, min: 0, max: 15, s: 0.5 },
+    { k: 'pies', l: 'Pies por lado largo', v: '2', opts: [['2', '2 (esquinas)'], ['3', '3 (esquinas + centro)']] },
+    { k: 'pieAncho', l: 'Ancho de cada pie', v: 22, min: 6, max: 80, s: 0.5 },
+    { k: 'arcoAlto', l: 'Alto del arco entre pies', v: 6, min: 0, max: 35, s: 0.5 },
+  ]},
+  { g: 'Drenaje', items: [
+    { k: 'drenajes', l: 'Agujeros de drenaje', v: '2', opts: [['0', 'Ninguno'], ['1', '1'], ['2', '2'], ['3', '3']] },
+    { k: 'drenajeDiam', l: 'Diámetro de drenaje', v: 22, min: 6, max: 60, s: 0.5 },
+    { k: 'alambre', l: 'Agujeros para alambre (solo impresión)', v: true },
+    { k: 'alambreDiam', l: 'Diámetro alambre', v: 3.5, min: 1.5, max: 8, s: 0.5 },
+  ]},
+];
+const DIRECT_GROUPS = [
+  { g: 'Molde impreso (colado directo)', open: true, items: [
+    { k: 'moldePared', l: 'Pared del molde', v: 14, min: 6, max: 40, s: 0.5 },
+    { k: 'moldeBase', l: 'Espesor de la base', v: 10, min: 4, max: 30, s: 0.5 },
+    { k: 'nucleoTapa', l: 'Espesor de barras del núcleo', v: 10, min: 5, max: 30, s: 0.5 },
+    { k: 'nucleoHueco', l: 'Núcleo hueco (llenar con arena)', v: true },
+    { k: 'nucleoPared', l: 'Pared del núcleo hueco', v: 3, min: 1.2, max: 10, s: 0.2 },
+    { k: 'holgura', l: 'Holgura de encastres', v: 0.3, min: 0, max: 1, s: 0.05 },
+    { k: 'orejas', l: 'Orejas con tornillo', v: true },
+    { k: 'tornillo', l: 'Agujero de tornillo', v: 5.5, min: 3, max: 10, s: 0.5 },
+    { k: 'expansion', l: 'Compensar expansión del material %', v: 0, min: -2, max: 2, s: 0.05 },
+  ]},
+];
+const SLIP_GROUPS = [
+  { g: 'Barbotina y molde de yeso', open: true, items: [
+    { k: 'contraccion', l: 'Contracción total de tu arcilla % (secado + horno)', v: 12, min: 0, max: 25, s: 0.1 },
+    { k: 'yesoPared', l: 'Espesor de yeso en laterales', v: 30, min: 15, max: 60, s: 1 },
+    { k: 'yesoBase', l: 'Espesor de yeso en el fondo', v: 30, min: 15, max: 60, s: 1 },
+    { k: 'cuelloAlto', l: 'Alto del cuello de llenado', v: 25, min: 10, max: 60, s: 1 },
+    { k: 'cuelloSalida', l: 'Abertura del cuello (embudo)', v: 3, min: 0, max: 15, s: 0.5 },
+    { k: 'taponMargen', l: 'Margen del tapón del fondo', v: 15, min: 6, max: 40, s: 0.5 },
+    { k: 'taponAngulo', l: 'Inclinación del borde del tapón (°)', v: 12, min: 3, max: 30, s: 0.5 },
+    { k: 'holgura', l: 'Holgura de llaves', v: 0.3, min: 0, max: 1, s: 0.05 },
+  ]},
+  { g: 'Cajas impresas para el yeso', items: [
+    { k: 'cajaPared', l: 'Espesor de tableros y tablas', v: 4, min: 2, max: 10, s: 0.5 },
+  ]},
+];
+const COMMON_GROUPS = [
+  { g: 'Impresora y cálculo', items: [
+    { k: 'camaX', l: 'Volumen impresión X (Bambu Lab A2L)', v: 330, min: 100, max: 1000, s: 1 },
+    { k: 'camaY', l: 'Volumen impresión Y', v: 320, min: 100, max: 1000, s: 1 },
+    { k: 'camaZ', l: 'Volumen impresión Z', v: 325, min: 100, max: 1000, s: 1 },
+    { k: 'aguaYeso', l: 'Agua por 100 de yeso (ficha técnica)', v: 70, min: 20, max: 120, s: 1 },
+    { k: 'calidad', l: 'Resolución de malla', v: 'media', opts: [['baja', 'Baja (rápida)'], ['media', 'Media'], ['alta', 'Alta (exportar)']] },
+  ]},
+];
+const schemaFor = proc => [...BASE_GROUPS, ...(proc === 'barbotina' ? SLIP_GROUPS : DIRECT_GROUPS), ...COMMON_GROUPS];
+const plasterRows = (Vcm3, w, what) => {
+  const powder = Vcm3 * 100 / (100 / 2.6 + w), water = powder * w / 100;
+  return [[`${what}`, `${Vcm3.toFixed(0)} cm³`], [`Yeso en polvo (relación ${w}:100)`, `${(powder / 1000).toFixed(2)} kg`], ['Agua', `${(water / 1000).toFixed(2)} L`]];
+};
+const QUAL = { baja: { N: 96, body: 14, lip: 8 }, media: { N: 160, body: 24, lip: 12 }, alta: { N: 288, body: 40, lip: 20 } };
+
+function buildBonsai(p) {
+  const q = QUAL[p.calidad];
+  const A = p.largo / 2, B = p.ancho / 2;
+  const r0 = Math.max(0, Math.min(p.rEsq, Math.min(A, B) - 5));
+  const S = { A, B, r0, style: p.esquina, bulge: p.abombado, suav: p.suavizado, N: q.N };
+  const ring = makeRingFn(S);
+  const H = p.alto, hf = p.pieAlto, con = p.conicidad;
+  const hl = Math.min(p.labioAlto, (H - hf) * 0.4), hb1 = H - hl;
+  const zf = hf + p.fondo;
+  if (zf > H - 8) throw new Error('Zócalo + fondo dejan menos de 0,8 cm de cavidad: sube el alto o baja el fondo.');
+  const dLin = z => -con * (1 - Math.min(1, Math.max(0, (z - hf) / (hb1 - hf))));
+  const dOut = z => {
+    if (z <= hb1) { const t = (z - hf) / (hb1 - hf); return dLin(z) + p.barriga * Math.sin(Math.PI * t); }
+    const s = (z - hb1) / hl; return p.labioSal * Math.pow(Math.max(0, Math.sin(Math.PI * s)), 0.6);
+  };
+
+  // --- exterior del cuerpo
+  const outerSpec = [];
+  for (let i = 0; i <= q.body; i++) { const z = hf + (hb1 - hf) * i / q.body; outerSpec.push({ z, d: dOut(z) }); }
+  if (hl > 0.1) for (let i = 1; i <= q.lip; i++) { const z = hb1 + hl * i / q.lip; outerSpec.push({ z, d: dOut(z) }); }
+  const toRings = spec => spec.map(s => ({ z: s.z, pts: ring(s.d) }));
+  const body = loftZ(toRings(outerSpec));
+  const envelope = loftZ(toRings([...outerSpec, { z: H + 1, d: outerSpec[outerSpec.length - 1].d }]));
+
+  // --- cavidad interior (con radio en el fondo)
+  const innerSpec = (off, z0, zTop) => {
+    const fr = Math.min(p.radioFondo, 0.45 * (zTop - z0));
+    const out = [];
+    const dIn = z => dLin(z) - p.pared - off;
+    if (fr > 0.2) for (let k = 0; k <= 6; k++) { const z = z0 + fr * k / 6, e = fr - Math.sqrt(Math.max(0, fr * fr - (fr - (z - z0)) ** 2)); out.push({ z, d: dIn(z) - e }); }
+    else out.push({ z: z0, d: dIn(z0) });
+    const last = out[out.length - 1].z;
+    if (hb1 > last + 0.5 && hb1 < zTop - 0.5) out.push({ z: hb1, d: dIn(hb1) });
+    out.push({ z: zTop, d: dIn(zTop) });
+    return out;
+  };
+  const cavity = loftZ(toRings(innerSpec(0, zf, H + 2)));
+
+  // --- zócalo con pies
+  const dBand = -con - p.pieEntrada;
+  let band = null, footPrism = null, footPrismExt = null;
+  const arches = [];
+  if (hf > 0.5) {
+    band = loftZ(toRings([{ z: 0, d: dBand }, { z: hf + 0.05, d: dBand }]));
+    // el hueco bajo el fondo se angosta hacia arriba: al secar, la arcilla encoge y así no se traba en el yeso
+    const tz = Math.tan((p.zocaloInclinacion || 0) * Math.PI / 180);
+    const recess = loftZ(toRings([{ z: -1, d: dBand - p.pieMuro + tz }, { z: hf, d: dBand - p.pieMuro - hf * tz }]));
+    footPrism = loftZ(toRings([{ z: -0.5, d: dBand }, { z: hf, d: dBand }]));
+    footPrismExt = loftZ(toRings([{ z: -1, d: dBand }, { z: hf + 0.05, d: dBand }]));
+    const { xj, yj } = quadrant(S, dBand);
+    const ha = Math.min(p.arcoAlto, hf - 2);
+    const arch = (u0, u1) => {
+      if (u1 - u0 < 6 || ha < 0.8) return null;
+      const rr = Math.min(ha * 0.85, (u1 - u0) / 2 - 0.1), pts = [[u0, -1], [u1, -1]];
+      for (let i = 0; i <= 10; i++) { const t = (Math.PI / 2) * i / 10; pts.push([u1 - rr + rr * Math.cos(t), ha - rr + rr * Math.sin(t)]); }
+      for (let i = 0; i <= 10; i++) { const t = Math.PI / 2 + (Math.PI / 2) * i / 10; pts.push([u0 + rr + rr * Math.cos(t), ha - rr + rr * Math.sin(t)]); }
+      return pts;
+    };
+    const W = p.pieAncho, far = Math.max(A, B) + 50;
+    const longSpans = p.pies === '3' ? [[W / 2, xj - W], [-(xj - W), -W / 2]] : [[-(xj - W), xj - W]];
+    for (const [u0, u1] of longSpans) { const poly = arch(u0, u1); if (poly) { arches.push(prismAlong(poly, 'y', 0, far)); arches.push(prismAlong(poly, 'y', -far, 0)); } }
+    const sp = arch(-(yj - W), yj - W);
+    if (sp) { arches.push(prismAlong(sp, 'x', 0, far)); arches.push(prismAlong(sp, 'x', -far, 0)); }
+    band = D(band, recess, ...arches);
+  }
+
+  // --- maceta
+  const potSolid = D(U([body, band]), cavity);
+  const nd = +p.drenajes, rd = p.drenajeDiam / 2;
+  const holeX = nd === 1 ? [0] : nd === 2 ? [-0.22 * p.largo, 0.22 * p.largo] : nd === 3 ? [-0.3 * p.largo, 0, 0.3 * p.largo] : [];
+  const drains = holeX.map(x => cylZ(x, 0, rd, hf - 1, zf + 1));
+  const potMold = D(potSolid, ...drains);
+  const wires = p.alambre ? holeX.flatMap(x => [cylZ(x, rd + 7, p.alambreDiam / 2, hf - 1, zf + 1, 20), cylZ(x, -(rd + 7), p.alambreDiam / 2, hf - 1, zf + 1, 20)]) : [];
+  const potPrint = D(potMold, ...wires);
+
+  // --- molde
+  let maxX = 0, maxY = 0;
+  for (const s of outerSpec.concat(hf > 0.5 ? [{ d: dBand }] : [])) for (const pt of ring(s.d)) { maxX = Math.max(maxX, Math.abs(pt[0])); maxY = Math.max(maxY, Math.abs(pt[1])); }
+  const BIG = 5000;
+  const lipMax = outerSpec.reduce((m, s) => s.d > m.d ? s : m, outerSpec[0]);
+  const mapInfo = () => ({
+    fichaVals: { L: 2 * maxX, W: 2 * maxY, H, zf, hf },
+    section: {
+      outer: outerSpec.map(s => [ring(s.d)[0][0], s.z]),
+      inner: innerSpec(0, zf, H).map(s => [ring(s.d)[0][0], s.z]).reverse(),
+      band: hf > 0.5 ? { xo: ring(dBand)[0][0], xi: ring(dBand - p.pieMuro)[0][0] } : null,
+      holes: holeX.map(x => [x, rd]),
+    },
+    plan: { outer: ring(lipMax.d), inner: ring(dLin(H) - p.pared), band: hf > 0.5 ? ring(dBand) : null, recess: hf > 0.5 ? ring(dBand - p.pieMuro) : null },
+  });
+  const FICHA = ['Esquinas invertidas (cóncavas)', 'Labio exterior redondeado', 'Cuerpo cónico con leve barriga', 'Zócalo retranqueado', 'Pies en esquinas con arcos', 'Proporción largo:alto ≈ 3,3:1', 'Esmalte celadón (solo color)'];
+
+  if (p.proceso === 'barbotina') {
+    // Paso 1: modelo maestro (exterior + cuello de llenado), agrandado por la contracción de la arcilla
+    const s = 1 / (1 - p.contraccion / 100), hc = p.cuelloAlto, cs = p.cuelloSalida;
+    const lastD = outerSpec[outerSpec.length - 1].d;
+    const collar = [];
+    for (let k = 1; k <= 4; k++) collar.push({ z: H + (hc / s) * k / 4, d: lastD + cs * k / 4 });
+    const sc = m => track(m.scale(s));
+    const master = sc(U([loftZ(toRings([...outerSpec, ...collar])), band]));
+    const envC = sc(loftZ(toRings([...outerSpec, ...collar, { z: H + (hc + 2) / s, d: lastD + cs }])));
+    const fp = footPrism ? sc(footPrism) : null, fpx = footPrismExt ? sc(footPrismExt) : null;
+    const Zt = H * s + hc, hf2 = hf * s;
+    let mx = maxX, my = maxY;
+    for (const pt of ring(lastD + cs)) { mx = Math.max(mx, Math.abs(pt[0])); my = Math.max(my, Math.abs(pt[1])); }
+    mx *= s; my *= s;
+    const mw = p.yesoPared, tb = p.yesoBase, tw = p.cajaPared, clr = p.holgura;
+    const xh = mx + mw, yh = my + mw, gx = xh - mw / 2, keyR = Math.min(6, mw * 0.25);
+    // Fondo tipo tapón: sigue el contorno del zócalo más un margen y su borde se angosta hacia abajo,
+    // así los dos laterales lo abrazan, lo centran y lo traban al cerrarse.
+    const dFoot = hf > 0.5 ? dBand : outerSpec[0].d;
+    const slope = Math.tan(p.taponAngulo * Math.PI / 180);
+    const dPt = dFoot + p.taponMargen / s, dAt = z => dPt + z * slope / s;
+    const plugRings = zs => toRings(zs.map(z => ({ z: z / s, d: dAt(z) })));
+    const plug = sc(loftZ(plugRings([-tb, 0])));
+    const plugDown = sc(loftZ(plugRings([-tb - 2, 0])));
+    const plugBoth = sc(loftZ(plugRings([-tb - 2, 2])));
+
+    // Paso 3: piezas de yeso
+    const yFondo = U([plug, fp ? D(fp, master) : null]);
+    const lat = D(box(-xh, xh, -yh, yh, -tb, Zt), envC, fpx, plugDown);
+    const kz = [Zt * 0.35, Zt * 0.75];
+    const keys = [], keysClr = [];
+    for (const sx of [-1, 1]) for (const z of kz) { keys.push(sphere(sx * gx, 0, z, keyR)); keysClr.push(sphere(sx * gx, 0, z, keyR + clr)); }
+    const yA = U([I(lat, box(-BIG, BIG, 0, BIG, -BIG, BIG)), ...keys]);
+    const yB = D(I(lat, box(-BIG, BIG, -BIG, 0, -BIG, BIG)), ...keysClr);
+
+    // Paso 2: cajas impresas donde se vacía cada pieza de yeso
+    // fondo: tablero con el relieve + anillo inclinado que da la forma del tapón (4 espigas los alinean)
+    let px = 0, py = 0;
+    for (const pt of ring(dPt)) { px = Math.max(px, Math.abs(pt[0])); py = Math.max(py, Math.abs(pt[1])); }
+    px *= s; py *= s;
+    const rx = px + tw + 6, ry = py + tw + 6, pins = [], pinsClr = [];
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      pins.push(cylZ(sx * (rx - 5), sy * (ry - 5), 2.5, -5, 0.5, 24));
+      pinsClr.push(cylZ(sx * (rx - 5), sy * (ry - 5), 2.5 + clr, -5 - clr, 1, 24));
+    }
+    // filos para pinzas: el anillo lleva un filo de pie de 15 mm y el tablero un ala igual pegada a él;
+    // al vaciar (caja invertida) el ala del tablero queda en el aire y la mordaza entra por debajo.
+    const Ff = 15, te = 8, inner = box(-rx, rx, -ry, ry, -50, 50);
+    const frame = (z0, z1) => D(box(-rx - Ff, rx + Ff, -ry - Ff, ry + Ff, z0, z1), inner);
+    const seatsF = [];
+    for (let x = -rx + 35; x < rx - 20; x += 70) for (const sy of [-1, 1]) {
+      const y0 = sy > 0 ? ry - 1 : -ry - Ff - 1, y1 = sy > 0 ? ry + Ff + 1 : -ry + 1;
+      seatsF.push(prismAlong([[x - 1.5, -tw - 0.5], [x + 1.5, -tw - 0.5], [x, -tw + 1]], 'y', y0, y1));
+    }
+    const tFondo = U([D(box(-rx, rx, -ry, ry, 0, hf2 + tw), yFondo), frame(0, te), ...pins]);
+    const anillo = D(U([box(-rx, rx, -ry, ry, -tb, 0), frame(-tw, 0)]), plugBoth, ...pinsClr, ...seatsF);
+    // el tablero lateral debe ser más grueso que las llaves para que no lo atraviesen
+    const tp = Math.max(tw, keyR + clr + 3);
+    const largest = m => { const parts = m.decompose(); parts.forEach(track); return parts.reduce((a, b) => volOf(b) > volOf(a) ? b : a); };
+    // Filos para pinzas de resorte (sin pasar de 2·xh + 2·tw de largo):
+    // el tablero es la base y sobresale F arriba y abajo con un rebaje por debajo para la mordaza;
+    // las tablas inferior/superior se paran sobre él con un filo de pie, y en las esquinas
+    // un filo vertical de cada tabla queda pegado al extremo, que también se alarga F.
+    const F = 15, rb = 3, zLo = -tb - tw - F, zHi = Zt + tw + F;
+    const vStep = 70, vxs = [];
+    for (let x = -xh + vStep / 2; x < xh - tw - 5; x += vStep) vxs.push(x);
+    // ranura en V (asiento de la mordaza) que cruza el filo de pie a lo largo de Z
+    const triAlongZ = (x, yTop, z0, z1) => solidFromRings([z0, z1].map(z => [[x - 1.5, yTop + 0.5, z], [x + 1.5, yTop + 0.5, z], [x, yTop - 1, z]]));
+    const seatsY = (yTop, z0, z1) => vxs.map(x => triAlongZ(x, yTop, z0, z1));
+    const plateA = U([box(-xh, xh, -tp, 0, zLo, zHi), box(-xh, xh, -tp, yh, -tb, Zt)]);
+    const rebates = [box(-xh - 1, xh + 1, -tp - 1, -tp + rb, zLo - 1, -tb - tw + 2), box(-xh - 1, xh + 1, -tp - 1, -tp + rb, Zt + tw - 2, zHi + 1)];
+    const tLatA = largest(D(plateA, yA, ...rebates));
+    const tLatB = largest(D(U([box(-xh, xh, 0, tp, zLo, zHi), box(-xh, xh, -yh, tp, -tb, Zt)]), yB, ...rebates.map(m => track(m.mirror([0, 1, 0])))));
+    const board = (z0, z1, footZ0, footZ1) => D(U([
+      box(-xh, xh, 0, yh, z0, z1),
+      box(-xh, xh, 0, tw, footZ0, footZ1),
+      box(xh - tw, xh, 0, yh, footZ0, footZ1), box(-xh, -xh + tw, 0, yh, footZ0, footZ1),
+    ]), ...seatsY(tw, footZ0 - 1, footZ1 + 1));
+    const lInf = board(-tb - tw, -tb, zLo, -tb - tw);
+    const lSup = board(Zt, Zt + tw, Zt + tw, zHi);
+    const lExt = box(xh, xh + tw, -tp, yh, zLo, zHi);
+    const mir = m => track(m.mirror([0, 1, 0]));
+    const mirX = m => track(m.mirror([1, 0, 0]));
+
+    // análisis: planos de corte y pruebas de desmoldeo (volumen que choca al mover cada pieza en su dirección de salida)
+    const qb = hf > 0.5 ? quadrant(S, dBand) : null;
+    const Hs = H * s, hls = hl * s;
+    const planes = [
+      { axis: 'y', at: 0.5, label: 'Corte longitudinal Y = 0 (centro)' },
+      { axis: 'x', at: 0, label: 'Corte transversal X = 0 (centro)' },
+    ];
+    if (qb) {
+      planes.push({ axis: 'x', at: (qb.xj - p.pieAncho / 2) * s, label: 'Corte transversal por los pies de esquina' });
+      planes.push({ axis: 'y', at: (qb.yj - p.pieAncho / 2) * s, label: 'Corte longitudinal por los pies de esquina' });
+      if (p.pies === '3') planes.push({ axis: 'x', at: (p.pieAncho / 2 + (qb.xj - p.pieAncho)) / 2 * s, label: 'Corte transversal por el arco' });
+    }
+    planes.push(
+      { axis: 'z', at: -tb / 2, label: `Planta a ${cm(tb / 2)} bajo las patas (tapón)` },
+      ...(qb ? [{ axis: 'z', at: Math.min(p.arcoAlto * s * 0.5, hf2 * 0.4), label: 'Planta a la altura de los arcos' }, { axis: 'z', at: hf2 * 0.85, label: 'Planta a la altura del zócalo' }] : []),
+      { axis: 'z', at: hf2 + (Hs - hls - hf2) * 0.5, label: 'Planta a media altura del cuerpo' },
+      { axis: 'z', at: Hs - hls * 0.5, label: 'Planta en el labio' },
+      { axis: 'z', at: Hs + hc * 0.5, label: 'Planta en el cuello de llenado' },
+    );
+    // se calcula solo al pedir el análisis (es lento); devuelve cm³ de choque al mover la pieza 0,5 / 3 / 15 mm
+    const clash = (m, dir, others) => () => Math.max(...[0.5, 3, 15].map(dl => volOf(I(track(m.translate(dir.map(c => c * dl))), others())) / 1000));
+    const potAndPlug = () => U([master, yFondo]);
+    const checks = [
+      ['Lateral A sale hacia +Y sin tocar maceta ni tapón', clash(yA, [0, 1, 0], potAndPlug)],
+      ['Lateral B sale hacia −Y sin tocar maceta ni tapón', clash(yB, [0, -1, 0], potAndPlug)],
+      ['La maceta sale del tapón hacia arriba', clash(master, [0, 0, 1], () => yFondo)],
+      ['Tablero del fondo sale del tapón hacia arriba', clash(tFondo, [0, 0, 1], () => yFondo)],
+      ['El tapón sale del anillo por el lado ancho', clash(anillo, [0, 0, -1], () => yFondo)],
+      ['Tablero lateral A sale del yeso hacia −Y', clash(tLatA, [0, -1, 0], () => yA)],
+      ['Tablero lateral B sale del yeso hacia +Y', clash(tLatB, [0, 1, 0], () => yB)],
+    ];
+    const seat = (() => { let m = 0; for (const pt of ring(dPt)) m = Math.max(m, Math.abs(pt[1])); return yh - m * s; })();
+    const thick = [
+      ['Pared de yeso mínima en laterales (en el punto más ancho)', cm(mw)],
+      ['Yeso bajo el fondo de la maceta (tapón)', cm(tb)],
+      ['Yeso de los laterales alrededor del tapón (en Y)', cm(seat)],
+      ['Apoyo de los laterales sobre el tapón (margen)', cm(p.taponMargen)],
+      ['Ranura del zócalo que llena la barbotina', `${cm(p.pieMuro * s)} de ancho × ${cm(hf2)} de alto`],
+    ];
+
+    const offF = [0, 0, 0], offA = [0, yh + tw + 70, 0], offB = [0, -(yh + tw + 70), 0];
+    const w = p.aguaYeso;
+    const vF = volOf(yFondo) / 1000, vA = volOf(yA) / 1000, vB = volOf(yB) / 1000;
+    return {
+      views: [
+        { id: 'final', label: 'Maceta final', groups: ['final'] },
+        { id: 'p1', label: '1 · Modelo', groups: ['p1'] },
+        { id: 'p2', label: '2 · Cajas para el yeso', groups: ['p2', 'p2g'], explode: true },
+        { id: 'p3', label: '3 · Molde de yeso', groups: ['p3', 'p3g'] },
+        { id: 'p3x', label: '3 · Yeso explosionado', groups: ['p3'], explode: true },
+        { id: 'anim', label: '▶ Animación del armado', groups: [], anim: true },
+      ],
+      groupNames: {
+        final: 'Maceta final (cerámica, tamaño después del horno)',
+        p1: 'Paso 1 · Modelo maestro (opcional, para revisar forma y tamaño)',
+        p2: 'Paso 2 · Cajas impresas: aquí vacías el yeso',
+        p3: 'Paso 3 · Molde de yeso que obtienes (referencia)',
+      },
+      pieces: [
+        { id: 'maceta_final', name: 'Maceta final', m: potPrint, color: 0x8fb5ae, group: 'final', explode: [0, 0, 0] },
+        { id: 'modelo_maestro', name: 'Modelo maestro con cuello', m: master, color: 0x8fb5ae, group: 'p1', explode: [0, 0, 0] },
+        { id: 'caja_fondo_tablero', name: 'Tablero del fondo', m: tFondo, color: 0xc9a46a, group: 'p2', explode: offF },
+        { id: 'caja_fondo_anillo', name: 'Anillo inclinado del tapón', m: anillo, color: 0xb5b0a4, group: 'p2', explode: offF },
+        { id: 'caja_lateral_tablero_A', name: 'Tablero lateral A', m: tLatA, color: 0x7f9fc4, group: 'p2', explode: offA },
+        { id: 'caja_lateral_tablero_B', name: 'Tablero lateral B', m: tLatB, color: 0x9a86c0, group: 'p2', explode: offB },
+        { id: 'caja_lateral_tabla_inferior', name: 'Tabla inferior lateral', note: 'la misma sirve para A y B', m: lInf, color: 0xb5b0a4, group: 'p2', explode: offA },
+        { id: 'caja_lateral_tabla_superior', name: 'Tabla superior lateral', note: 'la misma sirve para A y B', m: lSup, color: 0xb5b0a4, group: 'p2', explode: offA },
+        { id: 'caja_lateral_tabla_extremo', name: 'Tabla de extremo lateral', qty: 2, m: lExt, color: 0xb5b0a4, group: 'p2', explode: offA },
+        // copias solo para mostrar las cajas completas
+        { id: 'v3', m: mirX(lExt), color: 0xb5b0a4, group: 'p2g', explode: offA, hide: true },
+        { id: 'v4', m: mir(lInf), color: 0xb5b0a4, group: 'p2g', explode: offB, hide: true },
+        { id: 'v5', m: mir(lSup), color: 0xb5b0a4, group: 'p2g', explode: offB, hide: true },
+        { id: 'v6', m: mir(lExt), color: 0xb5b0a4, group: 'p2g', explode: offB, hide: true },
+        { id: 'v7', m: mir(mirX(lExt)), color: 0xb5b0a4, group: 'p2g', explode: offB, hide: true },
+        { id: 'g1', m: yFondo, color: 0xf2f0ea, group: 'p2g', explode: offF, ghost: true, hide: true },
+        { id: 'g2', m: yA, color: 0xf2f0ea, group: 'p2g', explode: offA, ghost: true, hide: true },
+        { id: 'g3', m: yB, color: 0xf2f0ea, group: 'p2g', explode: offB, ghost: true, hide: true },
+        { id: 'yeso_fondo', name: 'Yeso · fondo', m: yFondo, color: 0xe9e4d8, group: 'p3', explode: [0, 0, -(Zt * 0.5 + 40)], ref: true },
+        { id: 'yeso_lateral_A', name: 'Yeso · lateral A', m: yA, color: 0xf3efe6, group: 'p3', explode: [0, yh * 0.6 + 50, 0], ref: true },
+        { id: 'yeso_lateral_B', name: 'Yeso · lateral B', m: yB, color: 0xdcd6c8, group: 'p3', explode: [0, -(yh * 0.6 + 50), 0], ref: true },
+        { id: 'g4', m: master, color: 0x8fb5ae, group: 'p3g', explode: [0, 0, 0], ghost: true, hide: true },
+      ],
+      info: mapInfo(),
+      analysis: {
+        parts: [{ n: 'Tapón', m: yFondo, c: '#d8c49a' }, { n: 'Lateral A', m: yA, c: '#9db7d8' }, { n: 'Lateral B', m: yB, c: '#b7a7d8' }],
+        cavity: { n: 'Barbotina (hueco)', m: master, c: '#5f9e94' },
+        planes, checks, thick,
+      },
+      calc: [
+        ...plasterRows(vF, w, 'Yeso · fondo'),
+        ...plasterRows(vA + vB, w, 'Yeso · 2 laterales'),
+        ['Barbotina para llenar el molde', `${(volOf(master) / 1000).toFixed(0)} cm³ (el sobrante se vacía)`],
+      ],
+      warn: p.contraccion > 0 ? null : 'Falta el dato de contracción total de tu arcilla (ficha técnica o prueba de una placa medida antes y después del horno). Con 0 % la maceta sale más pequeña que el modelo.',
+      guide: [
+        'Imprime las cajas del paso 2. Las tablas iguales se reutilizan: las del lateral sirven para A y para B.',
+        'Sella las caras impresas (goma laca o barniz) y aplica desmoldante para yeso o jabón potásico.',
+        'Tapón del fondo: tablero del fondo con el relieve hacia arriba y el anillo encima, encajado en las 4 espigas; aprieta el filo de alrededor con pinzas de resorte y sella la junta con plastilina. Vierte yeso hasta el borde del anillo y enrasa. Para sacarlo, retira el tablero y empuja el tapón por el lado ancho del anillo.',
+        'Lateral A: tablero A sobre la mesa con la media maceta hacia arriba; para encima la tabla inferior y la superior, coloca los 2 extremos y aprieta todos los filos con pinzas de resorte (unas 16). Vierte hasta el borde y enrasa. Repite con el tablero B y las mismas tablas.',
+        'Desmolda cuando el yeso fragüe (tiempo según su ficha) y déjalo secar por completo antes de colar barbotina.',
+        'Arma el molde de yeso como en el video: el tapón sobre la mesa y los dos laterales cerrándose alrededor; el borde inclinado lo centra y lo traba. Átalo con correa o liga. Llena de barbotina por el cuello, espera a que se forme el espesor de pared, vacía el sobrante y deja endurecer.',
+        'Abre el molde, corta el cuello a ras del labio y perfora drenajes y agujeros de alambre cuando la pieza esté en dureza de cuero.',
+        'Pies: el zócalo es una ranura estrecha que la barbotina llena maciza; los arcos y el hueco bajo el fondo los forma el yeso del fondo.',
+      ],
+      ficha: [...FICHA, 'Fondo tipo tapón abrazado por las paredes', 'Proceso: modelo → cajas → yeso → barbotina'],
+    };
+  }
+
+  const mw = p.moldePared, tb = p.moldeBase, clr = p.holgura;
+  const xh = maxX + mw, yh = maxY + mw;
+
+  // base: placa + isla bajo el fondo + arcos + espigas de drenaje + conos de registro
+  const cones = [], conesClr = [];
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+    const x = sx * (xh - mw / 2), y = sy * (yh - mw / 2), kr = Math.min(5, mw * 0.32);
+    cones.push(coneZ(x, y, kr, kr * 0.5, -0.5, 5));
+    conesClr.push(coneZ(x, y, kr + clr, kr * 0.5 + clr, -1, 5 + clr));
+  }
+  const pins = holeX.map(x => cylZ(x, 0, rd, hf - 0.5, zf));
+  const baseParts = [box(-xh, xh, -yh, yh, -tb, 0), ...cones, ...pins];
+  if (footPrism) baseParts.push(D(footPrism, potMold));
+  const base = U(baseParts);
+
+  // laterales
+  let sides = D(box(-xh, xh, -yh, yh, 0, H), envelope, footPrismExt, ...conesClr);
+  const extras = [];
+  if (p.orejas) {
+    const ew = 18, et = 9, eh = 16;
+    const zs = H < 45 ? [H / 2] : [H * 0.28, H * 0.72];
+    for (const sx of [-1, 1]) for (const zc of zs) {
+      const x0 = sx > 0 ? xh - 1 : -xh - ew, x1 = sx > 0 ? xh + ew : -xh + 1;
+      const z0 = Math.max(0, zc - eh / 2), z1 = Math.min(H, zc + eh / 2);
+      extras.push(D(box(x0, x1, -et, et, z0, z1), prismAlong(circlePoly(sx * (xh + ew / 2), (z0 + z1) / 2, p.tornillo / 2), 'y', -et - 1, et + 1)));
+    }
+  }
+  // espigas que fijan las barras del núcleo
+  const Bt = B - p.pared, yBar = Math.max(10, Bt * 0.5), bw = Math.min(22, Bt * 0.6);
+  const topPins = [], topPinsClr = [];
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+    topPins.push(cylZ(sx * (xh - mw / 2), sy * yBar, Math.min(4, mw * 0.28), H - 0.5, H + 6, 32));
+    topPinsClr.push(cylZ(sx * (xh - mw / 2), sy * yBar, Math.min(4, mw * 0.28) + clr, H - 1, H + 6 + clr, 32));
+  }
+  sides = U([sides, ...extras, ...topPins]);
+  const keyR = Math.min(4.5, mw * 0.3);
+  const keyZ = H < 45 ? [H * 0.5] : [H * 0.3, H * 0.7];
+  const keys = [], keysClr = [];
+  for (const sx of [-1, 1]) for (const z of keyZ) { keys.push(sphere(sx * (xh - mw / 2), 0, z, keyR)); keysClr.push(sphere(sx * (xh - mw / 2), 0, z, keyR + clr)); }
+  const sideA = U([I(sides, box(-BIG, BIG, 0, BIG, -BIG, BIG)), ...keys]);
+  const sideB = D(I(sides, box(-BIG, BIG, -BIG, 0, -BIG, BIG)), ...keysClr);
+
+  // núcleo: forma la cavidad, cuelga de dos barras que apoyan sobre los laterales
+  const tTop = p.nucleoTapa, zc1 = H + tTop;
+  let core = U([loftZ(toRings(innerSpec(0, zf, zc1))), box(-xh, xh, yBar - bw / 2, yBar + bw / 2, H, zc1), box(-xh, xh, -yBar - bw / 2, -yBar + bw / 2, H, zc1)]);
+  core = D(core, ...topPinsClr);
+  if (p.nucleoHueco) core = D(core, loftZ(toRings(innerSpec(p.nucleoPared, zf + p.nucleoPared, zc1 + 1))));
+
+  const sc = 1 / (1 + p.expansion / 100);
+  const sm = m => sc === 1 ? m : track(m.scale(sc));
+
+  return {
+    views: [
+      { id: 'maceta', label: 'Maceta', groups: ['maceta'] },
+      { id: 'molde', label: 'Molde armado', groups: ['molde', 'moldeg'] },
+      { id: 'explosion', label: 'Molde explosionado', groups: ['molde'], explode: true },
+    ],
+    groupNames: { maceta: 'Maceta para imprimir directo', molde: 'Molde impreso (el material se vierte directo)' },
+    calc: [...plasterRows(volOf(potMold) / 1000, p.aguaYeso, 'Volumen de la maceta'), ['PLA si se imprime 100 % sólida', `${(volOf(potPrint) / 1000 * 1.24).toFixed(0)} g`]],
+    pieces: [
+      { id: 'maceta', name: 'Maceta (impresión directa)', m: potPrint, color: 0x8fb5ae, group: 'maceta', explode: [0, 0, 0] },
+      { id: 'molde_base', name: 'Molde · Base', m: sm(base), color: 0xc9a46a, group: 'molde', explode: [0, 0, -(H * 0.9 + 30)] },
+      { id: 'molde_lateral_A', name: 'Molde · Lateral A (+Y)', m: sm(sideA), color: 0x7f9fc4, group: 'molde', explode: [0, yh + 60, 0] },
+      { id: 'molde_lateral_B', name: 'Molde · Lateral B (−Y)', m: sm(sideB), color: 0x9a86c0, group: 'molde', explode: [0, -(yh + 60), 0] },
+      { id: 'molde_nucleo', name: 'Molde · Núcleo', m: sm(core), color: 0xd98a6c, group: 'molde', explode: [0, 0, H + 60] },
+      { id: 'pieza_yeso', m: potMold, color: 0xeeeeea, group: 'moldeg', explode: [0, 0, 0], ghost: true, hide: true },
+    ],
+    info: mapInfo(),
+    guide: [
+      'Imprime cada pieza apoyada en su cara plana mayor: base boca arriba, laterales sobre la cara de partición, núcleo con las barras hacia abajo.',
+      'Lija y sella las caras que tocan el material (goma laca, barniz o resina) y aplica desmoldante (vaselina o desmoldante para yeso).',
+      'Coloca la base, cierra los dos laterales sobre los conos y aprieta las orejas con tornillos y tuercas (o con una correa).',
+      'Baja el núcleo: sus barras encajan en las espigas superiores. Si es hueco, llénalo de arena para que no flote.',
+      'Mezcla el material con la relación de su ficha técnica y vierte despacio por la ranura entre núcleo y laterales; golpea el molde para sacar burbujas.',
+      'Desmolda en este orden: núcleo hacia arriba, laterales hacia los lados, base hacia abajo. Repite para cada maceta.',
+      'El yeso se disuelve con el riego: para una maceta con planta viva usa mortero fino o cemento blanco, o sella el yeso por dentro y por fuera.',
+    ],
+    ficha: FICHA,
+  };
+}
+
+/* ================= Proyecto: STL importado ================= */
+const IMPORT_PARAMS = [
+  { g: 'Archivo importado', open: true, items: [
+    { k: 'escala', l: 'Escala %', v: 100, min: 1, max: 1000, s: 1 },
+    { k: 'margen', l: 'Margen del molde', v: 15, min: 5, max: 60, s: 1 },
+    { k: 'corte', l: 'Altura de partición %', v: 50, min: 5, max: 95, s: 1 },
+    { k: 'bebX', l: 'Bebedero X (desde centro)', v: 0, min: -300, max: 300, s: 1 },
+    { k: 'bebY', l: 'Bebedero Y (desde centro)', v: 0, min: -300, max: 300, s: 1 },
+    { k: 'bebD', l: 'Diámetro bebedero', v: 12, min: 4, max: 40, s: 1 },
+    { k: 'holgura', l: 'Holgura de encastres', v: 0.3, min: 0, max: 1, s: 0.05 },
+  ]},
+];
+let importedGeo = null;
+function manifoldFromGeometry(geo) {
+  const pos = geo.getAttribute('position'), map = new Map(), V = [], T = [];
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const k = Math.round(x * 1e4) + ',' + Math.round(y * 1e4) + ',' + Math.round(z * 1e4);
+    let id = map.get(k);
+    if (id === undefined) { id = V.length / 3; map.set(k, id); V.push(x, y, z); }
+    T.push(id);
+  }
+  const T2 = [];
+  for (let t = 0; t < T.length; t += 3) if (T[t] !== T[t + 1] && T[t + 1] !== T[t + 2] && T[t] !== T[t + 2]) T2.push(T[t], T[t + 1], T[t + 2]);
+  return track(new Manifold(new Mesh({ numProp: 3, vertProperties: new Float32Array(V), triVerts: new Uint32Array(T2) })));
+}
+function buildImported(p, withMold) {
+  if (!importedGeo) return { pieces: [], info: null, guide: ['Abre un archivo .stl.'], ficha: [] };
+  let m;
+  try { m = manifoldFromGeometry(importedGeo); }
+  catch (e) { throw new Error('La malla no es estanca (tiene huecos o caras sueltas). Repárala en MeshLab o 3D Builder antes de usarla.'); }
+  if (m.isEmpty()) throw new Error('La malla no es estanca o está vacía.');
+  m = track(m.scale(p.escala / 100));
+  const bb = m.boundingBox();
+  m = track(m.translate([-(bb.min[0] + bb.max[0]) / 2, -(bb.min[1] + bb.max[1]) / 2, -bb.min[2]]));
+  const sx = bb.max[0] - bb.min[0], sy = bb.max[1] - bb.min[1], sz = bb.max[2] - bb.min[2];
+  const s = p.escala / 100;
+  const pieces = [{ id: 'modelo', name: 'Modelo importado', m, color: 0x8fb5ae, group: 'maceta', explode: [0, 0, 0] }];
+  if (withMold) {
+    const g = p.margen, xh = sx / 2 + g, yh = sy / 2 + g, zt = sz + g, zc = sz * p.corte / 100;
+    const blk = D(box(-xh, xh, -yh, yh, -g, zt), m, cylZ(p.bebX, p.bebY, p.bebD / 2, zc, zt + 1));
+    const keys = [], keysClr = [], kr = Math.min(5, g * 0.3);
+    for (const a of [-1, 1]) for (const b of [-1, 1]) { keys.push(sphere(a * (xh - g / 2), b * (yh - g / 2), zc, kr)); keysClr.push(sphere(a * (xh - g / 2), b * (yh - g / 2), zc, kr + p.holgura)); }
+    const low = U([I(blk, box(-xh - 1, xh + 1, -yh - 1, yh + 1, -g - 1, zc)), ...keys]);
+    const up = D(I(blk, box(-xh - 1, xh + 1, -yh - 1, yh + 1, zc, zt + 1)), ...keysClr);
+    pieces.push({ id: 'molde_inferior', name: 'Molde · Inferior', m: low, color: 0xc9a46a, group: 'molde', explode: [0, 0, -sz * 0.6 - 30] });
+    pieces.push({ id: 'molde_superior', name: 'Molde · Superior (con bebedero)', m: up, color: 0x7f9fc4, group: 'molde', explode: [0, 0, sz * 0.6 + 30] });
+    pieces.push({ id: 'pieza_yeso', m, color: 0xeeeeea, group: 'moldeg', explode: [0, 0, 0], ghost: true, hide: true });
+  }
+  return {
+    views: [
+      { id: 'maceta', label: 'Modelo', groups: ['maceta'] },
+      { id: 'molde', label: 'Molde armado', groups: ['molde', 'moldeg'] },
+      { id: 'explosion', label: 'Molde explosionado', groups: ['molde'], explode: true },
+    ],
+    groupNames: { maceta: 'Modelo importado', molde: 'Molde de 2 piezas' },
+    calc: plasterRows(volOf(m) / 1000, 70, 'Volumen del modelo'),
+    pieces, info: null,
+    guide: ['Molde de 2 piezas partido en un plano horizontal: sirve si el modelo no tiene socavados respecto de ese plano.', 'Ubica el bebedero sobre la parte más alta del modelo (ajusta X/Y) y abre respiraderos con taladro fino si hay zonas altas atrapadas.', 'Sella, aplica desmoldante, une con los conos esféricos y vierte por el bebedero.'],
+    ficha: [`Medidas: ${cm(sx)} × ${cm(sy)} × ${cm(sz)}`, 'Malla estanca ✔'],
+  };
+}
+
+/* ================= Interfaz de parámetros ================= */
+let mode = 'proj', params = {}, schema = null, wantImportMold = false;
+const NOT_LENGTH = new Set(['contraccion', 'expansion', 'taponAngulo', 'zocaloInclinacion', 'aguaYeso', 'escala', 'corte']);
+const cm = mm => `${(mm / 10).toFixed(1).replace('.', ',')} cm`;
+const defaults = sch => Object.fromEntries(sch.flatMap(g => g.items.map(i => [i.k, i.v])));
+function renderParams(sch, box) {
+  box.innerHTML = '';
+  for (const g of sch) {
+    const det = document.createElement('details'); if (g.open) det.open = true;
+    det.innerHTML = `<summary>${g.g}</summary>`;
+    for (const it of g.items) {
+      const row = document.createElement('div'); row.className = 'row';
+      if (it.opts) {
+        row.innerHTML = `<label>${it.l}</label><select>${it.opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>`;
+        const sel = row.querySelector('select'); sel.value = params[it.k];
+        sel.onchange = () => { params[it.k] = sel.value; schedule(); };
+      } else if (typeof it.v === 'boolean') {
+        row.className = 'row chk';
+        row.innerHTML = `<label>${it.l}</label><input type="checkbox">`;
+        const cb = row.querySelector('input'); cb.checked = params[it.k];
+        cb.onchange = () => { params[it.k] = cb.checked; schedule(); };
+      } else {
+        // las longitudes se guardan en mm pero se muestran y editan en cm
+        const f = NOT_LENGTH.has(it.k) ? 1 : 10, unit = f === 10 ? ' (cm)' : '';
+        const show = v => +(v / f).toFixed(3);
+        row.innerHTML = `<label>${it.l}${unit}</label><input type="number" min="${show(it.min)}" max="${show(it.max)}" step="${show(it.s)}"><input type="range" min="${show(it.min)}" max="${show(it.max)}" step="${show(it.s)}">`;
+        const [num, rng] = row.querySelectorAll('input');
+        num.value = rng.value = show(params[it.k]);
+        num.onchange = () => { params[it.k] = +num.value * f; rng.value = num.value; schedule(); };
+        rng.oninput = () => { params[it.k] = +rng.value * f; num.value = rng.value; schedule(); };
+      }
+      det.appendChild(row);
+    }
+    box.appendChild(det);
+  }
+}
+
+/* ================= Animación del armado (barbotina) ================= */
+// Cada caja se muestra en la posición en que se vacía el yeso (cara abierta hacia arriba).
+const ANIM_ACTORS = {
+  F_tab: ['F', 'caja_fondo_tablero'], F_ani: ['F', 'caja_fondo_anillo'], F_yeso: ['F', 'yeso_fondo'],
+  A_tab: ['A', 'caja_lateral_tablero_A'], A_inf: ['A', 'caja_lateral_tabla_inferior'], A_sup: ['A', 'caja_lateral_tabla_superior'],
+  A_ext1: ['A', 'caja_lateral_tabla_extremo'], A_ext2: ['A', 'v3'], A_yeso: ['A', 'yeso_lateral_A'],
+  B_tab: ['B', 'caja_lateral_tablero_B'], B_inf: ['B', 'v4'], B_sup: ['B', 'v5'], B_ext1: ['B', 'v6'], B_ext2: ['B', 'v7'], B_yeso: ['B', 'yeso_lateral_B'],
+  M_tap: ['M', 'yeso_fondo'], M_A: ['M', 'yeso_lateral_A', [0, 240, 0]], M_B: ['M', 'yeso_lateral_B', [0, -240, 0]], M_bar: ['M', 'modelo_maestro', [0, 0, 160]],
+};
+const BOXES = ['F_tab', 'F_ani', 'A_tab', 'A_inf', 'A_sup', 'A_ext1', 'A_ext2', 'B_tab', 'B_inf', 'B_sup', 'B_ext1', 'B_ext2'];
+const ANIM_STEPS = [
+  { focus: 'F', text: 'Primero el TAPÓN (el fondo del molde de yeso). Su caja tiene 2 piezas impresas y se arma sobre la mesa.' },
+  { focus: 'F', show: ['F_tab'], file: 'caja_fondo_tablero', text: 'Tablero del fondo: va sobre la mesa con el relieve hacia arriba. Ese relieve dibuja los arcos de las patas y el hueco bajo la maceta.' },
+  { focus: 'F', show: ['F_ani'], file: 'caja_fondo_anillo', text: 'Anillo inclinado: se encaja encima del tablero con sus 4 espigas. Su pared inclinada forma el borde del tapón. Aprieta su filo de alrededor con unas 8 pinzas de resorte y sella la junta con plastilina.' },
+  { focus: 'F', fill: ['F_yeso'], text: 'Caja lista: vierte yeso dentro del anillo hasta el borde y enrasa. Así nace el tapón.' },
+  { focus: 'A', show: ['A_tab'], file: 'caja_lateral_tablero_A', text: 'Pared A: el tablero lateral A es la base; va sobre la mesa con la media maceta hacia arriba. Sobresale arriba y abajo para recibir las tablas.' },
+  { focus: 'A', show: ['A_inf'], file: 'caja_lateral_tabla_inferior', text: 'Tabla inferior: se para sobre el tablero. Su filo de pie y el borde del tablero se aprietan con pinzas (rebaje por debajo para la mordaza).' },
+  { focus: 'A', show: ['A_sup'], file: 'caja_lateral_tabla_superior', text: 'Tabla superior: igual que la inferior, del lado del cuello de llenado.' },
+  { focus: 'A', show: ['A_ext1', 'A_ext2'], file: 'caja_lateral_tabla_extremo (imprime 2)', text: 'Tablas de extremo: cierran los costados. En cada esquina, el extremo y el filo de la tabla quedan pegados: una pinza en cada esquina. Unas 16 pinzas por caja; sella las juntas con plastilina.' },
+  { focus: 'A', fill: ['A_yeso'], text: 'Caja lista: vierte yeso hasta el borde de las tablas y enrasa. Esta es la pared A.' },
+  { focus: 'B', show: ['B_tab'], file: 'caja_lateral_tablero_B', text: 'Pared B: tablero lateral B con la media maceta hacia arriba. Sus bolas salientes formarán los huecos de las llaves.' },
+  { focus: 'B', show: ['B_inf', 'B_sup', 'B_ext1', 'B_ext2'], file: 'las mismas 4 tablas de la pared A', text: 'Reutiliza las mismas tablas inferior, superior y de extremo que usaste en la pared A.' },
+  { focus: 'B', fill: ['B_yeso'], text: 'Caja lista: vierte yeso y enrasa. Esta es la pared B.' },
+  { focus: 'ALL', hide: BOXES, text: 'Cuando el yeso fragua, retira las cajas impresas. Te quedan 3 piezas de yeso: tapón, pared A y pared B.' },
+  { focus: 'M', hide: ['F_yeso', 'A_yeso', 'B_yeso'], show: ['M_tap'], text: 'Molde de yeso: el tapón va sobre la mesa, con el relieve hacia arriba.' },
+  { focus: 'M', show: ['M_A', 'M_B'], text: 'Las dos paredes se cierran alrededor del tapón y lo traban por su borde inclinado, como en el video. Átalas con una correa.' },
+  { focus: 'M', show: ['M_bar'], text: 'Listo para colar: la barbotina (verde) entra por el cuello y llena el hueco con la forma de la maceta.' },
+];
+let anim = null;
+const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function buildAnim() {
+  const P = Object.fromEntries(current.pieces.map(p => [p.id, p]));
+  if (!P.yeso_fondo) { anim = null; $('animText').textContent = 'La animación está disponible en el proyecto de barbotina.'; return; }
+  const lanes = { F: [0, 0, Math.PI], A: [0, 330, Math.PI / 2], B: [0, -330, -Math.PI / 2], M: [560, 0, 0] };
+  const sets = {};
+  for (const [k, [x, y, rx]] of Object.entries(lanes)) { const g = new THREE.Group(); g.rotation.x = rx; group.add(g); sets[k] = { g, x, y }; }
+  const actors = {};
+  for (const [id, [set, pid, from]] of Object.entries(ANIM_ACTORS)) {
+    const pc = P[pid]; if (!pc.geo) pc.geo = toGeometry(pc.m);
+    const plaster = /yeso|M_tap|M_A|M_B/.test(id), slip = id === 'M_bar';
+    const mat = new THREE.MeshStandardMaterial({ color: slip ? 0x5f9e94 : plaster ? 0xf1ede4 : pc.color, roughness: 0.7, transparent: true, opacity: 0, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(pc.geo, mat); mesh.visible = false; sets[set].g.add(mesh);
+    actors[id] = { id, mesh, mat, set, from: from || [0, 0, 150], max: slip ? 0.6 : 1, plane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0) };
+  }
+  for (const s of Object.values(sets)) {
+    s.g.updateMatrixWorld(true);
+    const b = new THREE.Box3().setFromObject(s.g), c = b.getCenter(new THREE.Vector3());
+    s.g.position.set(s.x - c.x, s.y - c.y, -b.min.z);
+    s.g.updateMatrixWorld(true);
+    s.box = new THREE.Box3().setFromObject(s.g);
+  }
+  for (const a of Object.values(actors)) {
+    const inv = sets[a.set].g.quaternion.clone().invert();
+    a.local = new THREE.Vector3(...a.from).applyQuaternion(inv);
+    a.zb = new THREE.Box3().setFromObject(a.mesh);
+  }
+  const all = sets.F.box.clone().union(sets.A.box).union(sets.B.box);
+  anim = { actors, sets, focusBox: { F: sets.F.box, A: sets.A.box, B: sets.B.box, M: sets.M.box, ALL: all }, step: 0, t0: 0, playing: true, cam: null, last: 0 };
+  animGo(0);
+}
+function animState(a, vis, fill, off, hi) {
+  a.mesh.visible = vis > 0.01;
+  a.mat.opacity = vis * a.max;
+  a.mat.depthWrite = vis * a.max > 0.95;
+  a.mesh.position.copy(a.local).multiplyScalar(off);
+  a.mat.emissive.setHex(hi ? 0x4a3a00 : 0x000000);
+  if (fill < 1) { a.plane.constant = a.zb.min.z + (a.zb.max.z - a.zb.min.z) * fill; a.mat.clippingPlanes = [a.plane]; }
+  else a.mat.clippingPlanes = [];
+}
+function animGo(k) {
+  if (!anim) return;
+  k = Math.max(0, Math.min(ANIM_STEPS.length - 1, k));
+  anim.step = k; anim.t0 = performance.now(); anim.last = anim.t0;
+  // estado base: aplica al instante todos los pasos anteriores
+  const st = Object.fromEntries(Object.keys(anim.actors).map(id => [id, 0]));
+  for (let i = 0; i < k; i++) { const s = ANIM_STEPS[i]; for (const id of [...(s.show || []), ...(s.fill || [])]) st[id] = 1; for (const id of s.hide || []) st[id] = 0; }
+  anim.base = st;
+  const s = ANIM_STEPS[k];
+  $('animStep').textContent = `Paso ${k + 1} de ${ANIM_STEPS.length}`;
+  $('animText').textContent = s.text;
+  $('animFile').textContent = s.file ? (s.file.startsWith('las ') ? s.file : `STL: ${fileBase()}_${s.file.split(' ')[0]}.stl${s.file.includes('(') ? ' · imprime 2' : ''}`) : 'sin piezas nuevas';
+  $('animPlay').textContent = anim.playing ? '⏸' : '⏵';
+  // cámara hacia el grupo del paso
+  const b = anim.focusBox[s.focus], c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length() / 2;
+  const fv = THREE.MathUtils.degToRad(camera.fov), fh = 2 * Math.atan(Math.tan(fv / 2) * camera.aspect);
+  const dir = new THREE.Vector3(-0.45, -0.75, 0.55).normalize();
+  anim.cam = { p0: camera.position.clone(), t0: controls.target.clone(), p1: c.clone().addScaledVector(dir, r / Math.sin(Math.min(fv, fh) / 2) * 1.1), t1: c };
+}
+function animTick(now) {
+  if (!anim) return;
+  const s = ANIM_STEPS[anim.step], u = Math.min(1, (now - anim.t0) / 1400), e = ease(u);
+  for (const [id, a] of Object.entries(anim.actors)) {
+    const was = anim.base[id];
+    if (s.show?.includes(id)) animState(a, e, 1, 1 - e, true);
+    else if (s.fill?.includes(id)) animState(a, 1, e, 0, true);
+    else if (s.hide?.includes(id)) animState(a, was * (1 - e), 1, 0, false);
+    else animState(a, was, 1, 0, false);
+  }
+  if (anim.cam) {
+    const cu = ease(Math.min(1, (now - anim.t0) / 1000));
+    camera.position.lerpVectors(anim.cam.p0, anim.cam.p1, cu);
+    controls.target.lerpVectors(anim.cam.t0, anim.cam.t1, cu);
+    if (cu >= 1) anim.cam = null;
+  }
+  if (anim.playing && now - anim.t0 > 4200 && anim.step < ANIM_STEPS.length - 1) animGo(anim.step + 1);
+}
+
+/* ================= Visor 3D ================= */
+const view = $('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.localClippingEnabled = true;
+view.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 20000);
+camera.up.set(0, 0, 1);
+camera.position.set(-260, -420, 260);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-300, -400, 600); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(400, 300, 200); scene.add(fill);
+const grid = new THREE.GridHelper(600, 30, 0x9a9488, 0xc7c1b5); grid.rotation.x = Math.PI / 2; grid.position.z = -0.01; scene.add(grid);
+const clipPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+let cut = false, xray = false, viewMode = 'final';
+const group = new THREE.Group(); scene.add(group);
+function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(view);
+(function loop(t) { requestAnimationFrame(loop); animTick(t || 0); controls.update(); renderer.render(scene, camera); })();
+
+function toGeometry(m) {
+  const mesh = m.getMesh(), np = mesh.numProp, vp = mesh.vertProperties, nv = vp.length / np;
+  const pos = new Float32Array(nv * 3);
+  for (let i = 0; i < nv; i++) { pos[i * 3] = vp[i * np]; pos[i * 3 + 1] = vp[i * np + 1]; pos[i * 3 + 2] = vp[i * np + 2]; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setIndex(new THREE.BufferAttribute(new Uint32Array(mesh.triVerts), 1));
+  return toCreasedNormals(g, Math.PI / 6);
+}
+
+let current = null, visible = {};
+function showPieces() {
+  group.clear();
+  if (!current) return;
+  let v = current.views.find(x => x.id === viewMode);
+  if (!v) { v = current.views[0]; viewMode = v.id; }
+  renderViewBtns();
+  $('animBar').classList.toggle('hidden', !v.anim);
+  if (v.anim) { buildAnim(); grid.position.z = -0.5; return; }
+  anim = null;
+  for (const pc of current.pieces) {
+    if (!v.groups.includes(pc.group) || visible[pc.id] === false) continue;
+    if (!pc.geo) pc.geo = toGeometry(pc.m);
+    const ghost = pc.ghost;
+    const mat = new THREE.MeshStandardMaterial({
+      color: pc.color, roughness: /maceta|modelo/.test(pc.id) ? 0.32 : 0.6, metalness: 0,
+      transparent: ghost || xray, opacity: ghost ? 0.3 : (xray ? 0.45 : 1), depthWrite: !(ghost || xray),
+      side: THREE.DoubleSide, clippingPlanes: cut ? [clipPlane] : [],
+    });
+    const mesh = new THREE.Mesh(pc.geo, mat);
+    if (v.explode) mesh.position.set(...pc.explode);
+    group.add(mesh);
+  }
+  // el piso de referencia va bajo la pieza más baja para que no atraviese el molde
+  const gb = new THREE.Box3().setFromObject(group);
+  grid.position.z = gb.isEmpty() ? 0 : gb.min.z - 0.5;
+}
+function renderViewBtns() {
+  const box = $('viewBtns');
+  const sig = current.views.map(v => v.id).join() + '|' + viewMode;
+  if (box.dataset.sig === sig) return;
+  box.dataset.sig = sig;
+  box.innerHTML = '';
+  for (const v of current.views) {
+    const b = document.createElement('button'); b.textContent = v.label; b.classList.toggle('on', v.id === viewMode);
+    b.onclick = () => { viewMode = v.id; showPieces(); fit(); };
+    box.appendChild(b);
+  }
+}
+function fit() {
+  const b = new THREE.Box3().setFromObject(group); if (b.isEmpty()) return;
+  const c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length() / 2;
+  controls.target.copy(c);
+  const dir = new THREE.Vector3(-0.45, -0.75, 0.48).normalize();
+  const fv = THREE.MathUtils.degToRad(camera.fov), fh = 2 * Math.atan(Math.tan(fv / 2) * camera.aspect);
+  camera.position.copy(c).addScaledVector(dir, r / Math.sin(Math.min(fv, fh) / 2) * 1.05);
+}
+
+/* ================= Paneles ================= */
+function bboxOf(m) { const b = m.boundingBox(); return [b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]]; }
+function renderPieces() {
+  const box = $('pieces'); box.innerHTML = '';
+  if (!current) return;
+  const bed = [params.camaX || 330, params.camaY || 320, params.camaZ || 325].sort((a, b) => b - a);
+  let lastGroup = null;
+  for (const pc of current.pieces) {
+    if (pc.hide) continue;
+    if (pc.group !== lastGroup) {
+      lastGroup = pc.group;
+      const h = document.createElement('div'); h.className = 'note'; h.style.cssText = 'font-weight:600;margin-top:10px';
+      h.textContent = current.groupNames?.[pc.group] || pc.group; box.appendChild(h);
+    }
+    const dims = bboxOf(pc.m), v = volOf(pc.m) / 1000, ntri = pc.m.numTri();
+    const sorted = [...dims].sort((a, b) => b - a);
+    const fits = sorted.every((d, i) => d <= bed[i]);
+    const extra = [pc.qty ? `imprime ${pc.qty}` : '', pc.note || ''].filter(Boolean).join(' · ');
+    const el = document.createElement('div'); el.className = 'piece';
+    el.innerHTML = `<span class="sw" style="background:#${pc.color.toString(16).padStart(6, '0')}"></span>
+      <div><label><input type="checkbox" ${visible[pc.id] === false ? '' : 'checked'}> ${pc.name}${pc.qty ? ` ×${pc.qty}` : ''}</label>
+      <small>${dims.map(d => (d / 10).toFixed(1).replace('.', ',')).join(' × ')} cm · ${v.toFixed(0)} cm³ · ${ntri.toLocaleString('es')} triángulos</small>
+      ${extra ? `<small>${extra}</small>` : ''}
+      ${pc.ref ? '<small>Sale del yeso; no se imprime</small>' : fits ? '<small class="okc">Cabe en tu impresora</small>' : '<small class="warn">No cabe en tu volumen de impresión</small>'}</div>
+      ${pc.ref ? '' : '<button>STL</button>'}`;
+    el.querySelector('input').onchange = e => { visible[pc.id] = e.target.checked; showPieces(); };
+    const b = el.querySelector('button'); if (b) b.onclick = () => download(stlBinary(pc.m, pc.name), fileBase() + '_' + pc.id + '.stl');
+    box.appendChild(el);
+  }
+  // cálculos
+  let html = '';
+  if (current.warn) html += `<p class="err">${current.warn}</p>`;
+  if (current.calc?.length) {
+    html += `<h3>Material</h3><table>${current.calc.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('')}</table>
+      <p class="note">El polvo usa densidad de yeso 2,6 g/cm³ y la relación agua:yeso que pongas; confírmala en la ficha técnica de tu bolsa. Prepara un poco más por la pérdida en el vaciado.</p>`;
+  }
+  $('calc').innerHTML = html;
+  $('ficha').innerHTML = `<div class="chips">${current.ficha.map(f => `<span class="chip">${f}</span>`).join('')}</div>` +
+    (mode === 'proj' ? '<p class="note">La foto no trae escala: el largo de 22 cm es un valor inicial. Mide tu maceta real y ajusta Largo, Ancho y Alto; el resto se reajusta proporcionalmente a la forma.</p>' : '');
+  $('guia').innerHTML = current.guide.map(g => `<li>${g}</li>`).join('');
+  drawPlan();
+  renderAnalysis();
+}
+
+/* ================= Cortes y análisis del molde ================= */
+// Lleva el plano de corte a z=0 con una rotación pura (conserva la orientación) y corta.
+const normPolys = r => Array.from(r, pg => Array.from(pg, pt => Array.isArray(pt) ? pt : [pt.x ?? pt[0], pt.y ?? pt[1]]));
+function sectionPolys(m, pl) {
+  if (pl.axis === 'z') { const cs = m.slice(pl.at); const r = normPolys(cs.toPolygons()); cs.delete(); return r; }
+  const mm = m.warp(v => {
+    const x = v[0], y = v[1], z = v[2];
+    if (pl.axis === 'y') { v[0] = x; v[1] = z; v[2] = -(y - pl.at); }
+    else { v[0] = y; v[1] = z; v[2] = x - pl.at; }
+  });
+  const cs = mm.slice(0), r = normPolys(cs.toPolygons());
+  cs.delete(); mm.delete();
+  return r;
+}
+function sectionSVG(an, pl) {
+  const layers = [...an.parts, an.cavity].map(L => ({ ...L, polys: sectionPolys(L.m, pl) }));
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const L of layers) for (const poly of L.polys) for (const [x, y] of poly) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (!isFinite(x0)) return '';
+  const W = 600, pad = 14, sc = (W - 2 * pad) / (x1 - x0), Hh = (y1 - y0) * sc + 2 * pad + 22;
+  const X = x => (pad + (x - x0) * sc).toFixed(1), Y = y => (pad + (y1 - y) * sc).toFixed(1);
+  const paths = layers.map(L => L.polys.length ? `<path d="${L.polys.map(pg => 'M' + pg.map(([x, y]) => X(x) + ' ' + Y(y)).join('L') + 'Z').join('')}" fill="${L.c}" fill-opacity="${L === layers[layers.length - 1] ? 0.85 : 1}" fill-rule="evenodd" stroke="var(--ink)" stroke-width="0.8"/>` : '').join('');
+  const hAx = pl.axis === 'x' ? 'Y' : 'X', vAx = pl.axis === 'z' ? 'Y' : 'Z';
+  return `<figure style="margin:8px 0"><figcaption class="note" style="font-weight:600">${pl.label}</figcaption>
+    <svg viewBox="0 0 ${W} ${Hh.toFixed(0)}" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px">${paths}
+    <text x="${pad}" y="${(Hh - 8).toFixed(0)}" font-size="15" fill="var(--muted)">${hAx} ${cm(x1 - x0)} × ${vAx} ${cm(y1 - y0)}</text></svg></figure>`;
+}
+function renderAnalysis() {
+  const box = $('analisis'), an = current?.analysis;
+  if (!an) { box.innerHTML = ''; return; }
+  box.innerHTML = `<h3>Cortes del molde de yeso</h3><button id="anaBtn" class="primary">Analizar molde: cortes y desmoldeo</button>
+    <p class="note">Tarda unos segundos; vuelve a pulsarlo después de cambiar medidas.</p>`;
+  $('anaBtn').onclick = () => { status('Analizando…'); setTimeout(() => { const t0 = performance.now(); runAnalysis(an); status(`Análisis listo en ${((performance.now() - t0) / 1000).toFixed(1)} s`); }, 30); };
+}
+function runAnalysis(an) {
+  const box = $('analisis');
+  const results = an.checks.map(([t, fn]) => [t, fn()]);
+  for (const m of TMP) m.delete?.(); TMP = [];
+  const legend = [...an.parts, an.cavity].map(L => `<span class="chip"><span class="sw" style="display:inline-block;vertical-align:-2px;background:${L.c}"></span> ${L.n}</span>`).join('');
+  const ok = v => v < 0.01;
+  box.innerHTML = `<h3>Cortes del molde de yeso</h3><div class="chips">${legend}</div>
+    ${an.planes.map(pl => sectionSVG(an, pl)).join('')}
+    <h3>Desmoldeo (choque al mover cada pieza)</h3><table>${results.map(([t, v]) => `<tr><td>${t}</td><td class="${ok(v) ? 'okc' : 'err'}">${ok(v) ? '✔ libre' : '✘ ' + v.toFixed(2) + ' cm³'}</td></tr>`).join('')}</table>
+    <h3>Espesores</h3><table>${an.thick.map(([t, v]) => `<tr><td>${t}</td><td>${v}</td></tr>`).join('')}</table>`;
+}
+
+function drawPlan() {
+  const cv = $('plano'), ctx = cv.getContext('2d');
+  const css = getComputedStyle(document.documentElement);
+  const ink = css.getPropertyValue('--ink').trim(), muted = css.getPropertyValue('--muted').trim(), acc = css.getPropertyValue('--accent').trim();
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const inf = current?.info; if (!inf || !inf.plan) { ctx.fillStyle = muted; ctx.font = '22px system-ui'; ctx.fillText('Sin plano para este proyecto', 20, 40); return; }
+  const { plan, section, fichaVals: F } = inf;
+  const pad = 40, W = cv.width - 2 * pad;
+  // planta
+  const s1 = Math.min(W / F.L, 230 / F.W), cx = cv.width / 2, cy = 30 + 230 / 2;
+  const path = (pts, dash, color, lw) => { ctx.beginPath(); pts.forEach(([x, y], i) => { const X = cx + x * s1, Y = cy - y * s1; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.closePath(); ctx.setLineDash(dash); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); ctx.setLineDash([]); };
+  ctx.fillStyle = muted; ctx.font = '600 18px system-ui'; ctx.fillText('PLANTA', 10, 20);
+  path(plan.outer, [], ink, 2.4);
+  path(plan.inner, [], acc, 1.6);
+  if (plan.band) path(plan.band, [8, 6], muted, 1.4);
+  if (plan.recess) path(plan.recess, [3, 4], muted, 1);
+  for (const [x, r] of section.holes) { ctx.beginPath(); ctx.arc(cx + x * s1, cy, r * s1, 0, 7); ctx.strokeStyle = ink; ctx.lineWidth = 1.4; ctx.stroke(); }
+  ctx.fillStyle = ink; ctx.font = '17px system-ui';
+  ctx.fillText(`${cm(F.L)} × ${cm(F.W)} (máximo con labio)`, 10, cy + 230 / 2 + 22);
+  // sección
+  const top = 310, h = 200, s2 = Math.min(W / F.L, h / F.H), by = top + h;
+  ctx.fillStyle = muted; ctx.font = '600 18px system-ui'; ctx.fillText('SECCIÓN EN EL EJE Y = 0', 10, top - 6);
+  const P = (x, z) => [cx + x * s2, by - z * s2];
+  for (const side of [1, -1]) {
+    ctx.beginPath();
+    const pts = [];
+    if (section.band) { pts.push([section.band.xo, 0]); pts.push([section.band.xo, F.hf]); }
+    section.outer.forEach(p => pts.push(p));
+    section.inner.forEach(p => pts.push(p));
+    pts.push([0, F.zf]); pts.push([0, F.hf]);
+    if (section.band) { pts.push([section.band.xi, F.hf]); pts.push([section.band.xi, 0]); }
+    pts.forEach(([x, z], i) => { const [X, Y] = P(side * x, z); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+    ctx.closePath(); ctx.fillStyle = acc + '55'; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1.6; ctx.stroke();
+  }
+  for (const [x, r] of section.holes) { const [X0, Y0] = P(x - r, F.zf), [X1, Y1] = P(x + r, F.hf); ctx.clearRect(X0, Y0, X1 - X0, Y1 - Y0); }
+  ctx.fillStyle = ink; ctx.font = '17px system-ui';
+  const [, yH] = P(0, F.H); ctx.fillText(`Alto ${cm(F.H)} · zócalo ${cm(F.hf)} · fondo interior a ${cm(F.zf)}`, 10, by + 26);
+  ctx.strokeStyle = muted; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(pad / 2, yH); ctx.lineTo(cv.width - pad / 2, yH); ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* ================= Exportación ================= */
+function stlBinary(m, name) {
+  const mesh = m.getMesh(), np = mesh.numProp, vp = mesh.vertProperties, tv = mesh.triVerts, nt = tv.length / 3;
+  const buf = new ArrayBuffer(84 + nt * 50), dv = new DataView(buf);
+  const head = ('Estudio STL - ' + name).slice(0, 79);
+  for (let i = 0; i < head.length; i++) dv.setUint8(i, head.charCodeAt(i) & 0x7f);
+  dv.setUint32(80, nt, true);
+  let o = 84;
+  for (let t = 0; t < nt; t++) {
+    const a = tv[3 * t] * np, b = tv[3 * t + 1] * np, c = tv[3 * t + 2] * np;
+    const ux = vp[b] - vp[a], uy = vp[b + 1] - vp[a + 1], uz = vp[b + 2] - vp[a + 2];
+    const wx = vp[c] - vp[a], wy = vp[c + 1] - vp[a + 1], wz = vp[c + 2] - vp[a + 2];
+    let nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx; const l = Math.hypot(nx, ny, nz) || 1;
+    dv.setFloat32(o, nx / l, true); dv.setFloat32(o + 4, ny / l, true); dv.setFloat32(o + 8, nz / l, true); o += 12;
+    for (const k of [a, b, c]) { dv.setFloat32(o, vp[k], true); dv.setFloat32(o + 4, vp[k + 1], true); dv.setFloat32(o + 8, vp[k + 2], true); o += 12; }
+    dv.setUint16(o, 0, true); o += 2;
+  }
+  return new Blob([buf], { type: 'model/stl' });
+}
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+const fileBase = () => mode === 'proj' ? 'maceta_bonsai' : 'stl_importado';
+$('zipBtn').onclick = async () => {
+  if (!current) return;
+  const zip = new JSZip();
+  for (const pc of current.pieces) if (!pc.hide && !pc.ref) zip.file(fileBase() + '_' + pc.id + '.stl', stlBinary(pc.m, pc.name));
+  zip.file('parametros.json', JSON.stringify(params, null, 2));
+  zip.file('proceso.txt', current.guide.map((g, i) => `${i + 1}. ${g}`).join('\n'));
+  download(await zip.generateAsync({ type: 'blob' }), fileBase() + '.zip');
+};
+
+/* ================= Construcción ================= */
+let timer = null;
+function schedule() { clearTimeout(timer); status('Generando…'); timer = setTimeout(rebuild, 250); }
+function rebuild() {
+  const t0 = performance.now();
+  const old = current, oldTmp = TMP; TMP = [];
+  try {
+    current = mode === 'proj' ? buildBonsai({ ...params, proceso: proc() }) : buildImported(params, wantImportMold);
+    const keep = new Set(current.pieces.map(p => p.m));
+    for (const m of TMP) if (!keep.has(m)) m.delete();
+    TMP = [];
+    if (old) { for (const pc of old.pieces) pc.geo?.dispose(); for (const m of new Set(old.pieces.map(pc => pc.m))) m.delete?.(); }
+    for (const m of oldTmp) m.delete?.();
+    showPieces(); renderPieces();
+    if (!old || old.__mode !== mode) fit();
+    current.__mode = mode;
+    status(`Listo en ${((performance.now() - t0) / 1000).toFixed(1)} s · ${current.pieces.length} piezas, todas estancas`);
+  } catch (e) {
+    for (const m of TMP) m.delete?.(); TMP = [];
+    current = old;
+    status('⚠ ' + e.message);
+    console.error(e);
+  }
+}
+
+/* ================= Eventos ================= */
+const proc = () => $('projSel').value;
+const projSchema = () => schemaFor(proc());
+const openProject = (pr, pa) => { $('projSel').value = pr || 'barbotina'; params = { ...defaults(projSchema()), ...pa }; setMode('proj'); };
+$('projSel').onchange = () => { params = { ...defaults(projSchema()), ...params }; viewMode = ''; renderParams(projSchema(), $('paramsBox')); schedule(); };
+$('cutBtn').onclick = () => { cut = !cut; $('cutBtn').classList.toggle('on', cut); showPieces(); };
+$('xrayBtn').onclick = () => { xray = !xray; $('xrayBtn').classList.toggle('on', xray); showPieces(); };
+$('fitBtn').onclick = fit;
+$('animPrev').onclick = () => { if (anim) { anim.playing = false; animGo(anim.step - 1); } };
+$('animNext').onclick = () => { if (anim) { anim.playing = false; animGo(anim.step + 1); } };
+$('animPlay').onclick = () => { if (!anim) return; anim.playing = !anim.playing; if (anim.playing && anim.step === ANIM_STEPS.length - 1) animGo(0); else animGo(anim.step); };
+
+const KEY = 'estudio3d.proyectos';
+const loadSaved = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+function refreshSaved() { const s = loadSaved(); $('savedSel').innerHTML = Object.keys(s).map(k => `<option>${k}</option>`).join('') || '<option value="">(ninguno)</option>'; }
+$('saveBtn').onclick = () => { const n = $('saveName').value.trim(); if (!n) return; const s = loadSaved(); s[n] = { mode, proc: proc(), params }; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} refreshSaved(); status('Guardado: ' + n); };
+$('loadBtn').onclick = () => { const s = loadSaved()[$('savedSel').value]; if (!s || s.mode !== 'proj') return; openProject(s.proc, s.params); };
+$('expJson').onclick = () => download(new Blob([JSON.stringify({ mode, proc: proc(), params }, null, 2)], { type: 'application/json' }), fileBase() + '.json');
+$('impJsonBtn').onclick = () => $('impJson').click();
+$('impJson').onchange = async e => { const f = e.target.files[0]; if (!f) return; const d = JSON.parse(await f.text()); if (d.mode === 'proj') openProject(d.proc, d.params); };
+$('resetBtn').onclick = () => { if (mode !== 'proj') return; params = defaults(projSchema()); renderParams(projSchema(), $('paramsBox')); schedule(); };
+
+function setMode(m) {
+  mode = m;
+  $('tabProj').classList.toggle('on', m === 'proj'); $('tabImp').classList.toggle('on', m === 'imp');
+  $('paramsBox').classList.toggle('hidden', m !== 'proj'); $('impBox').classList.toggle('hidden', m !== 'imp');
+  $('projSel').classList.toggle('hidden', m !== 'proj');
+  viewMode = '';
+  if (m === 'proj') { schema = projSchema(); if (!params.largo) params = defaults(schema); renderParams(schema, $('paramsBox')); }
+  else { schema = IMPORT_PARAMS; params = defaults(IMPORT_PARAMS); renderParams(IMPORT_PARAMS, $('impParams')); }
+  schedule();
+}
+$('tabProj').onclick = () => setMode('proj');
+$('tabImp').onclick = () => { wantImportMold = false; setMode('imp'); };
+$('stlFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  importedGeo = new STLLoader().parse(await f.arrayBuffer());
+  $('impMold').disabled = false; wantImportMold = false; schedule();
+};
+$('impMold').onclick = () => { wantImportMold = true; viewMode = 'molde'; schedule(); };
+
+window.__estudio = { get current() { return current; }, get params() { return params; }, set params(v) { params = v; }, rebuild, stlBinary, volOf };
+refreshSaved();
+params = defaults(projSchema());
+setMode('proj');
+</script>
+</body>
+</html>

@@ -6,11 +6,28 @@
       "runtimeExecutable": "powershell.exe",
       "runtimeArgs": [
         "-NoProfile",
-        "-ExecutionPolicy", "Bypass",
-        "-File", "C:/Users/Usuario/iCloudDrive/PROYECTO HTML BONSAI/.claude/static-server.ps1"
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:/Users/Usuario/iCloudDrive/PROYECTO HTML BONSAI/.claude/static-server.ps1"
       ],
       "port": 5500,
       "autoPort": true
+    },
+    {
+      "name": "estudio3d",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8765",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "C:/Users/Usuario/iCloudDrive/PROYECTO HTML BONSAI/estudio3d/app"
+      ],
+      "port": 8765,
+      "url": "http://localhost:8765"
     }
   ]
 }
