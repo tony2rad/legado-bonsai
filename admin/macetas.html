@@ -94,6 +94,8 @@
   .calc-out th{color:var(--muted);font-weight:600} .calc-out tr.tot td{font-weight:700;border-bottom:0} .calc-out tr.nofit td{color:var(--muted)} .calc-out .btn{margin-top:6px}
   /* Sección «Piso y paredes»: solo su recuadro; el resto del panel y el «Personalizar» del visor se ocultan */
   #cajaBox{display:none} body[data-caja="1"] #cajaBox{display:block}
+  #selloBox{display:none} body[data-sello="1"] #selloBox{display:block}
+  body[data-sello="1"] aside.panel > :not(:first-child):not(#selloBox),body[data-sello="1"] #fichaBox,body[data-sello="1"] #recoBox,body[data-sello="1"] #v3side,body[data-sello="1"] #v3dims{display:none!important}
   body[data-caja="1"] aside.panel > :not(:first-child):not(#cajaBox),body[data-caja="1"] #fichaBox,body[data-caja="1"] #recoBox,body[data-caja="1"] #v3side,body[data-caja="1"] #v3dims{display:none!important}
   /* Impresión 3D y Molde 3D: el visor ocupa el lugar de las hojas, sin ventana (el panel lateral ya tiene los campos) */
   dialog#dlg3d.inline{position:relative;inset:auto;margin:0;width:100%;max-width:none;height:calc(100vh - 150px);min-height:520px;z-index:0}
@@ -184,6 +186,7 @@
         <label><input type="radio" name="mode" id="modeYeso2" value="yeso2"><span>Molde de yeso v2</span></label>
         <label><input type="radio" name="mode" id="modeCaja" value="caja"><span>Piso y paredes</span></label>
         <label><input type="radio" name="mode" id="modePskin" value="pskin"><span>Contramolde de yeso</span></label>
+        <label><input type="radio" name="mode" id="modeSello" value="sello"><span>Grabado 3D</span></label>
       </div>
       <p class="mode-hint" id="modeHint"></p>
       <figure id="v2Foto" hidden><canvas id="v2FotoCv" aria-label="Maceta terminada en 3D: arrastra para girarla"></canvas><figcaption><span id="v2FotoCap"></span> <label class="v2tree"><input type="checkbox" id="v2FotoTree"> Con árbol</label></figcaption></figure>
@@ -343,6 +346,26 @@
       <label class="f" style="margin-top:8px"><span>Filamento del 3MF</span><select id="cjFil"><option value="PLA" selected>PLA (Bambu PLA Basic)</option><option value="PETG">PETG (Bambu PETG HF)</option></select></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCaja3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnCajaFit" type="button" title="Toma la medida de la caja más grande del molde de yeso de la maceta que tienes elegida">Tomar la medida de mi molde de yeso</button></div>
       <div class="mold-out" id="cajaOut" style="margin-top:8px"></div>
+    </details>
+    <details class="gloss" id="selloBox" open style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
+      <summary>Sello LEGADO BONSÁI para la arcilla · variantes de grabado 3D</summary>
+      <p class="mold-lead" style="margin:4px 0 8px">Un sello de mano impreso en 3D con tu logotipo (el árbol y el texto de la marca) para marcar la arcilla en cuero blando. La cara va <b>espejada</b>, así se lee derecha en la arcilla. Se imprime de pie, con la perilla en la cama y la cara hacia arriba, sin soportes; la perilla tiene una <b>punta que apunta hacia arriba del logotipo</b>, así sabes cómo ponerlo sin mirar la cara.</p>
+      <p class="mold-lead" style="margin:0 0 4px"><b>Variantes</b></p>
+      <label class="check"><input type="checkbox" id="slvC" checked><span><b>Logotipo vertical</b>: el árbol con LEGADO BONSÁI debajo (como tu guía impresa)</span></label>
+      <label class="check"><input type="checkbox" id="slvB" checked><span><b>Emblema</b>: solo el árbol sobre las colinas</span></label>
+      <label class="check"><input type="checkbox" id="slvE" checked><span><b>Texto</b>: LEGADO BONSÁI</span></label>
+      <label class="check"><input type="checkbox" id="slvA"><span><b>Sello circular</b>: el logotipo dentro de un doble aro</span></label>
+      <label class="check"><input type="checkbox" id="slvD"><span><b>Firma lineal</b>: el árbol y el texto en una línea</span></label>
+      <div class="grid2" style="margin-top:6px">
+        <label class="f" style="grid-column:1/-1"><span>Qué deja en la arcilla</span><select id="slMode"><option value="hundido" selected>Grabado hundido (el sello lleva el dibujo en relieve)</option><option value="relieve">Dibujo en relieve (el sello lleva el dibujo hundido)</option></select></label>
+        <label class="f"><span>Ancho del dibujo <b>cm</b></span><input id="slW" type="number" step="0.5" min="1.5" max="10" value="4"></label>
+        <label class="f"><span>Profundidad <b>mm</b></span><select id="slD"><option value="0.8">0,8 · fino</option><option value="1.2" selected>1,2 · normal</option><option value="1.6">1,6 · marcado</option><option value="2">2 · profundo</option></select></label>
+        <label class="f"><span>Borde</span><select id="slFrame"><option value="borde" selected>Con borde (sello japonés)</option><option value="no">Sin borde</option></select></label>
+        <label class="f"><span>Mango</span><select id="slHandle"><option value="perilla" selected>Perilla con punta (una pieza)</option><option value="plano">Placa plana (para pegar a un taco)</option></select></label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnSello3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnSelloStl" type="button">Descargar STL (ZIP)</button></div>
+      <div class="mold-out" id="selloOut" style="margin-top:8px"></div>
+      <p class="mold-lead" style="margin-top:8px"><b>Cómo se usa:</b> marca la arcilla en cuero blando (firme pero aún se raya con la uña). Espolvorea maicena o talco en la cara del sello, apóyalo recto y aprieta parejo 2–3 s sin girarlo; levántalo recto. En el fondo de la maceta, sostén la pared por dentro con la otra mano. Lava el sello con agua y cepillo suave.</p>
     </details>
     <details class="gloss" id="sprigBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Relieves: molde de sprig</summary>
@@ -597,6 +620,7 @@
       else s.lunaOff=true; }
     s.belt=s.body==='cinturon'?(+$('beltPos').value||0.5):0.5;
     if(s.mode==='yeso2'){ s.mode='plaster'; s.v2Mode=true; }
+    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
     if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       s.pModel=$('pModel').value; s.pLipP=s.v2Mode?'diseno':$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
@@ -1876,7 +1900,7 @@
     // el molde tarda hasta ~2 s en piezas grandes: se recalcula cuando dejas de escribir, no en cada tecla
     if(mesaOn){ const G=mesaView(THREE,s,b); swap(G); const c=G.userData.box.getCenter(new THREE.Vector3()), z=G.userData.box.getSize(new THREE.Vector3()); floor.position.set(c.x,0,c.z); floor.scale.setScalar(Math.max(z.x,z.z)*0.62); }
     else if(moldOn||plasterOn){ $('v3msg').textContent='Calculando el molde…'; V3.moldT=setTimeout(async()=>{ if(!$('dlg3d').open||!last3) return; await prepareSeal(last3.s); if(!$('dlg3d').open||!last3) return;
-      if(last3.s.moldAuto&&last3.s.mode==='mold'&&!AUTO_PARTS.has(autoKey(last3.s))){ $('v3msg').textContent='Probando el molde en 2 mitades y en 4 cuartos para ocupar menos camas de la '+last3.s.bedName+'…'; await resolveAutoParts(last3.s,last3.b); render(); return; } const G=last3.s.v2Mode?v2Group(THREE,last3.s,last3.b):last3.s.pskinMode?pskinGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.cajaMode?boxKitGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.plasterMode?plasterGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}):moldGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}); swap(G);
+      if(last3.s.moldAuto&&last3.s.mode==='mold'&&!AUTO_PARTS.has(autoKey(last3.s))){ $('v3msg').textContent='Probando el molde en 2 mitades y en 4 cuartos para ocupar menos camas de la '+last3.s.bedName+'…'; await resolveAutoParts(last3.s,last3.b); render(); return; } if(last3.s.selloMode) await prepareSello(last3.s); const G=last3.s.selloMode?selloGroup(THREE,last3.s):last3.s.v2Mode?v2Group(THREE,last3.s,last3.b):last3.s.pskinMode?pskinGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.cajaMode?boxKitGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.plasterMode?plasterGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}):moldGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}); swap(G);
       const c=G.userData.box.getCenter(new THREE.Vector3()), z=G.userData.box.getSize(new THREE.Vector3()); floor.position.set(c.x,0,c.z); floor.scale.setScalar(Math.max(z.x,z.z)*0.62);
       if(!V3.moldFramed){ V3.moldFramed=true; frameMold('iso'); }
       $('v3msg').textContent=G.userData.plasterMsg?G.userData.plasterMsg:G.userData.skin?`A la izquierda la madre con su placa de vertido: sobre ella se arma la carcasa y se cuela la silicona (≈ ${Math.round(G.userData.skin.vol/1000*1.1)} ml de silicona de condensación para una piel de ${G.userData.skin.t} mm). Al centro el molde armado para colar cemento: la piel (translúcida) va dentro de la carcasa, sobre la base con núcleo; mueve «Armado ↔ Desarmado» para ver las piezas. A la derecha la maceta terminada.`:'A la izquierda el molde (mueve «Armado ↔ Desarmado» para ver cómo encajan las piezas; desarmado, la placa de patas se voltea para mostrar el sello) y a la derecha la maceta terminada que sale de él. La maceta translúcida marca el hueco que llena el cemento.'; },reframe?30:300); }
@@ -1889,6 +1913,7 @@
       if(art&&!SEAL_ART[art]&&!V3.sealTry){ V3.sealTry=true; prepareSeal(s).then(()=>{ if($('dlg3d').open) update3D(false); }); } }
     sync3(); $('v3dims').textContent=dims3(s,b); estimateInto(s,b); $('v3dims').hidden=!$('v3dimsOn').checked;
     $('v3expBox').hidden=mesaOn||!(moldOn||plasterOn||s.printable&&s.pFeet!=='pegadas'&&s.feet>0); $('v3procBox').hidden=!plasterOn||mesaOn||(s.cajaMode&&!(s.cajaDims&&s.cajaDims.modular)); { const cj=!!s.cajaMode, ps=!!s.pskinMode; $('v3pL').textContent=cj?'Piezas':ps?'Carcasa armada':'En la caja'; $('v3pR').textContent=cj?'Caja armada':ps?'Colado y abierto':'En el molde'; $('v3play').textContent=cj?'▶ Ver armado':'▶ Ver proceso'; }
+    if(s.selloMode){ $('v3expBox').hidden=true; $('v3procBox').hidden=true; }
     $('v3steps').hidden=!(plasterOn&&s.v2Mode&&!mesaOn); if(plasterOn&&s.v2Mode&&!mesaOn){ $('v3expBox').hidden=true; $('v3procBox').hidden=true; }
     if(!moldOn&&!mesaOn&&!plasterOn){ floor.position.set(0,0,0);    floor.scale.setScalar(Math.max(s.L,s.W)*0.75); }
     V3.size();
@@ -1896,6 +1921,7 @@
     if(reframe||V3.framed!==key){ V3.framed=key; if(mesaOn) frameMold('iso'); else if(moldOn||plasterOn) V3.moldFramed=false; else { const tr=$('v3tree').checked&&!moldOn, d=Math.max(s.L,s.W,s.H*1.6)*(moldOn?3.4:tr?2.9:2.3); controls.target.set(0,moldOn?s.H*0.4:s.H*(tr?1.1:0.5),0); camera.position.set(d*0.62,d*0.5,d*0.72); } }
     const dims=s.type==='round'?`Ø ${cm(s.L)} × ${cm(s.H)} cm`:`${cm(s.L)} × ${cm(s.W)} × ${cm(s.H)} cm`;
     $('v3title').textContent=`${current?current.name:shapeName(s)} · ${dims}`;
+    if(s.selloMode) $('v3title').textContent='Sellos LEGADO BONSÁI · variantes de grabado 3D';
     if(mesaOn){ $('v3title').textContent=`Mesa ${{4:'cuadrada',6:'hexagonal',8:'octogonal'}[s.tN]} · ${cm(s.tW)} × ${cm(s.tH)} cm · con ${current?current.name.toLowerCase():'la maceta'}`; $('v3msg').textContent=s.mode==='mold'?'Molde de silicona: la mesa impresa es la madre (boca abajo, pegada al piso de la caja); la silicona la cubre y en ese molde se cuela el cemento. A la derecha, la mesa de cemento terminada.':'Mesa para imprimir boca abajo en una sola pieza, sin soportes. Arrastra para girar; «Fondo» la muestra por debajo.'; }
     if(!moldOn&&!mesaOn) $('v3msg').textContent=s.printable?(s.pFeet==='presion'?'Maceta para imprimir de pie. Con «Desarmado» se ven las patas aparte con sus espigas a presión, que entran en los agujeros del fondo (botón «Fondo» para verlos). Arrastra para girar.':'Maceta para imprimir de pie. Con «Desarmado» se ven las patas aparte, con la cabeza que entra en su hueco del fondo (botón «Fondo» para ver los huecos). Arrastra para girar.'):'Arrastra para girar · rueda o pellizco para acercar · clic derecho para desplazar';
   }
@@ -2046,8 +2072,8 @@
   // Sello de la marca en la cara inferior: logotipos originales de assets/img/logo, tamaño proporcional al ancho de la
   // maceta (ratio) entre un mínimo legible en cemento y un máximo. Si no cabe, se cae al emblema; si tampoco, no va.
   const SEALS={C:{name:'Logotipo vertical',art:'vertical',ratio:0.227,min:30,max:50},A:{name:'Sello circular',art:'vertical',ring:true,ratio:0.267,min:30,max:60},
-    B:{name:'Emblema',art:'emblema',ratio:0.267,min:25,max:60},D:{name:'Firma lineal',art:'horizontal',ratio:0.427,min:50,max:90}};
-  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]}};
+    B:{name:'Emblema',art:'emblema',ratio:0.267,min:25,max:60},D:{name:'Firma lineal',art:'horizontal',ratio:0.427,min:50,max:90},E:{name:'Texto LEGADO BONSÁI',art:'wordmark',ratio:0.427,min:30,max:90}};
+  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]},wordmark:{file:'legado-wordmark-negro.svg',vb:[73.2,518,295,91]}};
   const SEAL_ART={};
   async function loadSealArt(key){
     if(SEAL_ART[key]) return SEAL_ART[key];
@@ -3951,6 +3977,64 @@
     G.userData={setExplode:t=>{ T0=t; place(); },setProc:u=>{ U=u; place(); },playSelf:true,box:null,
       plasterMsg:PM.notes.join(' ')+' «▶ Ver proceso»: colada 1 (cuerpo), se quita el aro del zócalo, colada 2 (fondo), se abre la carcasa y salen las dos piezas.'};
     U=1; T0=1; place(); G.userData.box=new THREE.Box3().setFromObject(G); T0=opt.explode??0; U=opt.proc??1; place(); return G; }
+  // ---------- SELLO PARA LA ARCILLA (sección «Grabado 3D») ----------
+  // Sello de mano con el logotipo (sealShape: los mismos contornos de assets/img/logo que el sello de los moldes, con los
+  // trazos finos engrosados a SEAL_MIN). Cara ESPEJADA en x para que se lea derecho en la arcilla; arriba del logotipo = +z.
+  // En coordenadas del visor (y arriba) y tal como se imprime: perilla en la cama, cuello, embudo a 45° como máximo hasta la
+  // placa (sin voladizo) y la cara arriba. La perilla tiene punta hacia arriba del logotipo. «hundido»: el dibujo va en
+  // relieve en el sello (deja un grabado); «relieve»: el fondo va en relieve y el dibujo hundido (deja el logotipo en relieve).
+  // Los relieves se meten 0,2 mm en la placa: sólidos solapados, nunca caras coincidentes (stlOrient).
+  async function prepareSello(s){ for(const k of (s.sello||{}).keys||[]) try{ await loadSealArt(SEALS[k].art); }catch(e){} }
+  // view: en el visor el arriba del logotipo va hacia −z (hacia el fondo de la escena), así se lee derecho desde el frente
+  function selloFace(k,w,notes,view){
+    const sh=sealShape(k,[0,0],w,notes); if(!sh) return null; let mn=[1e9,1e9],mx=[-1e9,-1e9]; sh.regions.forEach(r=>r.L.forEach(([x,z])=>{ mn=[Math.min(mn[0],x),Math.min(mn[1],z)]; mx=[Math.max(mx[0],x),Math.max(mx[1],z)]; }));
+    const cx=(mn[0]+mx[0])/2, cz=(mn[1]+mx[1])/2, mv=L=>{ const o=L.map(([x,z])=>[x-cx,view?cz-z:z-cz]); return view?o.reverse():o; }; return {regions:sh.regions.map(r=>({L:mv(r.L),d:r.d,kids:r.kids.map(mv)})),w:mx[0]-mn[0],h:mx[1]-mn[1]};
+  }
+  // contorno de la placa metido d mm: círculo (sello circular) o rectángulo redondeado alrededor del dibujo
+  function selloPlate(k,F,d){ const m=Math.max(3,0.09*Math.max(F.w,F.h)), N=160;
+    if(k==='A'){ const r=Math.max(F.w,F.h)/2+m*0.6-d; return Array.from({length:N},(_,i)=>{ const a=i/N*2*Math.PI; return [r*Math.cos(a),r*Math.sin(a)]; }); }
+    const hw=F.w/2+m-d, hh=F.h/2+m-d, rc=Math.max(0.6,Math.min(6,Math.min(F.w/2+m,F.h/2+m)*0.35)-d), P=[];
+    [[hw-rc,hh-rc,0],[-(hw-rc),hh-rc,1],[-(hw-rc),-(hh-rc),2],[hw-rc,-(hh-rc),3]].forEach(([x,z,q])=>{ for(let i=0;i<=10;i++){ const a=(q+i/10)*Math.PI/2; P.push([x+rc*Math.cos(a),z+rc*Math.sin(a)]); } }); return P; }
+  function rayR(P,dx,dz){ let best=0; for(let i=0,m=P.length;i<m;i++){ const a=P[i], c=P[(i+1)%m], ex=c[0]-a[0], ez=c[1]-a[1], den=dx*ez-dz*ex; if(Math.abs(den)<1e-12) continue; const t=(a[0]*ez-a[1]*ex)/den, u=(a[0]*dz-a[1]*dx)/den; if(u>=-1e-9&&u<=1+1e-9&&t>best) best=t; } return best; }
+  function selloSolid(THREE,s,k,view){
+    const notes=[], F=selloFace(k,s.sello.w,notes,view); if(!F) return null;
+    const S=s.sello, mir=L=>L.map(([x,z])=>[-x,z]).reverse(), reg=F.regions.map(r=>({L:mir(r.L),d:r.d,kids:r.kids.map(mir)})), PO=selloPlate(k,F,0), M=144, T=[];
+    const dirs=Array.from({length:M},(_,j)=>{ const a=j/M*2*Math.PI; return [Math.cos(a),Math.sin(a)]; }), RP=dirs.map(([dx,dz])=>rayR(PO,dx,dz)), Rmax=Math.max(...RP), Rmin=Math.min(...RP), tp=3;
+    let rings;
+    if(S.handle==='plano') rings=[[0,RP],[tp+1,RP]];
+    else { const rk=Math.min(12,Math.max(7,Rmin*0.8)), rn=Math.max(5,rk*0.62), kh=6, tear=dirs.map(([dx,dz])=>rk*(1+0.4*Math.pow(Math.max(0,view?-dz:dz),4))), y2=kh+(rk*1.4-rn), yN=y2+14, h=Math.max(4,(Rmax-rn)*1.05+1);
+      rings=[[0,tear],[kh,tear],[y2,dirs.map(()=>rn)],[yN,dirs.map(()=>rn)],[yN+h,RP],[yN+h+tp,RP]]; }
+    const P3=(j,[y,R])=>[dirs[j][0]*R[j],y,dirs[j][1]*R[j]], tri=(a,b2,c)=>T.push(...a,...b2,...c);
+    for(let r=0;r<rings.length-1;r++) for(let j=0;j<M;j++){ const q=(j+1)%M, a=P3(j,rings[r]), b2=P3(q,rings[r]), c=P3(q,rings[r+1]), d=P3(j,rings[r+1]); tri(a,b2,c); tri(a,c,d); }
+    const r0=rings[0], rt=rings[rings.length-1], yt=rt[0];
+    for(let j=0;j<M;j++){ const q=(j+1)%M; tri([0,0,0],P3(q,r0),P3(j,r0)); tri([0,yt,0],P3(j,rt),P3(q,rt)); }
+    // cara del sello
+    const y0=yt-0.2, y1=yt+S.d, bw=Math.max(1.2,0.035*Math.max(F.w,F.h));
+    if(S.mode==='relieve'){ prismXZ(THREE,selloPlate(k,F,0.5),reg.filter(r=>r.d===0).map(r=>r.L),y0,y1,T); reg.filter(r=>r.d%2===1).forEach(r=>prismXZ(THREE,r.L,r.kids,y0,y1,T)); }
+    else { reg.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,y0,y1,T)); if(S.frame&&k!=='A') prismXZ(THREE,selloPlate(k,F,0.6),[selloPlate(k,F,0.6+bw)],y0,y1,T); }
+    return {T,name:`${/^Sello/.test(SEALS[k].name)?'':'Sello '}${SEALS[k].name} · ${cm(F.w)} cm · ${S.mode==='relieve'?'deja el dibujo en relieve':'deja el dibujo grabado'}`,F,reg0:F.regions,PO,notes,H:y1};
+  }
+  // la marca en la arcilla (solo visor): placa de barro con el dibujo derecho, hundido o en relieve
+  function selloClay(THREE,s,k,F){ const T=[], S=s.sello, out=selloPlate(k,F,-7), tt=8;
+    if(S.mode==='relieve'){ prismXZ(THREE,out,[],0,tt,T); F.regions.filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,tt-0.05,tt+S.d,T)); }
+    else { const d0=F.regions.filter(r=>r.d===0).map(r=>r.L); prismXZ(THREE,out,[],0,tt-S.d,T);
+      if(S.frame&&k!=='A'){ prismXZ(THREE,out,[selloPlate(k,F,0.6)],tt-S.d-0.05,tt,T); prismXZ(THREE,selloPlate(k,F,0.6+Math.max(1.2,0.035*Math.max(F.w,F.h))),d0,tt-S.d-0.05,tt,T); }
+      else prismXZ(THREE,out,d0,tt-S.d-0.05,tt,T);
+      F.regions.filter(r=>r.d%2===1).forEach(r=>prismXZ(THREE,r.L,r.kids,tt-S.d-0.05,tt,T)); }
+    return T; }
+  function selloGroup(THREE,s){
+    const G=new THREE.Group(), S=s.sello, mesh=(T,col,rough)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:col,roughness:rough,side:THREE.DoubleSide})); };
+    let x=0; const notes=[];
+    S.keys.forEach(k=>{ const st=selloSolid(THREE,s,k,true); if(!st){ notes.push(`${SEALS[k].name}: no se pudo cargar el logotipo.`); return; } notes.push(...st.notes);
+      const span=Math.max(...st.PO.map(p=>Math.abs(p[0])))*2+14, cx=x+span/2, ms=mesh(st.T,0xcfb27a,0.55); ms.position.x=cx; G.add(ms);
+      const depth=Math.max(...st.PO.map(p=>Math.abs(p[1])))*2, cl=mesh(selloClay(THREE,s,k,st.F),0x9c6b4e,0.95); cl.position.set(cx,0,depth+30); G.add(cl);
+      const lh=Math.max(5,span*0.07), l1=label3(THREE,`${SEALS[k].name} · sello (espejado)`,lh), l2=label3(THREE,'Así queda en la arcilla (vista de frente)',lh,true);
+      l1.position.set(cx,st.H+lh*0.4,0); l2.position.set(cx,1,depth+30+depth/2+9); G.add(l1,l2); x+=span+18; });
+    G.children.forEach(o=>{ o.position.x-=x/2; });
+    G.userData.box=new THREE.Box3().setFromObject(G);
+    G.userData.plasterMsg=S.keys.length?`${S.keys.length} sello${S.keys.length>1?'s':''} de ${cm(S.w)} cm de ancho de dibujo, ${String(S.d).replace('.',',')} mm de ${S.mode==='relieve'?'fondo en relieve: la arcilla queda con el dibujo en relieve':'dibujo en relieve: la arcilla queda grabada'}. Atrás el sello tal como se imprime (cara arriba, espejada); adelante, la marca en la arcilla.${notes.some(x=>/omite/.test(x))?' Algún detalle muy pequeño (como el acento) no cabe a este tamaño: sube el ancho del dibujo para que salga.':''}${notes.some(x=>/engrosan/.test(x))?' Los trazos más finos se engrosan a 0,7 mm para que se impriman y se marquen.':''}`:'Elige al menos una variante.';
+    return G;
+  }
   function boxKitGroup(THREE,s,b,opt={}){ const PM=buildPlaster(THREE,boxKitState(s),b), G=new THREE.Group(), bx=PM.boxes[0], toV=T=>{ const P=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ P[i]=T[i]; P[i+1]=T[i+2]; P[i+2]=-T[i+1]; } return P; };
     const mk=(T,color,extra)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(toV(T),3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.75,side:THREE.DoubleSide,flatShading:true},extra||{}))); };
     G.add(mk(bx.shell,PM.boxKit&&PM.boxKit.modular&&!PM.boxKit.floor?0xf1eee6:0x78acc0)); const WL=bx.walls.map(w=>{ const m=mk(w.T,0x8fb6cc,{transparent:true,opacity:0.55,depthWrite:false}); G.add(m); return {m,d:new THREE.Vector3(w.dir[0],0,-w.dir[1])}; });
@@ -4660,16 +4744,16 @@
   // página (el diálogo #dlg3d abierto sin ventana, clase .inline, colocado junto a las hojas) para ajustar el diseño
   // con los campos del panel lateral antes de exportar. Cada sección fija el material (Impresión 3D usa las paredes
   // delgadas de la arcilla; Molde 3D, el cemento).
-  const MODE_HINT={yeso2:'Molde de yeso de tres piezas para barbotina: dos mitades que abrazan un tapón de borde inclinado, con cuello de llenado. Cajas con filos para pinzas de resorte.',pskin:'Molde de yeso armado como el contramolde: la madre con su placa y una carcasa en dos mitades con ganchos. Una sola armada: colada 1 el cuerpo, colada 2 el fondo encima; abres la carcasa y salen las dos piezas.',caja:'Solo el piso y las paredes de las cajas donde se cuela el yeso: se imprimen una vez para la medida que pongas y se arman con ganchos de presión.',clay:'Plantillas a escala 1:1 para macetas de arcilla por placas.',cement:'Plato-guía y perfiles de la máquina de barrido para colar en cemento.',print:'La maceta en plástico para tu impresora 3D: ajusta labio y patas mirándola en 3D y descárgala.',mold:'Molde de vaciado para cemento, impreso en 3D: ajústalo mirándolo en 3D y descarga el kit.',skin:'Contramolde impreso para hacer una piel de silicona: madre con placa de vertido y carcasa en dos piezas. El cemento se cuela con la piel dentro de la carcasa, sobre la base con núcleo y bajo la placa de patas.',plaster:'Molde de yeso para colar barbotina: se imprimen cajas con el modelo dentro y en cada una se cuela una pieza del molde (cuerpo y fondo).'};
+  const MODE_HINT={sello:'Sello de mano para marcar la arcilla con el logotipo de Legado Bonsái: variantes de grabado (logotipo, emblema, texto, sello circular y firma), impresas en 3D sin soportes.',yeso2:'Molde de yeso de tres piezas para barbotina: dos mitades que abrazan un tapón de borde inclinado, con cuello de llenado. Cajas con filos para pinzas de resorte.',pskin:'Molde de yeso armado como el contramolde: la madre con su placa y una carcasa en dos mitades con ganchos. Una sola armada: colada 1 el cuerpo, colada 2 el fondo encima; abres la carcasa y salen las dos piezas.',caja:'Solo el piso y las paredes de las cajas donde se cuela el yeso: se imprimen una vez para la medida que pongas y se arman con ganchos de presión.',clay:'Plantillas a escala 1:1 para macetas de arcilla por placas.',cement:'Plato-guía y perfiles de la máquina de barrido para colar en cemento.',print:'La maceta en plástico para tu impresora 3D: ajusta labio y patas mirándola en 3D y descárgala.',mold:'Molde de vaciado para cemento, impreso en 3D: ajústalo mirándolo en 3D y descarga el kit.',skin:'Contramolde impreso para hacer una piel de silicona: madre con placa de vertido y carcasa en dos piezas. El cemento se cuela con la piel dentro de la carcasa, sobre la base con núcleo y bajo la placa de patas.',plaster:'Molde de yeso para colar barbotina: se imprimen cajas con el modelo dentro y en cada una se cuela una pieza del molde (cuerpo y fondo).'};
   let MODE='clay';
   function setMode(m){
-    MODE=m; const r=$('mode'+{clay:'Clay',cement:'Cement',print:'Print',mold:'Mold',skin:'Skin',plaster:'Plaster',caja:'Caja',pskin:'Pskin',yeso2:'Yeso2'}[m]); if(r) r.checked=true;
-    document.body.dataset.mode=m==='skin'?'mold':m==='caja'||m==='pskin'||m==='yeso2'?'plaster':m; document.body.dataset.pskin=m==='pskin'?'1':''; document.body.dataset.v2=m==='yeso2'?'1':''; document.body.dataset.skin=m==='skin'?'1':''; document.body.dataset.caja=m==='caja'?'1':''; $('modeHint').textContent=MODE_HINT[m];
-    const wantClay=m==='clay'||m==='print'||m==='plaster'||m==='caja'||m==='pskin'||m==='yeso2';
+    MODE=m; const r=$('mode'+{clay:'Clay',cement:'Cement',print:'Print',mold:'Mold',skin:'Skin',plaster:'Plaster',caja:'Caja',pskin:'Pskin',yeso2:'Yeso2',sello:'Sello'}[m]); if(r) r.checked=true;
+    document.body.dataset.mode=m==='skin'?'mold':m==='caja'||m==='pskin'||m==='yeso2'||m==='sello'?'plaster':m; document.body.dataset.sello=m==='sello'?'1':''; document.body.dataset.pskin=m==='pskin'?'1':''; document.body.dataset.v2=m==='yeso2'?'1':''; document.body.dataset.skin=m==='skin'?'1':''; document.body.dataset.caja=m==='caja'?'1':''; $('modeHint').textContent=MODE_HINT[m];
+    const wantClay=m==='clay'||m==='print'||m==='plaster'||m==='caja'||m==='pskin'||m==='yeso2'||m==='sello';
     if(m==='print') $('stlWhat').value='imprimir'; else if($('stlWhat').value==='imprimir') $('stlWhat').value='maceta';
     if($('matClay').checked!==wantClay){ $('matClay').checked=wantClay; $('matCement').checked=!wantClay; switchMaterial(); }
     $('v3mold').checked=m==='mold'||m==='skin';
-    const inline=m==='print'||m==='mold'||m==='skin'||m==='plaster'||m==='caja'||m==='pskin'||m==='yeso2', dlg=$('dlg3d');
+    const inline=m==='print'||m==='mold'||m==='skin'||m==='plaster'||m==='caja'||m==='pskin'||m==='yeso2'||m==='sello', dlg=$('dlg3d');
     $('sheets').hidden=inline; $('tabs').hidden=inline;
     if(inline){ if(V3) V3.moldFramed=false; if(dlg.open&&!dlg.dataset.inline) dlg.close(); dlg.classList.add('inline'); if(!dlg.open){ dlg.show(); dlg.dataset.inline='1'; } $('v3spin').checked=false; $('v3exp').value=1; render(); open3D(); }
     else { dlg.classList.remove('inline'); if(dlg.open&&dlg.dataset.inline) dlg.close(); delete dlg.dataset.inline; render(); }
@@ -4712,7 +4796,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -4959,6 +5043,7 @@
     const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&recOf(key); return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
     const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F,set:pieceOpts({key},o)}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
+    if(kit==='sello'){ await prepareSello(s); s.sello.keys.forEach(k=>{ const st=selloSolid(THREE,s,k); if(!st) return; const T=[]; for(let i=0;i<st.T.length;i+=3) T.push(st.T[i],-st.T[i+2],st.T[i+1]); add(st.name,T,'sello3d'); }); return out; }
     if(kit==='box'){ buildPlaster(THREE,boxKitState(s),b).parts.forEach(pt=>add(pt.name,plasterPrintTris(pt),pt.key)); return out; }
     if(kit==='walls'){ const U=buildPlaster(THREE,s,b).uniWall; for(let i=0;i<4;i++){ add(`Pared universal ${i+1} de 4 · tramo A, con colas (acostada)`,U.A,'paredU'); add(`Pared universal ${i+1} de 4 · tramo B, con huecos (acostada)`,U.B,'paredU'); } return out; }
     if(kit==='num'){ const PMk=buildPlaster(THREE,s,b), sets=Math.max(2,+s.pNumD||2);
@@ -4992,8 +5077,8 @@
   async function export3MF(outId,kit){
     if(!last3) return; await ensureAuto(t=>{ $(outId).textContent=t; }); const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
-    const P=await exportPieces(s,b,kit), what=kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?(s.pskinMode?'contramolde-yeso':s.v2Mode?'molde-yeso-v2':'molde-yeso'):s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
-    const nm=kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const P=await exportPieces(s,b,kit), what=kit==='sello'?'sellos-legado-bonsai':kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?(s.pskinMode?'contramolde-yeso':s.v2Mode?'molde-yeso-v2':'molde-yeso'):s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
+    const nm=kit==='sello'?`${String(s.sello.w/10).replace('.',',')}cm-${s.sello.mode==='relieve'?'relieve':'grabado'}`:kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
     if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}${$('pFil').value==='PETG'?'-petg':''}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
@@ -5008,6 +5093,11 @@
   $('btnPlaster3mf').addEventListener('click',()=>export3MF('plasterOut')); $('btnEscKit').addEventListener('click',()=>export3MF('plasterOut',true)); $('btnNumKit').addEventListener('click',()=>export3MF('plasterOut','num')); $('btnWallKit').addEventListener('click',()=>export3MF('plasterOut','walls')); $('btnCaja3mf').addEventListener('click',()=>export3MF('cajaOut','box'));
   $('btnCajaFit').addEventListener('click',async()=>{ if(!last3||!V3||!V3.THREE){ $('cajaOut').textContent='Abre primero el visor (espera a que cargue el 3D).'; return; } const s2=Object.assign({},last3.s,{cajaMode:false}); await prepareSeal(s2); const PM=buildPlaster(V3.THREE,s2,last3.b), r5=x=>Math.ceil(x/5)*5/10;
     const L=2*PM.X, W=Math.max(2*PM.hF,PM.one?0:PM.U), H=Math.max(PM.one?PM.U:PM.hF,PL.plinth+PM.ftk+PM.TH)+5; $('cjL').value=r5(L); $('cjW').value=r5(W); $('cjH').value=r5(H); render(); $('cajaOut').textContent=`Medidas tomadas del molde de yeso de esta maceta: la caja más grande que necesita mide ${r5(L)} × ${r5(W)} cm por dentro y ${r5(H)} cm de alto (sirve también para sus cajas más chicas).`; }); $('btnPlaster').addEventListener('click',exportPlaster);
+  $('btnSello3mf').addEventListener('click',()=>{ if(!last3||!last3.s.selloMode){ $('selloOut').textContent='Espera a que cargue el visor 3D.'; return; } if(!last3.s.sello.keys.length){ $('selloOut').textContent='Elige al menos una variante.'; return; } export3MF('selloOut','sello'); });
+  $('btnSelloStl').addEventListener('click',async()=>{ if(!last3||!last3.s.selloMode) return; const {s,b}=last3; if(!s.sello.keys.length){ $('selloOut').textContent='Elige al menos una variante.'; return; } $('selloOut').textContent='Preparando los STL…';
+    const P=await exportPieces(s,b,'sello'), files=P.map((p,i)=>({name:`${String(i+1).padStart(2,'0')}-sello-${s.sello.keys[i]}-${String(s.sello.w/10).replace('.',',')}cm.stl`,data:new Uint8Array(stlBinary(p.V,p.F))}));
+    download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (perilla en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
+  ['slvC','slvB','slvE','slvA','slvD','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
