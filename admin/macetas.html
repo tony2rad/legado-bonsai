@@ -363,7 +363,7 @@
         <label class="f" style="grid-column:1/-1"><span>Qué deja en la arcilla</span><select id="slMode"><option value="hundido" selected>Grabado hundido (el sello lleva el dibujo en relieve)</option><option value="relieve">Dibujo en relieve (el sello lleva el dibujo hundido)</option></select></label>
         <label class="f"><span>Ancho del logotipo <b>cm</b></span><input id="slW" type="number" step="0.5" min="1.5" max="10" value="4"></label>
         <label class="f"><span>Ancho del relieve de montaña <b>cm</b></span><input id="slWm" type="number" step="0.5" min="4" max="12" value="7"></label>
-        <label class="f" style="grid-column:1/-1"><span>Montaña</span><select id="slMt"><option value="foto" selected>Pasochoa real (de tu foto): la cresta tal como se ve, con su volumen</option><option value="lineas">Del grabado de la guía: silueta marcada, con su volumen</option><option value="grabado">Grabado completo: todo el detalle y las sombras</option></select></label>
+        <label class="f" style="grid-column:1/-1"><span>Montaña</span><select id="slMt"><option value="capas" selected>Pasochoa en capas: la silueta del grabado con trazo de pincel y profundidad</option><option value="lineas">Del grabado de la guía: silueta marcada, con su volumen</option><option value="foto">Pasochoa real (de tu foto): la cresta tal como se ve</option><option value="grabado">Grabado completo: todo el detalle y las sombras</option></select></label>
         <label class="f"><span>Profundidad <b>mm</b></span><select id="slD"><option value="0.8">0,8 · fino</option><option value="1.2" selected>1,2 · normal</option><option value="1.6">1,6 · marcado</option><option value="2">2 · profundo</option></select></label>
         <label class="f"><span>Borde</span><select id="slFrame"><option value="borde" selected>Con borde (sello japonés)</option><option value="no">Sin borde</option></select></label>
         <label class="f"><span>Mango</span><select id="slHandle"><option value="perilla" selected>Perilla con punta (una pieza)</option><option value="plano">Placa plana (para pegar a un taco)</option></select></label>
@@ -625,7 +625,7 @@
       else s.lunaOff=true; }
     s.belt=s.body==='cinturon'?(+$('beltPos').value||0.5):0.5;
     if(s.mode==='yeso2'){ s.mode='plaster'; s.v2Mode=true; }
-    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D','M','G'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),wm:Math.min(120,Math.max(40,(+$('slWm').value||7)*10)),mt:$('slMt').value||'foto',d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
+    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D','M','G'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),wm:Math.min(120,Math.max(40,(+$('slWm').value||7)*10)),mt:$('slMt').value||'capas',d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
     if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       s.pModel=$('pModel').value; s.pLipP=s.v2Mode?'diseno':$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
@@ -4011,11 +4011,11 @@
   // la montaña debajo, como la tarjeta de la guía. Se componen en un lienzo con el arte original, sin redibujar nada.
   const SELLO_HF={M:'Montaña Pasochoa',G:'Logotipo con montaña'}, SELLO_IMG={};
   const selloName=k=>SELLO_HF[k]||SEALS[k].name;
-  const selloKey=(k,S)=>k+'|'+(S.mt||'foto')+'|'+S.wm;
+  const selloKey=(k,S)=>k+'|'+(S.mt||'capas')+'|'+S.wm;
   async function selloArt(k,S){ const key=selloKey(k,S); if(SELLO_IMG[key]) return SELLO_IMG[key];
     const load=src=>new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src=src; });
     const mt=await load('../assets/img/ilustraciones/montana-principal.svg'), W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, cv=document.createElement('canvas'); let mH=W*mh*(1-top)/mw;
-    const mount=S.mt==='grabado'?null:S.mt==='lineas'?pasochoaLineas(mt,S.wm):pasochoaFoto(S.wm);   // lienzo de W × alto con la montaña en líneas
+    const mount=S.mt==='grabado'?null:S.mt==='lineas'?pasochoaLineas(mt,S.wm):S.mt==='foto'?pasochoaFoto(S.wm):pasochoaCapas(mt,S.wm);   // lienzo de W × alto con la montaña en líneas
     const paint=(c,y)=>{ if(mount) c.drawImage(mount,0,y); else c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,y,W,mH); };
     if(mount) mH=mount.height;
     if(k==='M'){ cv.width=W; cv.height=Math.round(mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); paint(c,0); }
@@ -4068,7 +4068,7 @@
   // trazos (sin la masa) a 40 mm de ancho de referencia y se sacan los contornos del lienzo (rasterLoops); G pone encima el
   // logotipo vertical como en el sello.
   // trazos a la escala del tamaño mínimo de cada variante
-  async function selloVectorArt(k){ const W=1400, mount=pasochoaFoto(k==='M'?40:75,{noMass:true}); if(k==='M') return mount;
+  async function selloVectorArt(k){ const W=1400, mt=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/ilustraciones/montana-principal.svg'; }), mount=pasochoaCapas(mt,k==='M'?40:75,{noMass:true}); if(k==='M') return mount;
     const lg=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/logo/legado-logo-vertical-negro.svg'; }), lw=W*0.5, lh=lw*lg.naturalHeight/lg.naturalWidth, gap=W*0.05;
     const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.round(lh+gap+mount.height); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); c.drawImage(mount,0,lh+gap); return cv; }
   // contornos (marching squares + Douglas–Peucker a 0,6 px) de lo oscuro de un lienzo, en píxeles con y hacia abajo
@@ -4084,6 +4084,39 @@
     const dp=(P,tol)=>{ if(P.length<3) return P; let best=-1, bi=0; const a=P[0], b=P[P.length-1], dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy)||1e-9;
       for(let i=1;i<P.length-1;i++){ const d=Math.abs((P[i][0]-a[0])*dy-(P[i][1]-a[1])*dx)/l; if(d>best){ best=d; bi=i; } } return best>tol?[...dp(P.slice(0,bi+1),tol).slice(0,-1),...dp(P.slice(bi),tol)]:[a,b]; };
     return loops.map(L=>{ const m=Math.floor(L.length/2), S2=[...dp(L.slice(0,m+1),0.6).slice(0,-1),...dp([...L.slice(m),L[0]],0.6).slice(0,-1)]; return S2.length>=3?S2:L; }).filter(L=>L.length>=3); }
+  // PASOCHOA EN CAPAS (propuesta del usuario: «me gustaba más la anterior [la del grabado]; como sabes más de diseño, mejora y
+  // haz una nueva propuesta»). Misma silueta y crestas del grabado (PASO_VEC), con cuatro mejoras de diseño:
+  //   1) TRAZO DE PINCEL: cada línea arranca fina, engrosa al centro y se afina al final (sumi-e, como la marca), dibujada
+  //      con estampas redondas a lo largo del trazo;
+  //   2) PROFUNDIDAD EN CAPAS: la cordillera del fondo con su masa (60 %, se desvanece en 10 mm) y cada colina de delante con
+  //      la suya, más baja (35 %, en 5 mm), como los planos de un grabado japonés;
+  //   3) JERARQUÍA: silueta 2,2 mm en el centro del trazo, colinas 1,4 mm;
+  //   4) LIMPIEZA: sin los tramos de silueta de menos del 6 % del ancho (ganchos) ni crestas cortas.
+  function pasochoaCapas(mt,wm,opt={}){
+    if(!PASO_VEC) pasochoaLineas(mt,wm);
+    const V=PASO_VEC, k=V.W/wm, ridges=V.ridges.filter(p=>Math.max(...p.map(q=>q[1]))<V.H*0.6);
+    const plen=p=>p.reduce((t2,q,i)=>i?t2+Math.hypot(q[0]-p[i-1][0],q[1]-p[i-1][1]):0,0), sky=V.sky.filter(p=>plen(p)>V.W*0.06);
+    const yAt=P=>{ const o=new Float32Array(V.W).fill(-1); P.forEach(p=>{ for(let i=0;i<p.length-1;i++){ const [x0,y0]=p[i], [x1,y1]=p[i+1]; for(let x=Math.max(0,Math.ceil(Math.min(x0,x1)));x<=Math.min(V.W-1,Math.floor(Math.max(x0,x1)));x++){ const y=x1===x0?y0:y0+(y1-y0)*(x-x0)/(x1-x0); if(o[x]<0||y<o[x]) o[x]=y; } } }); return o; };
+    const skyY=yAt(sky); let yMax=0; skyY.forEach(v=>{ if(v>=0) yMax=Math.max(yMax,v+10*k); }); ridges.forEach(p=>p.forEach(q=>{ yMax=Math.max(yMax,q[1]+(opt.noMass?1.5:5)*k); }));
+    const W=V.W, H=Math.min(V.H,Math.round(yMax+k)), cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'), d=g.createImageData(W,H);
+    for(let i=0;i<W*H;i++){ d.data[4*i]=d.data[4*i+1]=d.data[4*i+2]=255; d.data[4*i+3]=255; }
+    const sm=(a,r)=>Float32Array.from(a,(v,x)=>{ let s2=0,n=0; for(let q=Math.max(0,x-r);q<=Math.min(W-1,x+r);q++) if(a[q]>=0){ s2+=a[q]; n++; } return n&&v>=0?s2/n:-1; });
+    const mass=(top,lev,fadeMm,edgeMm)=>{ const fade=fadeMm*k, end=sm(top,Math.round(4*k));
+      for(let x=0;x<W;x++){ const s0=top[x]; if(s0<0||end[x]<0) continue; const e=end[x]+fade; let fx=1; if(edgeMm){ let a=x, b2=x; while(a>0&&top[a-1]>=0) a--; while(b2<W-1&&top[b2+1]>=0) b2++; const hx=Math.min(1,Math.min(x-a,b2-x)/(edgeMm*k)); fx=hx*hx*(3-2*hx); }
+        for(let y=Math.max(0,Math.floor(s0));y<Math.min(H,e);y++){ const v=lev*fx*Math.pow((e-y)/(e-s0),0.8), q=4*(y*W+x), c=Math.round(255*(1-v)); if(c<d.data[q]) d.data[q]=d.data[q+1]=d.data[q+2]=c; } } };
+    if(!opt.noMass){ mass(skyY,0.6,10,10); ridges.forEach(p=>mass(yAt([p]),0.35,5,6));
+      // suavizado horizontal de 1,5 mm (sin bandas en los picos)
+      const rh=Math.max(1,Math.round(1.5*k)), v=new Float32Array(W*H); for(let i=0;i<W*H;i++) v[i]=d.data[4*i];
+      for(let y=0;y<H;y++){ let s2=0; for(let q=-rh;q<=rh;q++) s2+=v[y*W+Math.min(W-1,Math.max(0,q))]; for(let x=0;x<W;x++){ const q4=4*(y*W+x); d.data[q4]=d.data[q4+1]=d.data[q4+2]=Math.round(s2/(2*rh+1)); s2+=v[y*W+Math.min(W-1,x+rh+1)]-v[y*W+Math.max(0,x-rh)]; } } }
+    g.putImageData(d,0,0); g.fillStyle='#000';
+    // pincelada: estampas redondas cada 0,15 mm, ancho = máx · (0,3 + 0,7·perfil), perfil = sube en el primer 18 % y baja en el último 22 %
+    const brush=(p,wMax)=>{ const L=plen(p); if(L<1) return; let acc=0;
+      for(let i=0;i<p.length-1;i++){ const [x0,y0]=p[i], [x1,y1]=p[i+1], sl=Math.hypot(x1-x0,y1-y0), n=Math.max(1,Math.ceil(sl/(0.15*k)));
+        for(let j=0;j<=n;j++){ const u=(acc+sl*j/n)/L, a=Math.min(1,u/0.18), b2=Math.min(1,(1-u)/0.22), pr=Math.min(a*a*(3-2*a),b2*b2*(3-2*b2)), r=wMax*k*(0.3+0.7*pr)/2;
+          g.beginPath(); g.arc(x0+(x1-x0)*j/n,y0+(y1-y0)*j/n,r,0,2*Math.PI); g.fill(); }
+        acc+=sl; } };
+    ridges.forEach(p=>brush(p,1.4)); sky.forEach(p=>brush(p,2.2));
+    return cv; }
   let PASO_VEC=null;
   function pasochoaLineas(mt,wm){
     const W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, H=Math.round(W*mh*(1-top)/mw), N=W*H;
