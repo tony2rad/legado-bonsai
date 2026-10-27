@@ -363,6 +363,7 @@
         <label class="f" style="grid-column:1/-1"><span>Qué deja en la arcilla</span><select id="slMode"><option value="hundido" selected>Grabado hundido (el sello lleva el dibujo en relieve)</option><option value="relieve">Dibujo en relieve (el sello lleva el dibujo hundido)</option></select></label>
         <label class="f"><span>Ancho del logotipo <b>cm</b></span><input id="slW" type="number" step="0.5" min="1.5" max="10" value="4"></label>
         <label class="f"><span>Ancho del relieve de montaña <b>cm</b></span><input id="slWm" type="number" step="0.5" min="4" max="12" value="7"></label>
+        <label class="f" style="grid-column:1/-1"><span>Montaña</span><select id="slMt"><option value="lineas" selected>Líneas marcadas: la silueta del Pasochoa, pocas líneas gruesas</option><option value="grabado">Grabado completo: todo el detalle y las sombras</option></select></label>
         <label class="f"><span>Profundidad <b>mm</b></span><select id="slD"><option value="0.8">0,8 · fino</option><option value="1.2" selected>1,2 · normal</option><option value="1.6">1,6 · marcado</option><option value="2">2 · profundo</option></select></label>
         <label class="f"><span>Borde</span><select id="slFrame"><option value="borde" selected>Con borde (sello japonés)</option><option value="no">Sin borde</option></select></label>
         <label class="f"><span>Mango</span><select id="slHandle"><option value="perilla" selected>Perilla con punta (una pieza)</option><option value="plano">Placa plana (para pegar a un taco)</option></select></label>
@@ -624,7 +625,7 @@
       else s.lunaOff=true; }
     s.belt=s.body==='cinturon'?(+$('beltPos').value||0.5):0.5;
     if(s.mode==='yeso2'){ s.mode='plaster'; s.v2Mode=true; }
-    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D','M','G'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),wm:Math.min(120,Math.max(40,(+$('slWm').value||7)*10)),d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
+    if(s.mode==='sello'){ s.mode='plaster'; s.selloMode=true; s.sello={keys:['C','B','E','A','D','M','G'].filter(k=>$('slv'+k).checked),mode:$('slMode').value,w:Math.min(100,Math.max(15,(+$('slW').value||4)*10)),wm:Math.min(120,Math.max(40,(+$('slWm').value||7)*10)),mt:$('slMt').value,d:+$('slD').value||1.2,frame:$('slFrame').value==='borde',handle:$('slHandle').value}; }
     if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
       s.pModel=$('pModel').value; s.pLipP=s.v2Mode?'diseno':$('pLipP').value; s.pFloor=$('pFloor').value; s.pWalls=$('pWalls').value; s.pEscOwn=$('pEscOwn').checked; s.pNumD=$('pNumD').value; s.pCollar=$('pCollar').value; s.pNum=Math.max(0,parseInt($('pNum').value)||0);
@@ -3988,7 +3989,7 @@
   // placa (sin voladizo) y la cara arriba. La perilla tiene punta hacia arriba del logotipo. «hundido»: el dibujo va en
   // relieve en el sello (deja un grabado); «relieve»: el fondo va en relieve y el dibujo hundido (deja el logotipo en relieve).
   // Los relieves se meten 0,2 mm en la placa: sólidos solapados, nunca caras coincidentes (stlOrient).
-  async function prepareSello(s){ for(const k of (s.sello||{}).keys||[]) try{ if(SELLO_HF[k]) await selloArt(k); else await loadSealArt(SEALS[k].art); }catch(e){} }
+  async function prepareSello(s){ for(const k of (s.sello||{}).keys||[]) try{ if(SELLO_HF[k]) await selloArt(k,s.sello); else await loadSealArt(SEALS[k].art); }catch(e){} }
   // RELIEVE DE MONTAÑA (pedido del usuario: el Pasochoa de la guía de cuidados, «la representación de nuestro legado»): el
   // grabado montana-principal.svg tiene trazos de décimas de mm que no se pueden pasar a contornos imprimibles, así que va
   // como CAMPO DE ALTURAS (sprigField: tinta = alto, suavizado 0,35 mm): sombras y trazos del grabado suben en el sello y
@@ -3996,13 +3997,78 @@
   // la montaña debajo, como la tarjeta de la guía. Se componen en un lienzo con el arte original, sin redibujar nada.
   const SELLO_HF={M:'Montaña Pasochoa',G:'Logotipo con montaña'}, SELLO_IMG={};
   const selloName=k=>SELLO_HF[k]||SEALS[k].name;
-  async function selloArt(k){ if(SELLO_IMG[k]) return SELLO_IMG[k];
+  const selloKey=(k,S)=>k+'|'+(S.mt||'lineas')+'|'+S.wm;
+  async function selloArt(k,S){ const key=selloKey(k,S); if(SELLO_IMG[key]) return SELLO_IMG[key];
     const load=src=>new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src=src; });
     const mt=await load('../assets/img/ilustraciones/montana-principal.svg'), W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, mH=W*mh*(1-top)/mw, cv=document.createElement('canvas');
-    if(k==='M'){ cv.width=W; cv.height=Math.round(mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,0,W,mH); }
+    const mount=S.mt==='grabado'?null:pasochoaLineas(mt,S.wm);   // lienzo de W × mH con las líneas marcadas
+    const paint=(c,y)=>{ if(mount) c.drawImage(mount,0,y); else c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,y,W,mH); };
+    if(k==='M'){ cv.width=W; cv.height=Math.round(mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); paint(c,0); }
     else { const lg=await load('../assets/img/logo/legado-logo-vertical-negro.svg'), lw=W*0.5, lh=lw*lg.naturalHeight/lg.naturalWidth, gap=W*0.05;
-      cv.width=W; cv.height=Math.round(lh+gap+mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); c.drawImage(mt,0,mh*top,mw,mh*(1-top),0,lh+gap,W,mH); }
-    return SELLO_IMG[k]=cv; }
+      cv.width=W; cv.height=Math.round(lh+gap+mH); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); paint(c,lh+gap); }
+    cv.line=!!mount; return SELLO_IMG[key]=cv; }
+  // LÍNEAS MARCADAS DEL PASOCHOA (el usuario: «hay muchos detalles, usa menos líneas y más marcadas para que conserve la
+  // silueta del Pasochoa»). Sale del MISMO grabado, sin redibujar: (1) se quedan solo los trazos GRUESOS del artista (erosión
+  // de 2 px a 0,05 mm/px y reconstrucción dentro del grabado): el sombreado fino desaparece y quedan los contornos de crestas,
+  // colinas, el pino y la orilla; (2) las masas densas (pino, arboledas, orilla: zonas grandes con mucha tinta) se conservan
+  // tal cual; (3) en la montaña, los contornos salen a trazos y se unen: suavizado, esqueleto (Zhang–Suen), poda de ramas de
+  // menos de 2 mm, y de cada pieza solo su recorrido más largo, suavizado y simplificado (Douglas–Peucker), sin las que
+  // repiten la cresta; (4) la SILUETA del cielo (primer píxel con tinta de cada columna, mediana de 15) simplificada en tramos
+  // rectos, que dejan los picos marcados. Se dibuja con pluma redonda: crestas 1,1 mm y silueta 1,6 mm al ancho del sello.
+  // Probado contra: filtrar trazos cortos (el sombreado está unido a los contornos), posterizar la densidad (todo queda
+  // oscuro) y el esqueleto sin filtrar por grosor (las crestas quedan como una maraña).
+  let PASO_VEC=null;
+  function pasochoaLineas(mt,wm){
+    const W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, H=Math.round(W*mh*(1-top)/mw), N=W*H;
+    if(!PASO_VEC){
+      const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.drawImage(mt,0,mh*top,mw,mh*(1-top),0,0,W,H);
+      const px=g.getImageData(0,0,W,H).data, B=new Uint8Array(N); for(let i=0;i<N;i++) B[i]=(0.299*px[4*i]+0.587*px[4*i+1]+0.114*px[4*i+2])<150?1:0;
+      const blur=(src,r,passes)=>boxBlur(Float32Array.from(src),W,H,r,passes);
+      const dil=(A,r)=>{ const o=new Uint8Array(N), off=[]; for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++) if(dx*dx+dy*dy<=r*r+r*0.5) off.push(dy*W+dx);
+        for(let y=0;y<H;y++) for(let x=0;x<W;x++){ if(!A[y*W+x]) continue; for(let k=0;k<off.length;k++){ const q=y*W+x+off[k], qx=q%W; if(q>=0&&q<N&&Math.abs(qx-x)<=r) o[q]=1; } } return o; };
+      const comps=A=>{ const lab=new Int32Array(N).fill(-1), info=[], st=[]; for(let i=0;i<N;i++){ if(!A[i]||lab[i]>=0) continue; const id=info.length, c={n:0,x0:1e9,y0:1e9,x1:-1,y1:-1}; st.push(i); lab[i]=id;
+          while(st.length){ const q=st.pop(), x=q%W, y=(q-x)/W; c.n++; if(x<c.x0)c.x0=x; if(x>c.x1)c.x1=x; if(y<c.y0)c.y0=y; if(y>c.y1)c.y1=y; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx, yy=y+dy; if(xx<0||yy<0||xx>=W||yy>=H) continue; const k=yy*W+xx; if(A[k]&&lab[k]<0){ lab[k]=id; st.push(k); } } } info.push(c); } return {lab,info}; };
+      const clean=(A,minPx)=>{ const {lab,info}=comps(A), o=new Uint8Array(N); for(let i=0;i<N;i++) if(A[i]){ const c=info[lab[i]]; if(Math.max(c.x1-c.x0,c.y1-c.y0)>=minPx) o[i]=1; } return o; };
+      // (1) trazos gruesos
+      const inv=new Uint8Array(N); for(let i=0;i<N;i++) inv[i]=B[i]?0:1; const ei=dil(inv,2); let T2=new Uint8Array(N); for(let i=0;i<N;i++) T2[i]=ei[i]?0:1;
+      for(let k=0;k<4;k++){ const D=dil(T2,1); for(let i=0;i<N;i++) D[i]=D[i]&&B[i]?1:0; T2=D; }
+      // (2) masas densas
+      const Dm=blur(T2,14,2), m0=new Uint8Array(N); for(let i=0;i<N;i++) m0[i]=Dm[i]>0.3?1:0; const cm0=comps(m0), mass=new Uint8Array(N); for(let i=0;i<N;i++) if(m0[i]&&cm0.info[cm0.lab[i]].n>N*0.01) mass[i]=1;
+      const massD=new Uint8Array(N), bm=blur(mass,14,1); for(let i=0;i<N;i++) massD[i]=bm[i]>0?1:0;
+      const keep=clean(T2,20), massLines=new Uint8Array(N); for(let i=0;i<N;i++) massLines[i]=keep[i]&&massD[i]?1:0;
+      // el follaje del pino y de las arboledas en ALMOHADILLAS: las agujas se cierran en una mancha sólida (cierre de 0,15 mm)
+      // y se quitan las motas (apertura de 0,05 mm); el tronco y la orilla, que ya son trazos gruesos, quedan igual
+      const ero=(A,r)=>{ const iv=new Uint8Array(N); for(let i=0;i<N;i++) iv[i]=A[i]?0:1; const d2=dil(iv,r); for(let i=0;i<N;i++) d2[i]=d2[i]?0:1; return d2; };
+      const pads=dil(ero(ero(dil(massLines,3),3),1),1);
+      // (3) contornos de la montaña unidos
+      const D=blur(T2,6,2), M=new Uint8Array(N); for(let i=0;i<N;i++) M[i]=D[i]>0.12&&!massD[i]?1:0;
+      const I=M; { let ch=true; const at=(x,y)=>(x<0||y<0||x>=W||y>=H)?0:I[y*W+x];
+        while(ch){ ch=false; for(let step=0;step<2;step++){ const del=[]; for(let y=0;y<H;y++) for(let x=0;x<W;x++){ if(!I[y*W+x]) continue;
+          const p2=at(x,y-1),p3=at(x+1,y-1),p4=at(x+1,y),p5=at(x+1,y+1),p6=at(x,y+1),p7=at(x-1,y+1),p8=at(x-1,y),p9=at(x-1,y-1), bn=p2+p3+p4+p5+p6+p7+p8+p9; if(bn<2||bn>6) continue;
+          const sq=[p2,p3,p4,p5,p6,p7,p8,p9,p2]; let a=0; for(let q=0;q<8;q++) if(!sq[q]&&sq[q+1]) a++; if(a!==1) continue;
+          if(step===0?(p2*p4*p6||p4*p6*p8):(p2*p4*p8||p2*p6*p8)) continue; del.push(y*W+x); } if(del.length){ ch=true; del.forEach(i=>I[i]=0); } } } }
+      const nb=(A,i)=>{ const x=i%W, y=(i-x)/W, o=[]; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ if(!dx&&!dy) continue; const xx=x+dx, yy=y+dy; if(xx<0||yy<0||xx>=W||yy>=H) continue; const k=yy*W+xx; if(A[k]) o.push(k); } return o; };
+      for(let r=0;r<8;r++){ let removed=0; for(let i=0;i<N;i++){ if(!I[i]||nb(I,i).length!==1) continue; const path=[i]; let prev=-1, cur=i;
+          while(path.length<=40){ const n=nb(I,cur).filter(k=>k!==prev&&!path.includes(k)); if(n.length!==1||nb(I,n[0]).length>2) break; prev=cur; cur=n[0]; path.push(cur); }
+          if(path.length<=40){ path.forEach(k=>I[k]=0); removed++; } } if(!removed) break; }
+      const Rk=clean(I,80), seen=new Uint8Array(N), paths=[];
+      const bfs=s=>{ const dist=new Map([[s,0]]), par=new Map(), q=[s]; let far=s; for(let h=0;h<q.length;h++){ const u=q[h]; for(const v of nb(Rk,u)) if(!dist.has(v)){ dist.set(v,dist.get(u)+1); par.set(v,u); q.push(v); if(dist.get(v)>dist.get(far)) far=v; } } return {far,par,all:q}; };
+      for(let i=0;i<N;i++){ if(!Rk[i]||seen[i]) continue; const a=bfs(i); a.all.forEach(k=>seen[k]=1); const b2=bfs(a.far), p=[]; let c=b2.far; while(c!==undefined){ p.push([c%W,Math.floor(c/W)]); c=b2.par.get(c); } if(p.length>60) paths.push(p); }
+      // (4) silueta del cielo
+      const Bd=blur(B,3,1), sky=[]; for(let x=0;x<W;x++){ let yy=-1; for(let y=0;y<H*0.5;y++) if(Bd[y*W+x]>0.3){ yy=y; break; } sky.push(yy); }
+      const med=sky.map((_,x)=>{ const w=[]; for(let k=-7;k<=7;k++){ const v=sky[Math.min(W-1,Math.max(0,x+k))]; if(v>=0) w.push(v); } w.sort((a,b2)=>a-b2); return w.length?w[w.length>>1]:-1; });
+      const sm=(p,w)=>p.map((_,i)=>{ let sx=0,sy=0,n=0; for(let k=-w;k<=w;k++){ const q=p[Math.min(p.length-1,Math.max(0,i+k))]; sx+=q[0]; sy+=q[1]; n++; } return [sx/n,sy/n]; });
+      const dp=(P,e)=>{ if(P.length<3) return P; const a=P[0], b2=P[P.length-1], L=Math.hypot(b2[0]-a[0],b2[1]-a[1])||1; let mi=-1,md=0; for(let i=1;i<P.length-1;i++){ const d=Math.abs((b2[0]-a[0])*(a[1]-P[i][1])-(a[0]-P[i][0])*(b2[1]-a[1]))/L; if(d>md){ md=d; mi=i; } } return md<=e?[a,b2]:dp(P.slice(0,mi+1),e).slice(0,-1).concat(dp(P.slice(mi),e)); };
+      const skyP=[]; let cur=[]; for(let x=0;x<W;x++){ const y=med[x]>=0&&!massD[med[x]*W+x]?med[x]:-1; if(y<0||(cur.length&&Math.abs(y-cur[cur.length-1][1])>25)){ if(cur.length>20) skyP.push(cur); cur=[]; } if(y>=0) cur.push([x,y]); } if(cur.length>20) skyP.push(cur);
+      const skyY=new Float32Array(W).fill(-1); skyP.forEach(p=>p.forEach(([x,y])=>{ skyY[x]=y; }));
+      const plen=p=>p.reduce((t2,q,i)=>i?t2+Math.hypot(q[0]-p[i-1][0],q[1]-p[i-1][1]):0,0), nearSky=p=>p.filter(([x,y])=>{ const v=skyY[Math.round(x)]; return v>=0&&Math.abs(y-v)<22; }).length/p.length;
+      PASO_VEC={W,H,mass:pads,ridges:paths.map(p=>sm(p,10)).filter(p=>plen(p)>160&&nearSky(p)<0.4).map(p=>dp(p,3)),sky:skyP.map(p=>dp(sm(p,2),5))};
+    }
+    const V=PASO_VEC, k=V.W/wm, cv=document.createElement('canvas'); cv.width=V.W; cv.height=V.H; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,V.W,V.H); g.strokeStyle='#000'; g.lineCap='round'; g.lineJoin='round';
+    const line=(P,w)=>{ g.lineWidth=w*k; P.forEach(p=>{ g.beginPath(); p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y)); g.stroke(); }); };
+    line(V.ridges,1.1); line(V.sky,1.6);
+    const d=g.getImageData(0,0,V.W,V.H); for(let i=0;i<V.W*V.H;i++) if(V.mass[i]||V.mass[i+1]||V.mass[i+V.W]) d.data[4*i]=d.data[4*i+1]=d.data[4*i+2]=0; g.putImageData(d,0,0);
+    return cv; }
   // sólido del campo de alturas (sprigTris: superficie z0 + alto, paredes y fondo) en coordenadas del visor: centrado,
   // base en y = base, sx = −1 espeja (cara del sello), sz = −1 lleva el arriba del dibujo hacia −z (visor)
   function hfTris(fld,hmm,base,z0,sx,sz,T){ const A=sprigTris(Object.assign({},fld,{h:hmm}),{d:1},z0,0), ox=-fld.W/2+(fld.nx-1)*fld.c/2, oy=-fld.Hh/2+(fld.ny-1)*fld.c/2;
@@ -4021,7 +4087,8 @@
   // colinas se levantan sobre el cielo blanco) y el DETALLE fino del grabado encima; cada una se normaliza por su percentil
   // (85 y 90 %: el grabado es claro y el tronco del pino, lo más oscuro, no debe aplastar la montaña) y el borde se funde a 0
   // en 2 mm para que el relieve salga del plano sin escalón. Probado contra 3 mezclas: esta es la que mejor deja ver la cresta.
-  function hfMap(fld){ if(fld._hm) return fld._hm; const {nx,ny,c,h}=fld, n=nx*ny, co=boxBlur(h,nx,ny,Math.max(1,Math.round(2.5/c)),3);
+  function hfMap(fld){ if(fld._hm) return fld._hm; if(fld.line){ const {nx,ny,c,h}=fld, fe=2/c, o=new Float32Array(nx*ny); for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const e=Math.min(i,j,nx-1-i,ny-1-j)/fe, f=e>=1?1:e*e*(3-2*e); o[j*nx+i]=Math.min(1,h[j*nx+i]*1.15)*f; } return fld._hm=o; }
+    const {nx,ny,c,h}=fld, n=nx*ny, co=boxBlur(h,nx,ny,Math.max(1,Math.round(2.5/c)),3);
     const pct=(A,q)=>{ const s3=Array.from(A).sort((x,y)=>x-y); return s3[Math.floor(q*(n-1))]||1; }, cn=pct(co,0.85), fn=pct(h,0.9), fe=2/c, out=new Float32Array(n);
     for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const q=j*nx+i, e=Math.min(i,j,nx-1-i,ny-1-j)/fe, f=e>=1?1:e*e*(3-2*e); out[q]=Math.pow(Math.min(1,0.55*Math.min(1,co[q]/cn)+0.6*Math.min(1,h[q]/fn)),0.9)*f; }
     return fld._hm=out; }
@@ -4039,7 +4106,7 @@
   function rayR(P,dx,dz){ let best=0; for(let i=0,m=P.length;i<m;i++){ const a=P[i], c=P[(i+1)%m], ex=c[0]-a[0], ez=c[1]-a[1], den=dx*ez-dz*ex; if(Math.abs(den)<1e-12) continue; const t=(a[0]*ez-a[1]*ex)/den, u=(a[0]*dz-a[1]*dx)/den; if(u>=-1e-9&&u<=1+1e-9&&t>best) best=t; } return best; }
   function selloSolid(THREE,s,k,view){
     const notes=[], S=s.sello, HF=!!SELLO_HF[k]; let F, fld=null;
-    if(HF){ const im=SELLO_IMG[k]; if(!im) return null; fld=selloField(k,im,S.wm); F={w:(fld.nx-1)*fld.c,h:(fld.ny-1)*fld.c,regions:[]}; }
+    if(HF){ const im=SELLO_IMG[selloKey(k,S)]; if(!im) return null; fld=selloField(selloKey(k,S),im,S.wm); fld.line=!!im.line; F={w:(fld.nx-1)*fld.c,h:(fld.ny-1)*fld.c,regions:[]}; }
     else { F=selloFace(k,S.w,notes,view); if(!F) return null; }
     const mir=L=>L.map(([x,z])=>[-x,z]).reverse(), reg=F.regions.map(r=>({L:mir(r.L),d:r.d,kids:r.kids.map(mir)})), PO=selloPlate(k,F,0), M=144, T=[];
     const dirs=Array.from({length:M},(_,j)=>{ const a=j/M*2*Math.PI; return [Math.cos(a),Math.sin(a)]; }), RP=dirs.map(([dx,dz])=>rayR(PO,dx,dz)), Rmax=Math.max(...RP), Rmin=Math.min(...RP), tp=3;
@@ -4081,6 +4148,10 @@
     S.keys.forEach(k=>{ const st=selloSolid(THREE,s,k,true); if(!st){ notes.push(`${selloName(k)}: no se pudo cargar el dibujo.`); return; } notes.push(...st.notes);
       const span=Math.max(...st.PO.map(p=>Math.abs(p[0])))*2+14, cx=x+span/2, ms=mesh(st.T,0xcfb27a,0.55); ms.position.x=cx; G.add(ms);
       const depth=Math.max(...st.PO.map(p=>Math.abs(p[1])))*2, cl=mesh(selloClay(THREE,s,k,st.F,st.fld),0x9c6b4e,0.95); cl.position.set(cx,0,depth+30); G.add(cl);
+      // lo hundido más oscuro y lo que sube más claro, según la profundidad (así se lee el dibujo, no solo sus bordes)
+      { const g=cl.geometry, A=g.attributes.position.array, C=new Float32Array(A.length), base=new THREE.Color(0x9c6b4e), tt=8, d=S.d;
+        for(let i=0;i<A.length;i+=3){ const y=A[i+1], kk=y<tt-d-0.2?1:y<tt-0.01?0.55+0.45*(y-(tt-d))/d:1+0.25*Math.min(1,(y-tt)/d); C[i]=base.r*kk; C[i+1]=base.g*kk; C[i+2]=base.b*kk; }
+        g.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); cl.material.color.set(0xffffff); cl.material.vertexColors=true; }
       const lh=Math.max(5,span*0.07), l1=label3(THREE,`${selloName(k)} · sello (espejado)`,lh), l2=label3(THREE,'Así queda en la arcilla (vista de frente)',lh,true);
       l1.position.set(cx,st.H+lh*0.4,0); l2.position.set(cx,1,depth+30+depth/2+9); G.add(l1,l2); x+=span+18; });
     G.children.forEach(o=>{ o.position.x-=x/2; });
@@ -5150,7 +5221,7 @@
   $('btnSelloStl').addEventListener('click',async()=>{ if(!last3||!last3.s.selloMode) return; const {s,b}=last3; if(!s.sello.keys.length){ $('selloOut').textContent='Elige al menos una variante.'; return; } $('selloOut').textContent='Preparando los STL…';
     const P=await exportPieces(s,b,'sello'), files=P.map((p,i)=>({name:`${String(i+1).padStart(2,'0')}-sello-${s.sello.keys[i]}-${String(s.sello.w/10).replace('.',',')}cm.stl`,data:new Uint8Array(stlBinary(p.V,p.F))}));
     download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (perilla en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
-  ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
+  ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMt','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
