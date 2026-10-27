@@ -70,6 +70,7 @@
   .v3views .btn,.v3bar .btn.ghost{padding:5px 9px;font-size:12px}
   @media (max-width:760px){ .v3body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 40%} #v3side{border-left:0;border-top:1px solid var(--line)} }
   #v3canvas{width:100%;height:100%;display:block;touch-action:none;background:radial-gradient(circle at 50% 35%,var(--glaze-soft),var(--bg))}
+  label.f.dim{opacity:.45}
   #v2Foto{margin:8px 0 6px}
   #v2Foto canvas{display:block;width:100%;aspect-ratio:4/3;border-radius:8px;border:1px solid var(--line);touch-action:none;cursor:grab}
   #v2Foto canvas:active{cursor:grabbing}
@@ -206,7 +207,7 @@
       <div id="fitOut" style="margin-top:8px"></div>
     </details>
     <label class="f"><span>Forma</span>
-      <select id="type"><option value="rect">Rectangular / cuadrada</option><option value="oval">Ovalada</option><option value="round">Redonda</option><option value="hex">Hexagonal (rokkaku)</option><option value="oct">Octogonal (hakkaku)</option></select>
+      <select id="type"><option value="rect">Rectangular / cuadrada</option><option value="oval">Ovalada</option><option value="round">Redonda</option><option value="hex">Hexagonal (rokkaku)</option><option value="oct">Octogonal (hakkaku)</option><option value="luna">Media luna de roca (Impresión 3D)</option></select>
     </label>
     <div class="grid2">
       <label class="f"><span>Largo <b>cm</b> (terminada)</span><input id="L" type="number" step="0.5" min="4" max="60" value="20"><small class="hint" id="h_L"></small></label>
@@ -229,9 +230,13 @@
         <label class="f"><span>Labio <b>cm</b></span><input id="lip" type="number" step="0.1" min="0.2" max="2" value="0.6"><small class="hint" id="h_lip"></small></label>
         <label class="f"><span>Cuerpo</span>
           <select id="body"><option value="liso">Liso</option><option value="cinturon">Con cinturón</option><option value="panza">Panza convexa</option></select></label>
+        <label class="f" id="beltF"><span>Cinturón</span><select id="beltPos"><option value="0.5">A media altura</option><option value="0.75">Bajo, cerca de las patas</option></select></label>
+        <label class="f" id="rivetsF"><span>Remaches</span><select id="rivets"><option value="none">Sin remaches</option><option value="rivets">Sobre el cinturón</option></select></label>
         <label class="f"><span>Esquinas</span>
           <select id="corner"><option value="recta">Rectas</option><option value="sumikiri">Sumikiri · corte</option><option value="nadekaku">Nadekaku · redondeada</option><option value="sumiiri">Sumiiri · entrante</option><option value="mokko">Mokko · entrante en arco</option></select></label>
         <label class="f"><span>Lóbulos (ovalada / redonda)</span><select id="lobes"><option value="0">Sin lóbulos</option><option value="6">6 · rinka</option><option value="8">8 · rinka</option><option value="10">10 · rinka</option><option value="12">12 · rinka</option></select></label>
+        <label class="f" id="lunaCF"><span>Borde al centro <b>% del alto</b></span><input id="lunaC" type="number" min="25" max="80" step="1" value="42"></label>
+        <label class="f" id="lunaRF"><span>Cuerno bajo <b>% del alto</b></span><input id="lunaR" type="number" min="0" max="100" step="5" value="50"></label>
         <label class="f"><span>Patas</span><select id="foot"><option value="nube">Nube (kumo-ashi) · curva clásica</option><option value="voluta">Voluta · curva doble</option><option value="escalon">Escalonada (dan-ashi) · formal</option><option value="cuna">Cuña (kiri-ashi) · corte recto</option><option value="puente">Puente bajo · arco largo</option><option value="bloque">Bloques cuadrados</option></select></label>
       </div>
       <div id="clayOpts" style="margin-top:12px">
@@ -252,7 +257,8 @@
       </div>
       <label class="f" style="margin-top:10px"><span>Acabado (ilustración)</span>
         <select id="finish">
-          <optgroup label="Arcilla"><option value="shudei">Shudei · rojizo sin esmalte</option><option value="azul">Esmalte azul namako</option><option value="oribe">Esmalte verde oribe</option><option value="crema">Esmalte crema</option><option value="seiji">Esmalte celadón (seiji)</option><option value="gres">Gres sin esmalte, arena</option></optgroup>
+          <optgroup label="Arcilla"><option value="shudei">Shudei · rojizo sin esmalte</option><option value="azul">Esmalte azul namako</option><option value="oribe">Esmalte verde oribe</option><option value="crema">Esmalte crema</option><option value="seiji">Esmalte celadón (seiji)</option><option value="gres">Gres sin esmalte, arena</option><option value="zisha">Zisha · barro púrpura de Yixing</option></optgroup>
+          <optgroup label="Roca (media luna)"><option value="roca">Piedra gris oscura</option><option value="arenisca">Arenisca clara</option></optgroup>
           <optgroup label="Cemento"><option value="gris">Gris natural</option><option value="oxido">Óxido de hierro</option><option value="negro">Óxido negro</option></optgroup>
         </select>
       </label>
@@ -462,7 +468,10 @@
     {id:'panelbaja',  name:'Rectangular con paneles',      style:'Chokkan · Moyogi (paneles rehundidos)',      note:'Rectangular baja de labio ancho, con panel decorativo en cada pared y patas de esquina.',                     type:'rect', L:26, W:18, H:6,   t:0.8, flare:0.6, feet:1.2, paper:'A3', rim:'sotoen',  body:'liso',     corner:'nadekaku', panel:true, finish:'shudei'},
     {id:'panelcamp',  name:'Rectangular acampanada',       style:'Shakan · Moyogi (paredes abiertas)',         note:'Paredes muy abiertas hacia la boca, panel y moldura inferior. El fondo es bastante menor que la boca.',       type:'rect', L:22, W:16, H:7,   t:0.7, flare:1.4, feet:1,   paper:'A3', rim:'sotoen',  body:'cinturon', corner:'recta',    panel:true, panelStyle:'corte', panelMode:'rehundido', finish:'shudei'},
     {id:'ovallabio',  name:'Ovalada baja con labio',       style:'Yose-ue · Moyogi (ovalada de exposición)',   note:'Óvalo bajo y ancho con labio vuelto y patas discretas. Forma de exposición muy versátil.',                  type:'oval', L:30, W:22, H:5,   t:0.8, flare:0,   feet:0.8, paper:'A3', rim:'sotoen',  body:'liso',     corner:'recta',    finish:'shudei'},
-    {id:'cuadpanel',  name:'Cuadrada profunda con panel',  style:'Han-kengai · Kengai (cuadrada con panel)',   note:'Cuadrada honda de esquinas suaves, labio externo y un panel en cada cara.',                                 type:'rect', L:14, W:14, H:9.5, t:0.8, flare:0.6, feet:1.2, paper:'A4', rim:'sotoen',  body:'liso',     corner:'nadekaku', panel:true, panelStyle:'doble', finish:'gres'}
+    {id:'cuadpanel',  name:'Cuadrada profunda con panel',  style:'Han-kengai · Kengai (cuadrada con panel)',   note:'Cuadrada honda de esquinas suaves, labio externo y un panel en cada cara.',                                 type:'rect', L:14, W:14, H:9.5, t:0.8, flare:0.6, feet:1.2, paper:'A4', rim:'sotoen',  body:'liso',     corner:'nadekaku', panel:true, panelStyle:'doble', finish:'gres'},
+    {id:'chinaremaches',name:'Rectangular china con remaches', style:'Moyogi · Shakan (estilo chino de Yixing)',       note:'Barro púrpura sin esmalte: esquinas entrantes en arco, paredes que se abren hacia un labio vuelto, cinturón bajo con una fila de remaches y patas de voluta.', type:'rect', L:28, W:20, H:9.5, t:0.8, flare:0.8, feet:1.4, paper:'A3', rim:'sotoen', body:'cinturon', corner:'mokko', finish:'zisha', belt:0.75, studs:'rivets'},
+    {id:'lunaroca',   name:'Media luna de roca',           style:'Bunjin · Shakan (media luna, cuerno alto)',     note:'Losa de roca curvada como una luna creciente: cuerno alto a la izquierda, borde irregular y textura de piedra. Se hace en Impresión 3D.', type:'luna', L:30, W:17, H:17, t:0.7, flare:0, feet:0, paper:'A3', rim:'kittate', body:'liso', corner:'recta', finish:'roca', lunaC:0.38, lunaR:0.5},
+    {id:'lunaconcha', name:'Media luna baja (concha)',     style:'Moyogi · Shakan (concha de roca, baja)',        note:'Concha de arenisca baja y abierta, con un cuerno que se levanta a la izquierda y el borde ondulado. Se hace en Impresión 3D.', type:'luna', L:30, W:20, H:12, t:0.7, flare:0, feet:0, paper:'A3', rim:'kittate', body:'liso', corner:'recta', finish:'arenisca', lunaC:0.36, lunaR:0.55}
   ];
   const FINISH={
     shudei:{name:'Shudei rojizo sin esmalte',body:'#8E5A3C',dark:'#6B4029',light:'#A97555',rim:'#5A3521'},
@@ -471,6 +480,9 @@
     crema:{name:'Esmalte crema',body:'#D9CBA8',dark:'#B5A57F',light:'#EEE4CC',rim:'#9A8A64'},
     seiji:{name:'Esmalte celadón (seiji)',body:'#7FAE9F',dark:'#5E8C7E',light:'#A9CFC2',rim:'#4E7568'},
     gres:{name:'Gres sin esmalte, tono arena',body:'#B59A7C',dark:'#8F775C',light:'#CDB698',rim:'#7A654D'},
+    zisha:{name:'Barro púrpura de Yixing (zisha), sin esmalte',body:'#6E4136',dark:'#4F2C24',light:'#8A5747',rim:'#3E221B'},
+    roca:{name:'Piedra gris oscura',body:'#65625B',dark:'#45433E',light:'#85827A',rim:'#2F2E2A'},
+    arenisca:{name:'Arenisca clara',body:'#B39C7E',dark:'#8E785C',light:'#CDB99C',rim:'#6E5B44'},
     gris:{name:'Cemento gris natural',body:'#8E9091',dark:'#6C6E70',light:'#B5B7B8',rim:'#55575A'},
     oxido:{name:'Cemento con óxido de hierro',body:'#A0654A',dark:'#7B4B36',light:'#BE8A70',rim:'#5F3A28'},
     negro:{name:'Cemento con óxido negro',body:'#4A4B4C',dark:'#2F3031',light:'#6E7071',rim:'#1F2021'}
@@ -542,11 +554,14 @@
     const lh=lipH(s), yb=H-ft, xAt=y=>R-d*(y/yb), pts=[];
     if(s.rim==='sotoen'){ const y3=lh+s.lip*(s.printable&&s.pLip==='bisel'?2.3:0.6); pts.push([R+s.lip,0],[R+s.lip,lh],[xAt(y3),y3]); } else pts.push([R,0]);
     const y0=pts[pts.length-1][1];
-    if(s.body==='cinturon'&&yb-y0>16){ const yc=y0+(yb-y0)*0.5, bh=Math.min(4,(yb-y0)/6), bw=Math.min(3,Math.max(1.5,s.t*0.3)); pts.push(...(s.mat==='cement'||s.printable?[[xAt(yc-bh-bw*1.45),yc-bh-bw*1.45]]:[[xAt(yc-bh),yc-bh]]),[xAt(yc-bh)+bw,yc-bh],[xAt(yc+bh)+bw,yc+bh],...(s.printable?[[xAt(yc+bh+bw*1.6),yc+bh+bw*1.6]]:[[xAt(yc+bh),yc+bh]])); }
+    if(s.body==='cinturon'&&yb-y0>16){ const bh=Math.min(4,(yb-y0)/6), bw=Math.min(3,Math.max(1.5,s.t*0.3)), yc=beltY(s,y0,yb,bh,bw); pts.push(...(s.mat==='cement'||s.printable?[[xAt(yc-bh-bw*1.45),yc-bh-bw*1.45]]:[[xAt(yc-bh),yc-bh]]),[xAt(yc-bh)+bw,yc-bh],[xAt(yc+bh)+bw,yc+bh],...(s.printable?[[xAt(yc+bh+bw*1.6),yc+bh+bw*1.6]]:[[xAt(yc+bh),yc+bh]])); }
     else if(s.body==='panza'){ const bulge=Math.min(6,Math.max(2,s.t*0.5)); for(let k=1;k<=7;k++){ const y=y0+(yb-y0)*k/8; pts.push([xAt(y)+bulge*Math.sin(Math.PI*(y-y0)/(yb-y0)),y]); } }
     pts.push([xAt(yb),yb]);
     return pts;
   }
+  // altura del centro del cinturón, medida desde la boca: a media altura o bajo (s.belt, fracción del cuerpo bajo el labio);
+  // bajo, sin pasar de 1 mm sobre el fondo con la moldura y su chaflán
+  function beltY(s,y0,yb,bh,bw){ return (s.belt||0.5)>0.5?Math.min(y0+(yb-y0)*s.belt,yb-1-bh-bw*1.6):y0+(yb-y0)*0.5; }
   function halfInt(s,Rc,Hc,d){
     const lh=lipH(s), pts=[];
     if(s.rim==='uchien'&&Hc>lh+6){ pts.push([Rc-s.lip,0],[Rc-s.lip,lh],[Rc,lh+s.lip*(s.printable&&s.pLip==='bisel'?2.3:0.6)]); } else pts.push([Rc,0]);
@@ -575,6 +590,12 @@
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
     s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; }
     if(s.mode==='pskin'){ s.mode='plaster'; s.pskinMode=true; }
+    // MEDIA LUNA: se dibuja e imprime como un óvalo canónico que lunaGroup() curva (cuernos, borde de roca); fuera de
+    // Impresión 3D no hay plantillas ni moldes para ella y se usa su óvalo de base, con aviso
+    if(s.type==='luna'){ s.type='oval'; s.flare=0; s.lobes=0; s.panel=false;
+      if(s.printable){ s.luna={c:Math.min(0.8,Math.max(0.25,(+$('lunaC').value||42)/100)),r:Math.min(1,Math.max(0,(+$('lunaR').value||50)/100))}; s.feet=0; s.rim='kittate'; s.body='liso'; s.corner='recta'; }
+      else s.lunaOff=true; }
+    s.belt=s.body==='cinturon'?(+$('beltPos').value||0.5):0.5;
     if(s.mode==='yeso2'){ s.mode='plaster'; s.v2Mode=true; }
     if(s.mode==='caja'){ s.mode='plaster'; s.cajaMode=true; s.cajaDims={L:Math.max(60,(+$('cjL').value||33)*10),W:Math.max(60,(+$('cjW').value||26)*10),H:Math.max(20,(+$('cjH').value||15)*10),modular:$('cjMod').checked,floor:$('cjFloor').checked,haveW:Math.max(0,parseInt($('cjHaveW').value)||0),haveF:Math.max(0,parseInt($('cjHaveF').value)||0)}; }
     if(s.mode==='plaster'){ s.plasterMode=true; s.moldAuto=false; s.pk=1/(1-(+$('pShrink').value||12)/100); s.pThick=$('pThick').value==='auto'?recPlaster(s):(+$('pThick').value||40); s.pSplit=$('pSplit').value; s.seal=$('pSeal').value; s.sealMode='up'; s.plasterNotes=[];
@@ -592,6 +613,7 @@
       if(s.v2Mode){ s.pCollar='integrada'; s.pSplit='dos'; s.pModel='macizo'; s.pFloor='impreso'; s.pWalls='impresas'; }
       if(s.pskinMode){ s.pNumDWas=s.pNumD; s.pCollar='integrada'; s.sealPart=false; s.pNumD='none'; s.studs='none'; s.panel=false; s.pSplit='auto'; s.pModel='macizo'; }
       s.sprig={motif:$('spMotif').value,w:Math.max(20,Math.min(200,+$('spW').value||60)),d:Math.max(0.5,Math.min(6,+$('spD').value||2)),frame:$('spFrame').value,curve:$('spCurve').value==='pot',inv:$('spInv').checked,soft:({fino:0.4,medio:0.6,suave:1.6})[$('spSoft').value]||0.8,text:$('spText').value.trim()}; if(s.pskinMode) s.sprig={motif:'none'}; }
+    if(!s.plasterMode&&!s.printable&&s.mat==='clay'&&s.body==='cinturon'&&$('rivets').value==='rivets') s.studs='rivets';   // en arcilla se pegan a mano
     s.pLip=$('pLip').value; s.pFeet=$('pFeet').value; s.pFit=$('pFit').value; s.pIn=$('pIn').value; s.inSeal=$('pSeal').value==='none'?'C':$('pSeal').value; s.tClay=s.t;
     { const pw=$('pWall').value; s.pT=pw==='auto'?printWall(s):pw==='plantilla'?s.t:(+pw||2.5); s.pBase=Math.max(3,Math.round(s.pT*13)/10,s.feet>0&&s.pFeet!=='pegadas'?PIN.hp+1.2:0); }
     if(s.printable) s.t=s.pT;   // Impresión 3D: pared de plástico, no la placa de arcilla
@@ -1116,6 +1138,7 @@
       it.push(['Ranuras','Los dos óvalos de cada lámina: por ahí pasan los pernos de mariposa del portaperfil. Están en el mismo sitio en todos los modelos.']);
       it.push(['Sección','Corte de la maceta terminada a tamaño real, solo para comprobar grosores. No se corta.']);
     }
+    if(clay&&!s.plasterMode&&s.studs==='rivets'){ const SP=studPoints(s); if(SP.length) it.push(['Remaches',`${SP.length} bolitas de arcilla de Ø ${cm(2*SP[0].r)} cm sobre el cinturón (${SP.length/2} en cada pared larga, como en el visor). Se pegan con barbotina cuando la maceta está en cuero, apretando un poco para que queden como media esfera.`]); }
     return it;
   }
   function wrapText(str,max){ const out=[]; let line=''; str.split(' ').forEach(w=>{ if((line+' '+w).trim().length>max){ out.push(line); line=w; } else line=(line+' '+w).trim(); }); if(line) out.push(line); return out; }
@@ -1255,7 +1278,7 @@
       const rx=xm, ry=W/2*k*(xm/(L/2)), cx=xm;
       g+=`<path d="M${cx-rx} 0 L${cx-rx+fl} ${bodyH} A${rx-fl} ${ry} 0 0 0 ${cx+rx-fl} ${bodyH} L${cx+rx} 0 Z" fill="url(#${id}a)"/>`;
       if(s.rim==='sotoen'){ const lh=lipH(s); g+=`<path d="M${cx-rx} 0 L${cx-rx} ${lh} A${rx} ${ry*0.9} 0 0 0 ${cx+rx} ${lh} L${cx+rx} 0 Z" fill="${F.dark}"/>`; }
-      if(s.body==='cinturon'){ const yc=bodyH*0.5; g+=`<path d="M${cx-rx+fl*0.5} ${yc-2} A${rx-fl*0.5} ${ry*0.9} 0 0 0 ${cx+rx-fl*0.5} ${yc-2} L${cx+rx-fl*0.5} ${yc+2} A${rx-fl*0.5} ${ry*0.9} 0 0 1 ${cx-rx+fl*0.5} ${yc+2} Z" fill="${F.dark}" opacity=".7"/>`; }
+      if(s.body==='cinturon'){ const yc=bodyH*(s.belt||0.5); g+=`<path d="M${cx-rx+fl*0.5} ${yc-2} A${rx-fl*0.5} ${ry*0.9} 0 0 0 ${cx+rx-fl*0.5} ${yc-2} L${cx+rx-fl*0.5} ${yc+2} A${rx-fl*0.5} ${ry*0.9} 0 0 1 ${cx-rx+fl*0.5} ${yc+2} Z" fill="${F.dark}" opacity=".7"/>`; }
       if(s.lobes){ for(let k3=0;k3<s.lobes;k3++){ const th=2*Math.PI*k3/s.lobes; if(Math.sin(th)>0.05) g+=`<line x1="${r1(cx+rx*Math.cos(th))}" y1="${r1(ry*Math.sin(th))}" x2="${r1(cx+(rx-fl)*Math.cos(th))}" y2="${r1(bodyH+ry*Math.sin(th)*0.9)}" stroke="${F.rim}" stroke-width=".7" opacity=".8"/>`; } }
       g+=`<ellipse cx="${cx}" cy="0" rx="${rx}" ry="${ry}" fill="${F.rim}"/>`;
       g+=`<ellipse cx="${cx}" cy="${-ry*0.08}" rx="${rx-s.t-(xm-L/2)}" ry="${ry*0.85}" fill="#6B5541"/>`;
@@ -1271,7 +1294,7 @@
     const svg=`<svg width="${totalW*sc}mm" height="${totalH*sc}mm" viewBox="0 0 ${r1(totalW)} ${r1(totalH)}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
     return {svg,cap:`Maceta terminada · ${F.name} · ${RIM_NAME[s.rim]}`};
   }
-  function shapeName(s){ if(s.type==='hex') return 'Hexagonal'; if(s.type==='oct') return 'Octogonal'; if(s.type==='round') return 'Redonda'; if(s.type==='oval') return 'Ovalada'; return s.L===s.W?'Cuadrada':'Rectangular'; }
+  function shapeName(s){ if(s.luna) return 'Media luna'; if(s.type==='hex') return 'Hexagonal'; if(s.type==='oct') return 'Octogonal'; if(s.type==='round') return 'Redonda'; if(s.type==='oval') return 'Ovalada'; return s.L===s.W?'Cuadrada':'Rectangular'; }
   const MOLD_NAME={hex:'Máquina de barrido con plato-guía hexagonal',oct:'Máquina de barrido con plato-guía octogonal',rect:'Máquina de barrido con plato-guía rectangular',round:'Máquina de barrido con plato-guía redondo',oval:'Máquina de barrido con plato-guía ovalado'};
   const MOLD_SHORT={hex:'plato-guía y perfiles',oct:'plato-guía y perfiles',rect:'plato-guía y perfiles',round:'plato-guía y perfiles',oval:'plato-guía y perfiles'};
 
@@ -1538,7 +1561,8 @@
     const glossy=['azul','oribe','crema','seiji'].includes(s.finish);
     const mat=new THREE.MeshStandardMaterial({color:F.body,roughness:glossy?0.25:0.85,metalness:0,side:THREE.DoubleSide});
     const dark=new THREE.MeshStandardMaterial({color:F.dark,roughness:glossy?0.3:0.9,side:THREE.DoubleSide});
-    const ext=halfExt(s,R,H,ft,s.flare), Hc=Math.max(4,s.printable?H-ft-(s.pBase||s.t):clay?H-ft-s.t:b.core), int=halfInt(s,R-s.t,Hc,s.flare);
+    if(s.luna&&!s._lc) return lunaGroup(THREE,s,b,opt);
+    const ext=lunaDense(s,halfExt(s,R,H,ft,s.flare)), Hc=Math.max(4,s.printable?H-ft-(s.pBase||s.t):clay?H-ft-s.t:b.core), int=lunaDense(s,halfInt(s,R-s.t,Hc,s.flare));
     const ring=(x,y)=>{ const dl=R-x; return ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),n).map(([px,pz])=>[px,H-y,pz]); };
     const pos=[], idx=[];
     const band=(A,B)=>{ const o=pos.length/3; A.concat(B).forEach(p=>pos.push(p[0],p[1],p[2])); for(let i=0;i<n;i++){ const j=(i+1)%n; idx.push(o+i,o+j,o+n+i,o+j,o+n+j,o+n+i); } };
@@ -1591,7 +1615,7 @@
     if(IR){ const T=[], T2=[]; IR.filter(r=>r.d%2===0).forEach(r=>{ if(!sunk) prismXZ(THREE,r.L,r.kids,yi-0.3,yi+SD,T); else if(!opt.stl) prismXZ(THREE,r.L,r.kids,yi-SD+0.04,yi-SD+0.1,T2); });
       [[T,null],[T2,null]].forEach(([A,m])=>{ if(!A.length) return; const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(A,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,m||new THREE.MeshStandardMaterial({color:F.rim,roughness:1,side:THREE.DoubleSide}))); }); }
     const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setIndex(idx); geo.computeVertexNormals();
-    G.add(new THREE.Mesh(geo,mat));
+    { const MM=new THREE.Mesh(geo,mat); MM.userData.main=true; G.add(MM); }
     if(opt.cut&&!opt.stl){
       // corte por el eje largo: relleno macizo de la pared y el fondo en el plano de corte (z = 0)
       const tol=Math.max(3,s.W*0.03), xAt=ring3=>Math.max(...ring3.filter(p=>Math.abs(p[2])<tol).map(p=>p[0]));
@@ -1681,16 +1705,64 @@
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(T,3)); g.computeVertexNormals(); G.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:F.rim,roughness:1,side:THREE.DoubleSide}))); }
     if(opt.tree){
       // sustrato y un arbolito de referencia de escala
-      const ys=Math.min(Hc*0.18,9), xs=int[0][0]+(int[int.length-1][0]-int[0][0])*(ys/Hc), sp=[], si=[];
+      const ys=s._lc?Hc*0.4:Math.min(Hc*0.18,9), xs=int[0][0]+(int[int.length-1][0]-int[0][0])*(ys/Hc), sp=[], si=[];
       cap(ring(xs-0.3,ys),H-ys,sp,si); const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3)); sg.setIndex(si); sg.computeVertexNormals();
-      G.add(new THREE.Mesh(sg,new THREE.MeshStandardMaterial({color:0x5a4634,roughness:1,side:THREE.DoubleSide})));
-      const th=Math.max(H*1.9,s.L*0.85), x0=-s.L*0.12, y0=H-ys;
+      G.add(new THREE.Mesh(sg,new THREE.MeshStandardMaterial({color:0x5a4634,roughness:1,side:THREE.DoubleSide}))); const nT=G.children.length;
+      const th=Math.max(H*1.9,s.L*0.85), x0=s._lc?s.L*0.1:-s.L*0.12, y0=H-ys;
       const curve=new THREE.CatmullRomCurve3([[x0,y0,0],[x0-th*0.05,y0+th*0.3,th*0.02],[x0+th*0.1,y0+th*0.55,-th*0.02],[x0+th*0.04,y0+th*0.85,0]].map(p=>new THREE.Vector3(...p)));
       G.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,Math.max(2,s.L*0.022),8),new THREE.MeshStandardMaterial({color:0x4a3524,roughness:1})));
       const leaf=new THREE.MeshStandardMaterial({color:0x3f6b3a,roughness:0.9,flatShading:true});
       [[x0-th*0.28,y0+th*0.62,0,0.17],[x0+th*0.04,y0+th*0.92,0,0.2],[x0+th*0.3,y0+th*0.68,th*0.05,0.16],[x0-th*0.04,y0+th*0.72,-th*0.12,0.14]].forEach(([x,y,z,r])=>{ const m=new THREE.Mesh(new THREE.IcosahedronGeometry(th*r,1),leaf); m.scale.y=0.5; m.position.set(x,y,z); G.add(m); });
+      G.children.slice(nT).forEach(o=>{ o.userData.tree=true; });
     }
     return G;
+  }
+  // ---------- MACETA EN MEDIA LUNA (réplica de las macetas de roca del usuario) ----------
+  // Se arma un óvalo canónico (flat: suela plana en la cama, paredes abiertas d por lado, sin labio ni patas) con potGroup
+  // y se le aplica un mapa de deformación punto por punto (lunaWarp), así la malla sigue cerrada y los agujeros, el
+  // logotipo de la cara de abajo y el piso de adentro quedan intactos (nada por debajo del piso se mueve):
+  //   1) se alarga en x hacia la boca (la suela mide unos 42 % del largo): las puntas se abren como un casco de barca;
+  //   2) las puntas se angostan hacia el borde (cuernos);
+  //   3) el borde sube hacia los extremos: cuerno alto a la izquierda (alto total) y cuerno bajo a la derecha (s.luna.r);
+  //      al centro queda a s.luna.c del alto; más una ondulación irregular del borde (roca partida);
+  //   4) la pared ondula hacia afuera y hacia adentro según el ángulo y la altura (no según la posición), así la cara de
+  //      adentro y la de afuera se mueven igual y la pared no cambia de grosor.
+  // Estirar en vertical solo empina las paredes, así que no aparece voladizo nuevo. La textura fina de piedra la hace el
+  // laminador («fuzzy skin», va en el 3MF); en el visor se sugiere con color y normales.
+  function lunaPar(s){
+    const L=s.L, W=s.W, H=s.H, y0=s.pBase||3, H0=Math.max(y0+25,H*s.luna.c), d=Math.min(W/2*0.3,(H0-y0)*0.5), HR=H0+(H-H0)*s.luna.r;
+    // suela de unos 42 % del largo, pero la punta del cuerno bajo no se abre más de 0,75 de su alto: así ninguna pared pasa de 45°
+    const L0=Math.min(L,Math.max(L*0.42,W*0.75-2*d,L-1.5*(HR-y0))+2*d);
+    return {L,W,H,H0,y0,d,L0,a0:L0/2,c0:W/2,mt:L/L0,HR,pin:0.35,rn:Math.min(1,H0/60)};
+  }
+  const lunaDense=(s,P)=>{ if(!s._lc) return P; const o=[P[0]]; for(let i=1;i<P.length;i++){ const [x1,y1]=P[i-1], [x2,y2]=P[i], k=Math.max(1,Math.ceil(Math.abs(y2-y1)/4)); for(let j=1;j<=k;j++) o.push([x1+(x2-x1)*j/k,y1+(y2-y1)*j/k]); } return o; };
+  function lunaWarp(P){
+    const hc=P.H0-P.y0, sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+    const rimN=th=>P.rn*(3.2*Math.sin(4*th+0.7)+2*Math.sin(7*th+2.9)+1.2*Math.sin(11*th+4.4)+0.7*Math.sin(17*th+1.1));
+    return (x,y,z)=>{ if(y<=P.y0+1e-6) return [x,y,z];
+      const f=Math.min(1,(y-P.y0)/hc), th=Math.atan2(z/P.c0,x/P.a0), m=1+(P.mt-1)*Math.pow(f,1.6), x1=x*m, u=Math.max(-1,Math.min(1,x1/(P.L/2))), zs=1-P.pin*Math.pow(Math.abs(u),2.5)*f, z1=z*zs;
+      const rim=P.H0+(P.H-P.H0)*Math.pow(Math.max(0,-u),2.4)+(P.HR-P.H0)*Math.pow(Math.max(0,u),2.4)+rimN(th), y1=P.y0+(y-P.y0)*(rim-P.y0)/hc;
+      const D=sm((y-P.y0)/8)*(1.1*Math.sin(3*th+0.013*y+1.3)+0.7*Math.sin(5*th-0.021*y+4.1)+0.45*Math.sin(8*th+0.033*y+2.2)+0.3*Math.sin(13*th-0.05*y+5.7));
+      const nx=Math.cos(th)/(P.a0*m), nz=Math.sin(th)/(P.c0*zs), nl=Math.hypot(nx,nz)||1;
+      return [x1+D*nx/nl,y1,z1+D*nz/nl]; };
+  }
+  function lunaGroup(THREE,s,b,opt){
+    const P=lunaPar(s), c=Object.assign({},s,{_lc:true,L:P.L0,H:P.H0,flare:P.d,feet:0,rim:'kittate',body:'liso',lobes:0,panel:false,studs:'none'});
+    const G=potGroup(THREE,c,b,opt), wf=lunaWarp(P); G.updateMatrixWorld(true);
+    let main=null;
+    G.traverse(o=>{ if(!o.isMesh||o.userData.tree) return; const g=o.geometry; g.applyMatrix4(o.matrixWorld); o.position.set(0,0,0); o.rotation.set(0,0,0); o.scale.set(1,1,1); o.updateMatrix();
+      const A=g.attributes.position.array; for(let i=0;i<A.length;i+=3){ const q=wf(A[i],A[i+1],A[i+2]); A[i]=q[0]; A[i+1]=q[1]; A[i+2]=q[2]; } g.attributes.position.needsUpdate=true; g.computeVertexNormals(); g.computeBoundingSphere();
+      if(o.userData.main) main=o; });
+    if(main&&!opt.stl){
+      // visor: piedra moteada (color por vértice) y normales con relieve fino, sin mover la malla
+      const g=main.geometry, A=g.attributes.position.array, N=g.attributes.normal.array, C=new Float32Array(A.length), base=new THREE.Color(main.material.color.getHex());
+      const nz=(x,y,z)=>Math.sin(0.31*x+1.7)*Math.sin(0.27*z+0.4)*Math.sin(0.23*y+2.1)+0.5*Math.sin(0.83*x+0.6*z+0.2)*Math.sin(0.71*y-0.4*x+1.3)+0.35*Math.sin(1.9*x-1.3*y+0.7)*Math.sin(1.7*z+1.1*y);
+      for(let i=0;i<A.length;i+=3){ const x=A[i], y=A[i+1], z=A[i+2], v=nz(x,y,z), k=0.86+0.2*v+(y>P.y0?0.06*Math.sin(0.09*y):0);
+        C[i]=base.r*k; C[i+1]=base.g*k; C[i+2]=base.b*k;
+        const px=nz(x+1.3,y,z)-v, py=nz(x,y+1.3,z)-v, pz=nz(x,y,z+1.3)-v; let a=N[i]-0.35*px, bb=N[i+1]-0.35*py, cc=N[i+2]-0.35*pz; const l=Math.hypot(a,bb,cc)||1; N[i]=a/l; N[i+1]=bb/l; N[i+2]=cc/l; }
+      g.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); g.attributes.normal.needsUpdate=true;
+      main.material=main.material.clone(); main.material.color.set(0xffffff); main.material.vertexColors=true; main.material.roughness=1; }
+    G.userData.luna=P; return G;
   }
   // Panel «Personalizar» del visor: espejo bidireccional de los campos del panel lateral. Cada control es un clon del
   // original; al cambiarlo copia el valor al original y dispara su evento, así se ejecuta la misma lógica (escalado
@@ -2931,8 +3003,9 @@
   // filas a 0,35 y 0,62, o remaches sobre el cinturón. Radio 3–6 mm según el largo, paso ≥ 2,8 radios, lejos de las esquinas,
   // repartidos simétricos sobre el tramo central del anillo del lado +z y espejados en −z.
   function studPoints(s){
-    if(!s.studs||s.studs==='none'||s.studs==='panel') return []; const Hb=s.H-s.feet, r=Math.min(6,Math.max(3,s.L*0.018)), pitch=Math.max(2.8*r,12), out=[];
-    const rows=s.studs==='studs2'?[0.35,0.62]:[s.studs==='rivets'&&s.body==='cinturon'?0.5:0.45];
+    if(!s.studs||s.studs==='none'||s.studs==='panel') return []; const Hb=s.H-s.feet, rv=s.studs==='rivets', r=rv?Math.min(4.5,Math.max(2.5,s.L*0.012)):Math.min(6,Math.max(3,s.L*0.018)), pitch=rv?Math.max(4*r,s.L*0.17):Math.max(2.8*r,12), out=[];   // remaches: unos 5 por pared larga, como en las macetas chinas
+    const onBelt=s.studs==='rivets'&&s.body==='cinturon', y0b=s.rim==='sotoen'?lipH(s)+s.lip*(s.printable&&s.pLip==='bisel'?2.3:0.6):0, bhb=Math.min(4,(Hb-y0b)/6), bwb=Math.min(3,Math.max(1.5,s.t*0.3));
+    const rows=s.studs==='studs2'?[0.35,0.62]:[onBelt?((s.belt||0.5)>0.5?(Hb-beltY(s,y0b,Hb,bhb,bwb))/Hb:0.5):0.45];
     rows.forEach(f=>{ const yv=Hb*(1-f), bw=s.studs==='rivets'&&s.body==='cinturon'?Math.min(3,Math.max(1.5,s.t*0.3)):0, x=s.W/2-s.flare*(yv/Hb)+bw, dl=s.W/2-x;
       const loop=ringPts(s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),240), zmax=Math.max(...loop.map(p=>p[1]));
       const band=loop.filter(p=>p[1]>0.45*zmax).sort((a,b2)=>a[0]-b2[0]); if(band.length<2) return;
@@ -4217,6 +4290,7 @@
   }
   function render(){
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
+    { const ty=$('type').value, lu=ty==='luna'; $('beltF').hidden=$('body').value!=='cinturon'||lu; $('rivetsF').hidden=$('body').value!=='cinturon'||lu||s.mat!=='clay'||!!s.plasterMode||s.printable; $('lunaCF').hidden=$('lunaRF').hidden=!lu; ['rim','lip','body','corner','foot','feet','flare'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.classList.toggle('dim',lu&&s.printable); }); }
     $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('bedXY').disabled=s.printer!=='otra'; $('clayOpts').hidden=!clay&&!s.plasterMode; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
     $('shrinkF').hidden=!clay; $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
@@ -4227,6 +4301,7 @@
     $('pageRule').textContent=`@page{size:${s.paper} landscape;margin:0}`;
     let areaW=paper.w-2*MARGIN, areaH=paper.h-2*MARGIN-FOOT;
     const warns=[];
+    if(s.lunaOff) warns.push('Media luna: esta forma solo se hace en la sección «Impresión 3D» (cuernos y borde de roca). Aquí se ve su óvalo de base.');
     if(clay&&Math.min(b.Lb,b.Wb)<Math.min(b.L,b.W)*0.55) warns.push('La inclinación deja el fondo con menos del 55 % de la boca: la maceta queda inestable. Reduce la inclinación.');
     if(clay&&b.wall<12) warns.push('La pared útil queda por debajo de 1,2 cm. Sube el alto total o baja las patas.');
     if(!clay&&b.core<10) warns.push('La cavidad queda con menos de 1 cm de profundidad. Sube el alto total o reduce fondo y patas.');
@@ -4416,6 +4491,11 @@
       sec('El molde (no es el espacio para raíces)');
       R.push(['Qué es','el hueco del molde mide la maceta en crudo, antes de cocer: el yeso la copia por fuera y la arcilla encoge al secar y cocer'],['Encogimiento',Math.round((1-1/k)*100)+' % (todo se agranda × '+k.toFixed(3).replace('.',',')+')'],['Hueco · largo × ancho',dimTxt(s.L*k,s.W*k)+' cm'],['Hueco · alto',cm(s.H*k)+(s.pCollar==='integrada'?' cm, más 1,2 cm de reserva':' cm (la reserva va en el collarín de 2,5 cm)')],['Barbotina para llenarlo','≈ '+pct(soil(s.L*k,s.W*k,(s.H-s.feet)*k)*1.05)+' L (se recupera casi toda al vaciar)']);
       tree(); return R; }
+    if(s.printable&&s.luna){ const P=lunaPar(s), Hp=holePlan(P.a0-P.d-s.t,P.c0-P.d-s.t,1,false), d=x=>String(Math.round(x*2)/10).replace('.',','), hu=P.H0-s.pBase;
+      sec('La maceta impresa · media luna');
+      R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm, de cuerno a cuerno'],['Alto',`${cm(s.H)} cm en el cuerno alto (izquierda) · ${cm(P.HR)} cm en el cuerno bajo · borde al centro a ${cm(P.H0)} cm`],['Suela',`${cm(P.L0-2*P.d)} × ${cm(s.W-2*P.d)} cm, plana: apoya en la cama y en la mesa (o calza un lado con una piedra, como en la foto)`]); go();
+      R.push(['Pared',mm(s.t)],['Fondo',mm(s.pBase)],['Espacio útil · hondo',cm(hu)+' cm al centro'],['Sustrato','≈ '+pct(Math.max(0,Math.PI/4*(P.L0-2*s.t)*(s.W-2*s.t)*hu*0.8/1e6))+' L'],['Textura',`piedra: el 3MF lleva «fuzzy skin» en la pared de afuera (0,3 mm); el borde ondula ±${String(Math.round(P.rn*7)).replace('.',',')} mm`]);
+      R.push(['Orificios',`${Hp.drains.length} de drenaje Ø ${d(Hp.dr)} cm y ${Hp.wires.length} de alambre Ø ${d(Hp.wr)} cm`]); tree(); return R; }
     if(s.printable){ sec('La maceta impresa');
       R.push(['Boca exterior',dimTxt(s.L,s.W)+' cm'],['Alto total',cm(s.H)+' cm, con patas de '+cm(s.feet)+' cm']); go(); R.push(['Pared',mm(s.t)],['Fondo',mm(s.pBase)]);
       util(s.t,s.pBase,s.flare); holesRow(s.t); tree(); return R; }
@@ -4481,12 +4561,12 @@
   function baseHint(){ const h=$('baseHint'); if(!h) return; const v=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); h.textContent=`calculado por resistencia: ${String(v).replace('.',',')} cm (losa apoyada en las paredes, carga ×2 al apoyar, mortero con fibra a 1,2 MPa)`; }
   // estilo de pata que acompaña a cada modelo: formales → escalonada; informales → nube; inclinados y pequeños → cuña;
   // cascadas y raíces expuestas → voluta; bandejas, literati y ovaladas bajas → puente
-  const FOOT_BY={chokkan:'escalon',moyogi:'nube',shakan:'cuna',kengai:'voluta',hankengai:'voluta',bunjin:'puente',mame:'cuna',shohin:'cuna',fukinagashi:'cuna',yose:'puente',ishitsuki:'puente',sokan:'nube',neagari:'voluta',kusamono:'puente',rokkaku:'nube',hakkaku:'voluta',rinka:'nube',panelbaja:'nube',panelcamp:'escalon',ovallabio:'puente',cuadpanel:'escalon'};
+  const FOOT_BY={chokkan:'escalon',moyogi:'nube',shakan:'cuna',kengai:'voluta',hankengai:'voluta',bunjin:'puente',mame:'cuna',shohin:'cuna',fukinagashi:'cuna',yose:'puente',ishitsuki:'puente',sokan:'nube',neagari:'voluta',kusamono:'puente',rokkaku:'nube',hakkaku:'voluta',rinka:'nube',panelbaja:'nube',panelcamp:'escalon',ovallabio:'puente',cuadpanel:'escalon',chinaremaches:'voluta'};
   function applyPreset(id){
     const p=PRESETS.find(x=>x.id===id); if(!p){ current=null; render(); return; }
     current=p; const clay=$('matClay').checked;
     $('type').value=p.type; $('L').value=p.L; $('W').value=p.W; $('H').value=p.H; $('feet').value=p.feet; if($('paper').value!=='single') $('paper').value=p.paper;
-    $('rim').value=p.rim; $('body').value=p.body; $('corner').value=p.corner; $('foot').value=FOOT_BY[p.id]||'nube'; $('panel').checked=!!p.panel; $('panelStyle').value=p.panelStyle||'ventana'; $('panelMode').value=p.panelMode||'relieve'; $('panelW').value=60; $('panelH').value=58; $('panelWhere').value='todas'; $('lobes').value=p.lobes||0; if(p.finish&&clay) $('finish').value=p.finish; $('lip').value=p.L<=12?0.4:0.6;
+    $('rim').value=p.rim; $('body').value=p.body; $('corner').value=p.corner; $('foot').value=FOOT_BY[p.id]||'nube'; $('panel').checked=!!p.panel; $('panelStyle').value=p.panelStyle||'ventana'; $('panelMode').value=p.panelMode||'relieve'; $('panelW').value=60; $('panelH').value=58; $('panelWhere').value='todas'; $('lobes').value=p.lobes||0; if(p.finish&&(clay||p.type==='luna')) $('finish').value=p.finish; $('beltPos').value=p.belt>0.5?'0.75':'0.5'; $('rivets').value=p.studs==='rivets'?'rivets':'none'; $('pDeco').value=p.studs||'none'; if(p.type==='luna'){ $('lunaC').value=Math.round(p.lunaC*100); $('lunaR').value=Math.round(p.lunaR*100); } $('lip').value=p.L<=12?0.4:0.6;
     if(clay){ $('t').value=p.t; $('flare').value=p.flare; }
     else {
       $('t').value=cementWall(p); $('flare').value=p.type==='oval'?0:0.5; $('base').value=cementBase(p.H,p.feet,p.L,p.W||p.L,cementWall(p)); baseHint();
@@ -4555,7 +4635,8 @@
   }
   const sel=$('preset');
   sel.innerHTML=PRESETS.map(p=>`<option value="${p.id}">${esc(p.style)} — ${esc(p.name)} ${p.type==='round'?'Ø'+p.L:(p.type==='hex'||p.type==='oct')?p.L+' e/caras':p.L+'×'+p.W}×${p.H}</option>`).join('')+'<option value="custom">Personalizada</option>';
-  sel.addEventListener('change',()=>applyPreset(sel.value));
+  // la media luna solo existe en Impresión 3D: al elegirla a mano desde otra sección se pasa a esa sección
+  sel.addEventListener('change',e=>{ applyPreset(sel.value); if(e.isTrusted&&current&&current.type==='luna'&&MODE!=='print') setMode('print'); });
   // fondo de cemento por resistencia: se recalcula al cambiar medidas o pared (después del escalado proporcional, que corre antes)
   ['L','W','H','t','feet'].forEach(id=>$(id).addEventListener('input',()=>{ if($('matClay').checked) return; const v=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); if(Math.abs(+$('base').value-v)>0.05){ $('base').value=v; $('base').dispatchEvent(new Event('input')); } baseHint(); }));
   ['type','W','H','t','flare','feet','base','board','rim','body','corner','lip'].forEach(id=>$(id).addEventListener('input',()=>{ current=null; sel.value='custom'; if(id==='H') scaleGroup('H',['feet','base']); if(id==='t') scaleGroup('t',['lip']); render(); if(id!=='H'&&id!=='t') snapBaseline(); }));
@@ -4566,7 +4647,7 @@
   $('L').addEventListener('input',()=>{ if(!scaleFromL()){ current=null; sel.value='custom'; } render(); });
   $('L').addEventListener('change',snapBaseline);
   $('prop').addEventListener('change',snapBaseline);
-  ['shrink','paper','finish','joint','rimMode','foot','panel','nest','lobes','panelStyle','panelMode','panelW','panelH','panelWhere'].forEach(id=>$(id).addEventListener('input',render));
+  ['shrink','paper','finish','joint','rimMode','foot','panel','nest','lobes','panelStyle','panelMode','panelW','panelH','panelWhere','beltPos','rivets','lunaC','lunaR'].forEach(id=>$(id).addEventListener('input',render));
   $('matClay').addEventListener('change',switchMaterial); $('matCement').addEventListener('change',switchMaterial);
   $('btnPrint').addEventListener('click',()=>window.print());
   $('btn3d').addEventListener('click',open3D);
@@ -4647,7 +4728,7 @@
       +`<p class="mold-lead"><b>Luz</b> ≈ ${n1(t.kwh)} kWh → ${usd(t.luz)} (${o.W} W × ${hm(t.h)} a ${String(o.kwh).replace('.',',')} USD/kWh) · <b>material + luz</b> ≈ ${usd(t.total)}.</p><p class="mold-lead">${esc(s.bedName)} · ${o.mat} · ${o.rec?'ajustes por pieza (resto: ':''}relleno ${o.infill} % · ${o.walls} perímetros${o.rec?')':''} · capa ${String(o.layer).replace('.',',')} mm. El total suma 6 min de preparación por cama${t.fit?'':'. Alguna pieza no cabe en la cama: hay que partirla o elegir otra impresora'}. ${(k=>k<1?`Un rollo de 1 kg no alcanza: hacen falta ${n1(t.g/1000)} kg`:`Un rollo de 1 kg rinde para ${k} ${s.mode==='mold'?(k===1?'molde como este':'moldes como este'):(k===1?'maceta como esta':'macetas como esta')}`)(Math.floor(1000/Math.max(1,t.g)))}.</p>`;
   }
   async function calcAll(){
-    const out=$('calcOut'), sel=$('preset'), keep=sel.value, o=calcOpts(), ids=[...sel.options].map(x=>x.value).filter(v=>v!=='custom'), rows=[];
+    const out=$('calcOut'), sel=$('preset'), keep=sel.value, o=calcOpts(), ids=[...sel.options].map(x=>x.value).filter(v=>v!=='custom'&&(MODE==='print'||(PRESETS.find(p=>p.id===v)||{}).type!=='luna')), rows=[];
     for(let i=0;i<ids.length;i++){ out.textContent=`Calculando ${i+1} de ${ids.length}…`; sel.value=ids[i]; sel.dispatchEvent(new Event('change')); await new Promise(r=>setTimeout(r,20));
       const {s,b}=last3, t=totals(await printPieces(s,b),s,o), p=PRESETS.find(x=>x.id===ids[i]);
       rows.push({name:p?p.name:ids[i],style:p?p.style:'',dims:s.type==='round'?`Ø${n1(s.L/10)}×${n1(s.H/10)}`:`${n1(s.L/10)}×${n1(s.W/10)}×${n1(s.H/10)}`,t}); }
@@ -4859,7 +4940,7 @@
       wraps.push(`  <object id="${wid}" p:UUID="${uid()}" type="model">\n   <components>\n    <component p:path="/${path}" objectid="${sid}" p:UUID="${uid()}" transform="${I}"/>\n   </components>\n  </object>`);
       items.push(`  <item objectid="${wid}" p:UUID="${uid()}" transform="${IT}" printable="1"/>`);
       rels.push(` <Relationship Target="/${path}" Id="rel-${sid}" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>`);
-      const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${st.pattern==='lightning'?'lightning':'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>${st.layer&&st.layer!==0.2?`\n    <metadata key="layer_height" value="${st.layer}"/>`:''}`:'';
+      const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${st.pattern==='lightning'?'lightning':'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>${st.fuzzy?`\n    <metadata key="fuzzy_skin" value="external"/>\n    <metadata key="fuzzy_skin_thickness" value="0.3"/>\n    <metadata key="fuzzy_skin_point_distance" value="0.8"/>`:''}${st.layer&&st.layer!==0.2?`\n    <metadata key="layer_height" value="${st.layer}"/>`:''}`:'';
       oc.push(`  <object id="${wid}">\n    <metadata key="name" value="${esc3(o.name)}"/>\n    <metadata key="extruder" value="1"/>${sm}\n    <part id="${sid}" subtype="normal_part">\n      <metadata key="name" value="${esc3(o.name)}"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n    </part>\n  </object>`);
       inst[p].push(`    <model_instance>\n      <metadata key="object_id" value="${wid}"/>\n      <metadata key="instance_id" value="0"/>\n      <metadata key="identify_id" value="${101+k}"/>\n    </model_instance>`); });
     const day=new Date().toISOString().slice(0,10);
@@ -4887,7 +4968,7 @@
     if(s.mode==='plaster'){ await prepareSeal(s); buildPlaster(THREE,s,b).parts.forEach(pt=>add(pt.name,plasterPrintTris(pt),pt.key)); return out; }
     if(s.mode==='mold'){ await prepareSeal(s); buildMold(THREE,s,b).parts.filter(pt=>!pt.noPrint).forEach(pt=>add(pt.name,moldPrintTris(pt,s),pt.key)); return out; }
     const G=potGroup(THREE,Object.assign({},s,{printable:true,t:s.pT}),b,{stl:true,holes:$('stlHoles').checked,tree:false,cut:false}), feet=G.children.filter(q=>q.userData.foot);
-    feet.forEach(q=>G.remove(q)); add('Maceta (de pie)',meshTris(THREE,G,v=>[v.x,-v.z,v.y]));
+    feet.forEach(q=>G.remove(q)); add(s.luna?'Maceta media luna (suela en la cama)':'Maceta (de pie)',meshTris(THREE,G,v=>[v.x,-v.z,v.y])); if(s.luna) out[out.length-1].set=Object.assign({},out[out.length-1].set,{fuzzy:true});
     const byF=new Map(); feet.forEach(q=>{ const k=q.userData.fid; if(!byF.has(k)) byF.set(k,new THREE.Group()); byF.get(k).add(q); });
     let np=0, nl=0; [...byF.values()].forEach(g=>{ const T=meshTris(THREE,g,v=>[v.x,v.z,-v.y]); if(g.children[0].userData.pin) add(`Espiga ${++np} (de pie)`,T,'kit'); else add(`Pata ${++nl} (${s.pFeet==='presion'?'agujeros':'cabeza'} abajo)`,T); });
     return out;
@@ -4961,7 +5042,7 @@
     const prevId=current?current.id:'custom', prevPaper=$('paper').value, prevClay=$('matClay').checked, prevView=view;
     $('matCement').checked=true; $('matClay').checked=false;
     let html='';
-    PRESETS.forEach(p=>{ applyPreset(p.id); $('paper').value='A4'; render(); html+=$('sheets').innerHTML; });
+    PRESETS.filter(p=>p.type!=='luna').forEach(p=>{ applyPreset(p.id); $('paper').value='A4'; render(); html+=$('sheets').innerHTML; });
     $('sheets').innerHTML=html; $('sheets').style.width='297mm'; $('pageRule').textContent='@page{size:A4 landscape;margin:0}';
     view='all'; applyView();
     const restore=()=>{ window.removeEventListener('afterprint',restore); if(prevClay){ $('matClay').checked=true; $('matCement').checked=false; } view=prevView; if(prevId!=='custom'){ sel.value=prevId; applyPreset(prevId); } $('paper').value=prevPaper; render(); };
@@ -4973,7 +5054,7 @@
   window.addEventListener('afterprint',()=>fit(true));
   sel.value='chokkan'; applyPreset('chokkan');
   // Estado por URL: ?preset=chokkan&L=28.6&…&mode=mold (cualquier parámetro con el id de un campo), para volver a un diseño o compartirlo
-  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','pFil','moldClick','moldClip'];
+  const URL_F=['type','L','W','H','t','flare','feet','base','rim','lip','body','corner','foot','lobes','beltPos','rivets','lunaC','lunaR','panel','finish','moldWall','moldJoin','moldParts','moldPlate','moldBase','moldCore','sealKind','sealMode','printer','pSeal','pIn','pWall','pFeet','pSplit','pDeco','pThick','pShrink','pCast','pModel','pLipP','pFloor','pWalls','pEscOwn','pNumD','pNum','pCollar','cjL','cjW','cjH','cjMod','cjFloor','cjHaveW','cjHaveF','pFil','moldClick','moldClip'];
   (function applyUrl(){ const q=new URLSearchParams(location.search); if(![...q.keys()].some(k=>k==='preset'||URL_F.includes(k)||k==='mode')) return;
     if(q.get('preset')&&q.get('preset')!=='custom'&&[...sel.options].some(o=>o.value===q.get('preset'))){ sel.value=q.get('preset'); applyPreset(q.get('preset')); }
     URL_F.forEach(id=>{ if(!q.has(id)||!$(id)) return; const el=$(id); if(el.type==='checkbox') el.checked=q.get(id)==='1'; else el.value=q.get(id); el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); });
