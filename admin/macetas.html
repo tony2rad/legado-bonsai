@@ -268,7 +268,7 @@
     </div>
     <div class="grid2" id="printerBox" hidden>
       <label class="f" style="grid-column:1/-1"><span>Diseño</span><select id="pObj"><option value="maceta" selected>Maceta</option><option value="mesa">Mesa de exhibición (shoku)</option></select></label>
-      <label class="f" style="grid-column:1/-1" id="pSealF"><span>Logotipo de Legado</span><select id="pSeal"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="none">Sin logotipo</option></select></label>
+      <label class="f" style="grid-column:1/-1" id="pSealF"><span>Logotipo de Legado</span><select id="pSeal"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin logotipo</option></select></label>
       <label class="check" style="grid-column:1/-1" id="sealPartF"><input type="checkbox" id="sealPart" checked><span>Logotipo como pieza aparte: se imprime plano, al 100 % y con capa de 0,12 mm, y encaja en un rebaje del molde (así no se pierde el detalle)</span></label>
       <label class="f" style="grid-column:1/-1" id="pInF"><span>Logotipo en el interior</span><select id="pIn"><option value="hundido" selected>Hundido 1 mm en el piso</option><option value="relieve">En relieve 1 mm sobre el piso</option><option value="none">Sin logotipo interior</option></select></label>
       <label class="f" style="grid-column:1/-1"><span>Impresora</span><select id="printer"><option value="a2l" selected>Bambu Lab A2L · 33 × 32 × 32,5 cm</option><option value="a1">Bambu Lab A1 / P1S / X1C · 25,6 cm</option><option value="mini">Bambu Lab A1 mini · 18 cm</option><option value="otra">Otra (cama cuadrada)</option></select></label>
@@ -401,7 +401,7 @@
       <p class="mold-lead">Kit de vaciado 100 % impreso: la maceta se cuela boca abajo. Base con el núcleo de la cavidad, molde exterior en gajos que se traban en la base y se unen por sus pestañas con pernos de ferretería (o pasadores impresos), y placa de patas calada con el sello de Legado en el fondo.</p>
       <div class="grid2">
         <label class="f"><span>Molde exterior</span><select id="moldParts"><option value="auto" selected>Automático · el que ocupe menos camas</option><option value="2">2 mitades</option><option value="4">4 cuartos</option></select><small class="hint" id="moldPartsHint"></small></label>
-        <label class="f"><span>Sello en la base</span><select id="sealKind"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="none">Sin sello</option></select></label>
+        <label class="f"><span>Sello en la base</span><select id="sealKind"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin sello</option></select></label>
         <label class="f"><span>Relieve del sello</span><select id="sealMode"><option value="down" selected>Rehundido (grabado en el mortero: no se parte)</option><option value="up">En relieve (letras de mortero: frágiles)</option></select></label>
         <label class="f"><span>Pared del molde <b>cm</b></span><input id="moldWall" type="number" step="0.1" min="0.3" max="1" value="0.4"></label>
         <label class="f"><span>Núcleo</span><select id="moldCore"><option value="casco" selected>Casco aparte con celosía (como el yeso)</option><option value="hueco">Hueco por debajo (una pieza con la base)</option><option value="macizo">Macizo</option></select></label>
@@ -2076,12 +2076,17 @@
     PIN:{w:7.6,t:4.8,head:16,headL:5,grip:12,slotL:9,slotW:3.4,tip:4},WEDGE:{L:36,h0:3,h1:8.5,t:3}};
   // Sello de la marca en la cara inferior: logotipos originales de assets/img/logo, tamaño proporcional al ancho de la
   // maceta (ratio) entre un mínimo legible en cemento y un máximo. Si no cabe, se cae al emblema; si tampoco, no va.
-  const SEALS={C:{name:'Logotipo vertical',art:'vertical',ratio:0.227,min:30,max:50},A:{name:'Sello circular',art:'vertical',ring:true,ratio:0.267,min:30,max:60},
-    B:{name:'Emblema',art:'emblema',ratio:0.267,min:25,max:60},D:{name:'Firma lineal',art:'horizontal',ratio:0.427,min:50,max:90},E:{name:'Texto LEGADO BONSÁI',art:'wordmark',ratio:0.427,min:30,max:90}};
-  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]},wordmark:{file:'legado-wordmark-negro.svg',vb:[73.2,518,295,91]}};
+  // Mínimos: la línea BONSÁI mide 20,8 unidades en un logotipo de 295 (y en la firma de 452): por debajo de 2,4 mm de alto sus
+  // letras se omitían y quedaban solo la I y la S, que tienen trazo grueso (el usuario lo vio en la maceta). Con estos
+  // mínimos sale entera a unos 2,5 mm; si no cabe, va el emblema (ver place()). G: el logotipo ocupa la mitad del ancho.
+  const SEALS={C:{name:'Logotipo vertical',art:'vertical',ratio:0.227,min:36,max:50},A:{name:'Sello circular',art:'vertical',ring:true,ratio:0.267,min:60,max:70},
+    B:{name:'Emblema',art:'emblema',ratio:0.267,min:25,max:60},D:{name:'Firma lineal',art:'horizontal',ratio:0.427,min:55,max:90},E:{name:'Texto LEGADO BONSÁI',art:'wordmark',ratio:0.427,min:36,max:90},
+    M:{name:'Montaña Pasochoa',art:'montana',ratio:0.4,min:35,max:80},G:{name:'Logotipo con montaña',art:'logomontana',ratio:0.4,min:72,max:90}};
+  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]},wordmark:{file:'legado-wordmark-negro.svg',vb:[73.2,518,295,91]},montana:{gen:'M'},logomontana:{gen:'G'}};
   const SEAL_ART={};
   async function loadSealArt(key){
     if(SEAL_ART[key]) return SEAL_ART[key];
+    if(ART[key].gen){ const cv=await selloVectorArt(ART[key].gen); return SEAL_ART[key]={loops:rasterLoops(cv),vb:[0,0,cv.width,cv.height]}; }
     const {SVGLoader}=await import('three/addons/loaders/SVGLoader.js');
     const txt=await (await fetch('../assets/img/logo/'+ART[key].file)).text(), loops=[];
     new SVGLoader().parse(txt).paths.forEach(p=>SVGLoader.createShapes(p).forEach(sh=>{ const e=sh.extractPoints(8); loops.push(e.shape.map(v=>[v.x,v.y])); e.holes.forEach(h=>loops.push(h.map(v=>[v.x,v.y]))); }));
@@ -2116,7 +2121,7 @@
     const fits=(cx,cz,w,h)=>{
       for(let i=0;i<=8;i++) for(const [sx,sz] of [[-1,-1+i/4],[1,-1+i/4],[-1+i/4,-1],[-1+i/4,1]]){ const x=cx+sx*w/2, z=cz+sz*h/2, r=Math.hypot(x,z); if(r>0&&r+5>underR(x,z)) return false; }
       return obst.every(o=>o.c?Math.hypot(Math.max(Math.abs(o.c[0]-cx)-w/2,0),Math.max(Math.abs(o.c[1]-cz)-h/2,0))>=o.r:!(Math.abs(o.q[0]-cx)<w/2+o.h&&Math.abs(o.q[1]-cz)<h/2+o.h)); };
-    const place=(key,minW)=>{ const S=SEALS[key], vb=ART[S.art].vb, asp=S.ring?1:vb[3]/vb[2], mn=minW||S.min, target=Math.min(S.max,Math.max(mn,S.ratio*s.W));
+    const place=(key,minW)=>{ const S=SEALS[key], vb=(SEAL_ART[S.art]||ART[S.art]).vb||[0,0,1,0.5], asp=S.ring?1:vb[3]/vb[2], mn=minW||S.min, target=Math.min(S.max,Math.max(mn,S.ratio*s.W));
       for(let w=target;w>=mn-1e-9;w-=1){ const h=w*asp; for(const a of [-Math.PI/2,Math.PI/2,0,Math.PI]){ const ok=[]; for(let d=0;d<Math.max(s.L,s.W)/2;d+=1){ const cx=d*Math.cos(a), cz=d*Math.sin(a); if(fits(cx,cz,w,h)) ok.push([cx,cz]); } if(ok.length) return {key,w,h,c:ok[s.sealCenter&&!inner?0:Math.floor(ok.length/2)]}; } }
       return null; };
     // último recurso, para que todo molde lleve firma: el emblema (formas llenas) hasta 1,4 cm de ancho
@@ -2158,11 +2163,11 @@
     const area=L=>Math.abs(L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+p[0]*q[1]-q[0]*p[1]; },0)/2);
     const per=L=>L.reduce((t,p,i)=>{ const q=L[(i+1)%L.length]; return t+Math.hypot(q[0]-p[0],q[1]-p[1]); },0);
     const bb=L=>{ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; L.forEach(([x,y])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); }); return [x0,y0,x1,y1]; };
-    const drop=new Set(), add=[]; let nThick=0, nDrop=0, nSmall=0;
+    const drop=new Set(), add=[], small=[]; let nThick=0, nDrop=0, nSmall=0;
     regs.forEach(r=>{ if(r.d%2) return; const [x0,y0,x1,y1]=bb(r.L), w=x1-x0, hh=y1-y0, A=area(r.L)-r.kids.reduce((t,k)=>t+area(k),0), P=per(r.L)+r.kids.reduce((t,k)=>t+per(k),0), st=2*A/Math.max(P,1e-9);
       if(Math.max(w,hh)<1.2){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nDrop++; return; }
       if(st>=SEAL_MIN) return;
-      if(hh<2.4&&w<2.4*3){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nSmall++; return; }
+      if(hh<2.4&&w<2.4*3){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nSmall++; small.push([x0,y0,x1,y1]); return; }
       const rad=(SEAL_MIN-st)/2+0.02, h=0.04, pad=rad+3*h, gx0=x0-pad, gy0=y0-pad, nx=Math.ceil((w+2*pad)/h)+1, ny=Math.ceil((hh+2*pad)/h)+1;
       const M=new Uint8Array(nx*ny), D=new Uint8Array(nx*ny), O=new Uint8Array(nx*ny), Fb=new Uint8Array(nx*ny);
       // las demás partes del logotipo que caen cerca: la letra crece solo hasta 0,3 mm de ellas (más lo que ellas mismas crezcan),
@@ -2192,10 +2197,19 @@
         return best>tol?[...dp(P.slice(0,bi+1),tol).slice(0,-1),...dp(P.slice(bi),tol)]:[a,b]; };
       const simp=loops.map(L=>{ const m=Math.floor(L.length/2), S2=[...dp(L.slice(0,m+1),0.015).slice(0,-1),...dp([...L.slice(m),L[0]],0.015).slice(0,-1)]; return S2.length>=3?S2:L; }).filter(L=>area(L)>0.002);
       drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nestLoops(simp).forEach(q=>add.push({L:q.L,d:r.d+q.d,kids:q.kids})); nThick++; });
+    // las demás letras del mismo renglón (las de trazo grueso, como la I y la S de BONSÁI, pasaban el filtro) se quitan también:
+    // una palabra entera o nada
+    // mismo renglón = se solapan en alto más de la mitad, alto parecido (0,6–1,7 veces) y a menos de dos altos de distancia a lo
+    // ancho (si no, una pieza chica de las colinas de la firma lineal se llevaba BONSÁI)
+    if(small.length){ const inRow=(x0,y0,x1,y1,grow)=>small.some(([a0,b0,a1,b1])=>{ const hs=b1-b0, hh=y1-y0-grow, r2=hh/Math.max(hs,1e-6); return Math.min(b1,y1)-Math.max(b0,y0)>0.5*Math.min(hs,y1-y0)&&r2>0.6&&r2<1.7&&Math.max(a0-x1,x0-a1)<2*Math.max(hs,hh); });
+      regs.forEach(r=>{ if(r.d%2||drop.has(r.L)) return; const [x0,y0,x1,y1]=bb(r.L); if(y1-y0<2.4*1.3&&inRow(x0,y0,x1,y1,0)){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); } });
+      for(let i=add.length-1;i>=0;i--){ const [x0,y0,x1,y1]=bb(add[i].L); if(y1-y0<2.4*1.3+2*SEAL_MIN&&inRow(x0,y0,x1,y1,SEAL_MIN)) add.splice(i,1); } }
     if(!nThick&&!nDrop&&!nSmall) return regs;
     if(notes&&nThick) notes.push(`Logotipo: ${nThick} letra${nThick>1?'s':''} de trazo fino (como «BONSAI») se engrosa${nThick>1?'n':''} a ${String(SEAL_MIN).replace('.',',')} mm para que se impriman con la boquilla de 0,4 mm y se marquen en la pieza.`);
-    if(notes&&nSmall) notes.push(`Logotipo: ${nSmall} letra${nSmall>1?'s':''} de menos de 2,4 mm de alto se omite${nSmall>1?'n':''}: a este tamaño no se leerían ni engrosadas (agranda la maceta o elige el emblema).`);
-    return [...regs.filter(r=>!drop.has(r.L)),...add]; }
+    if(notes&&nSmall) notes.push(`Logotipo: los detalles de menos de 2,4 mm de alto (como el ave o una palabra muy pequeña) se omiten, y una palabra va entera o no va: a este tamaño no se leerían ni engrosados (agranda el logotipo o elige el emblema).`);
+    // anidado de NUEVO con todos los contornos: si una pieza engrosada estaba dentro de otra (los aros del sello circular), sus
+    // vecinos seguían apuntando a los contornos viejos y la base de la maceta impresa quedaba con miles de bordes abiertos
+    return nestLoops([...regs.filter(r=>!drop.has(r.L)),...add].map(r=>r.L)); }
   // Triángulos de un prisma horizontal (planta en x,z; altura Y de y0 a y1), con el mismo truco que fill2D del molde
   // para que el triangulador no descarte puntos alineados y la malla quede cerrada.
   function prismXZ(THREE,outer,holes,y0,y1,T){
@@ -4025,7 +4039,7 @@
   // de la estribación iluminada de la derecha), el cerro oscuro del centro (dome) y la loma larga de la izquierda (left).
   // Coordenadas en píxeles de la foto recortada (735 × 228). La foto no va en el repositorio.
   const PASO_FOTO={"w":735,"h":228,"sky":[[0,50],[1,51],[9,51],[18,48],[30,47],[37,52],[43,52],[44,53],[63,53],[71,49],[75,44],[78,42],[85,39],[89,39],[96,34],[103,31],[107,31],[111,33],[129,33],[132,31],[136,31],[137,30],[145,30],[150,33],[160,34],[163,36],[169,36],[173,34],[177,28],[182,23],[188,23],[196,34],[201,39],[206,39],[213,35],[219,28],[226,28],[230,24],[233,18],[237,14],[240,13],[246,7],[248,6],[254,6],[266,10],[277,22],[290,22],[294,20],[299,20],[300,19],[306,19],[312,22],[323,22],[324,21],[330,21],[331,20],[348,21],[350,20],[353,16],[357,14],[362,14],[367,17],[381,16],[382,23],[389,25],[398,30],[424,29],[425,28],[441,28],[446,25],[450,25],[453,27],[457,27],[458,28],[471,28],[472,27],[484,27],[487,25],[494,25],[496,23],[503,23],[510,28],[514,28],[517,30],[520,30],[524,33],[535,34],[536,35],[545,35],[546,34],[555,34],[556,35],[563,35],[564,36],[576,35],[577,36],[585,37],[589,40],[603,40],[604,41],[609,41],[619,44],[627,44],[628,45],[644,45],[646,48],[650,48],[655,44],[659,43],[663,36],[669,36],[670,37],[677,37],[678,38],[686,38],[692,43],[698,44],[701,46],[711,47],[725,52],[735,52]],"lines":{"vL":[[64.5,50.6],[123.3,62.4],[182.1,81.2],[240.9,100.1],[293.9,123.6],[352,149]],"vR":[[646.8,45.9],[593.9,66.5],[546.8,87.1],[499.8,110.6],[452.7,131.8],[408.6,143.6],[352,149]],"dome":[[270.4,217.7],[317.4,188.3],[352.7,169.5],[393.9,159.5],[423.3,162.4],[458.6,180.1],[493.9,200.1],[529.2,223.6]],"left":[[-3.2,90.1],[58.6,107.7],[123.3,134.2],[182.1,164.8],[240.9,200.1],[267.4,223.6]]}};
-  function pasochoaFoto(wm){
+  function pasochoaFoto(wm,opt={}){
     const D=PASO_FOTO, W=1400, s=W/D.w, ey=1.4, sv=s*ey, H=Math.round(D.h*sv), k=W/wm, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'), d=g.createImageData(W,H);
     for(let i=0;i<W*H;i++){ d.data[4*i]=d.data[4*i+1]=d.data[4*i+2]=255; d.data[4*i+3]=255; }
     const yAt=P=>{ const o=new Float32Array(W).fill(-1); for(let i=0;i<P.length-1;i++){ const x0=P[i][0]*s, y0=P[i][1]*sv, x1=P[i+1][0]*s, y1=P[i+1][1]*sv; for(let x=Math.max(0,Math.ceil(Math.min(x0,x1)));x<=Math.min(W-1,Math.floor(Math.max(x0,x1)));x++) o[x]=x1===x0?y0:y0+(y1-y0)*(x-x0)/(x1-x0); } return o; };
@@ -4039,7 +4053,7 @@
     // picos miden 10–30 px y se conservan)
     const dp=(P,e)=>{ if(P.length<3) return P; const a=P[0], b2=P[P.length-1], L=Math.hypot(b2[0]-a[0],b2[1]-a[1])||1; let mi=-1,md=0; for(let i=1;i<P.length-1;i++){ const dd=Math.abs((b2[0]-a[0])*(a[1]-P[i][1])-(a[0]-P[i][0])*(b2[1]-a[1]))/L; if(dd>md){ md=dd; mi=i; } } return md<=e?[a,b2]:dp(P.slice(0,mi+1),e).slice(0,-1).concat(dp(P.slice(mi),e)); };
     const sky=dp(D.sky,2.5);   // alturas × 1,4 (ey), como en los mapas en relieve: a 7 cm los picos se perdían bajo el trazo
-    mass(yAt(sky),0.55,12); mass(yAt(D.lines.dome),0.4,6);
+    if(!opt.noMass){ mass(yAt(sky),0.55,12); mass(yAt(D.lines.dome),0.4,6); }
     // la masa se suaviza (1,5 mm de lado, 0,5 mm de alto) para que los picos no dejen bandas verticales; el borde de arriba
     // queda bajo el trazo de la silueta
     { const v=new Float32Array(W*H); for(let i=0;i<W*H;i++) v[i]=d.data[4*i]; const rh=Math.max(1,Math.round(1.5*k)), b2=new Float32Array(W*H); for(let y=0;y<H;y++){ let s2=0; for(let q=-rh;q<=rh;q++) s2+=v[y*W+Math.min(W-1,Math.max(0,q))]; for(let x=0;x<W;x++){ b2[y*W+x]=s2/(2*rh+1); s2+=v[y*W+Math.min(W-1,x+rh+1)]-v[y*W+Math.max(0,x-rh)]; } }
@@ -4049,6 +4063,27 @@
     const line=(P,w)=>{ g.lineWidth=w*k; g.beginPath(); P.forEach(([x,y],i)=>i?g.lineTo(x*s,y*sv):g.moveTo(x*s,y*sv)); g.stroke(); };
     line(D.lines.vL,1.2); line(D.lines.vR,1.2); line(D.lines.left,1.2); line(D.lines.dome,1.4); line(sky,1.6);
     return cv; }
+  // MONTAÑA COMO LOGOTIPO DE LA MACETA («Montaña Pasochoa» y «Logotipo con montaña» en «Logotipo de Legado»): la base de la
+  // maceta, el molde y la mesa usan contornos (prismas), no alturas, así que se dibuja la montaña de la foto solo con sus
+  // trazos (sin la masa) a 40 mm de ancho de referencia y se sacan los contornos del lienzo (rasterLoops); G pone encima el
+  // logotipo vertical como en el sello.
+  // trazos a la escala del tamaño mínimo de cada variante
+  async function selloVectorArt(k){ const W=1400, mount=pasochoaFoto(k==='M'?40:75,{noMass:true}); if(k==='M') return mount;
+    const lg=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/logo/legado-logo-vertical-negro.svg'; }), lw=W*0.5, lh=lw*lg.naturalHeight/lg.naturalWidth, gap=W*0.05;
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.round(lh+gap+mount.height); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); c.drawImage(mount,0,lh+gap); return cv; }
+  // contornos (marching squares + Douglas–Peucker a 0,6 px) de lo oscuro de un lienzo, en píxeles con y hacia abajo
+  function rasterLoops(cv){ const w=cv.width, h=cv.height, px=cv.getContext('2d').getImageData(0,0,w,h).data, D=new Uint8Array(w*h);
+    for(let i=0;i<w*h;i++) D[i]=(0.299*px[4*i]+0.587*px[4*i+1]+0.114*px[4*i+2])<128?1:0;
+    const v=(i,j)=>i>=0&&j>=0&&i<w&&j<h?D[j*w+i]:0, key=(a,b)=>a*100003+b, nb=new Map(), pt=new Map(), link=(ka,kb)=>{ (nb.get(ka)||nb.set(ka,[]).get(ka)).push(kb); (nb.get(kb)||nb.set(kb,[]).get(kb)).push(ka); };
+    for(let j=-1;j<h;j++) for(let i=-1;i<w;i++){ const c=[v(i,j),v(i+1,j),v(i+1,j+1),v(i,j+1)]; if(c[0]===c[1]&&c[1]===c[2]&&c[2]===c[3]) continue; const E=[[2*i+1,2*j],[2*i+2,2*j+1],[2*i+1,2*j+2],[2*i,2*j+1]], cr=[];
+      for(let e=0;e<4;e++) if(c[e]!==c[(e+1)%4]) cr.push(e);
+      const K=cr.map(e=>{ const [a,b]=E[e], k2=key(a+2,b+2); if(!pt.has(k2)) pt.set(k2,[a/2+0.5,b/2+0.5]); return k2; });
+      if(cr.length===2) link(K[0],K[1]); else { if(!c[1]){ link(K[0],K[1]); link(K[2],K[3]); } else { link(K[1],K[2]); link(K[3],K[0]); } } }
+    const seen=new Set(), loops=[];
+    nb.forEach((_,k0)=>{ if(seen.has(k0)) return; const L=[]; let prev=null, cur=k0; while(cur!=null&&!seen.has(cur)){ seen.add(cur); L.push(pt.get(cur)); const nx2=nb.get(cur).find(q=>q!==prev&&!seen.has(q)); prev=cur; cur=nx2; } if(L.length>=3) loops.push(L); });
+    const dp=(P,tol)=>{ if(P.length<3) return P; let best=-1, bi=0; const a=P[0], b=P[P.length-1], dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy)||1e-9;
+      for(let i=1;i<P.length-1;i++){ const d=Math.abs((P[i][0]-a[0])*dy-(P[i][1]-a[1])*dx)/l; if(d>best){ best=d; bi=i; } } return best>tol?[...dp(P.slice(0,bi+1),tol).slice(0,-1),...dp(P.slice(bi),tol)]:[a,b]; };
+    return loops.map(L=>{ const m=Math.floor(L.length/2), S2=[...dp(L.slice(0,m+1),0.6).slice(0,-1),...dp([...L.slice(m),L[0]],0.6).slice(0,-1)]; return S2.length>=3?S2:L; }).filter(L=>L.length>=3); }
   let PASO_VEC=null;
   function pasochoaLineas(mt,wm){
     const W=1400, top=0.16, mw=mt.naturalWidth, mh=mt.naturalHeight, H=Math.round(W*mh*(1-top)/mw), N=W*H;
