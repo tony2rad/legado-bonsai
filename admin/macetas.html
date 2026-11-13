@@ -4645,7 +4645,7 @@
   let lastFix=[];
   function propGuard(s,clay,skipT){
     const short=Math.min(s.L,s.W), hb=s.H-s.feet, R={}, msgs=[], fix=[], hints={}, c1=v=>Math.round(v)/10;
-    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[Math.max(8,Math.min(12,s.L*0.035)),Math.min(40,Math.max(20,s.L*0.13))];   // cemento con fibra: desde 8 mm en macetas chicas
+    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[Math.max(8,Math.min(12,Math.max(s.L,s.H)*0.035)),Math.min(40,Math.max(20,s.L*0.13))];   // cemento con fibra: desde 8 mm en macetas chicas
     if(s.rim!=='kittate'){ const hi=clay?Math.max(s.t*0.6,Math.min(s.t*1.5,short*0.07)):Math.max(5,Math.min(s.t,short*0.08)); R.lip=[clay?Math.min(s.t*0.5,hi):3,hi]; }
     if(s.feet>0) R.feet=[Math.max(3,s.H*0.07),Math.max(5,s.H*0.3)];
     if(!$('flare').disabled) R.flare=[0,Math.max(2,Math.min(hb*0.3,short*0.12))];
@@ -4677,7 +4677,7 @@
     if(clay&&Math.min(b.Lb,b.Wb)<Math.min(b.L,b.W)*0.55) warns.push('La inclinación deja el fondo con menos del 55 % de la boca: la maceta queda inestable. Reduce la inclinación.');
     if(clay&&b.wall<12) warns.push('La pared útil queda por debajo de 1,2 cm. Sube el alto total o baja las patas.');
     if(!clay&&b.core<10) warns.push('La cavidad queda con menos de 1 cm de profundidad. Sube el alto total o reduce fondo y patas.');
-    if(!clay&&s.t<12) warns.push('En cemento, paredes de menos de 1,2 cm se rompen al voltear la pieza salvo que añadas fibra.');
+    if(!clay&&s.t<8) warns.push('En cemento, una pared de menos de 0,8 cm se rompe al desmoldar o voltear la pieza aunque lleve fibra.');
     if(!clay&&s.type==='rect'&&s.corner==='sumiiri') warns.push('El seguidor no puede entrar en una esquina entrante: el plato-guía se corta redondeado y el detalle sumiiri se talla a mano.');
     if(!clay){
       const rl=s.L/2+s.lipX, rw=s.W/2+s.lipX, rc=SHP(s)?rl/Math.cos(Math.PI/SHP(s)):s.type==='rect'?Math.hypot(rl,rw)-s.c*0.3:Math.max(rl,rw);
@@ -4822,7 +4822,9 @@
     if(force||Math.abs(sc-lastScale)>0.002){ lastScale=sc; sheets.style.transform=`scale(${sc})`; }
     stage.style.height=Math.ceil(sheets.getBoundingClientRect().height)+'px';
   }
-  function cementWall(p){ return p.L<=12?1.5:p.L>=30?2:1.8; }
+  // pared de cemento por defecto (cm), con mortero con fibra: el usuario veía muy gruesas las de antes (1,5 · 1,8 · 2 cm)
+  // (por la mayor de largo y alto: las cascadas altas llevan más pared)
+  function cementWall(p){ const m=Math.max(p.L,p.H||0); return m<=15?0.8:m<=25?1:m<=35?1.2:1.5; }
   // Fondo de cemento por RESISTENCIA DE MATERIALES (cm; L, W, H, feet, t en cm). El fondo trabaja como losa apoyada en las
   // paredes cuando la maceta se levanta llena o se asienta sobre tres puntos: carga P = (sustrato húmedo 1,8 g/cm³ + árbol 2 kg
   // + la propia maceta 2,2 g/cm³) × 2 por el golpe al apoyar; momento por unidad de ancho M = P·Ls/(4·Ll) (luz corta Ls entre
@@ -5009,7 +5011,7 @@
       const Lprev=+$('L').value; applyPreset(current.id);
       if($('prop').checked&&Math.abs(Lprev-current.L)>0.01){ $('L').value=Lprev; scaleFromL(); render(); snapBaseline(); } // conserva el tamaño escalado
     }
-    else { if(!clay){ if(+$('t').value<1.2) $('t').value=1.8; $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); baseHint(); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); snapBaseline(); }
+    else { if(!clay){ if(+$('t').value<0.8||+$('t').value>4) $('t').value=cementWall({L:+$('L').value,H:+$('H').value}); $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); baseHint(); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); snapBaseline(); }
     if(clay&&clayMem&&Math.abs(+$('t').value-clayMem)>0.01){ $('t').value=clayMem; render(); snapBaseline(); }
     if(!clay&&wallMem&&Math.abs(+$('t').value-wallMem)>0.01){ $('t').value=wallMem; $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,wallMem); baseHint(); render(); snapBaseline(); }
   }
