@@ -5396,7 +5396,7 @@
   // (se revela la forma detrás del perfil con un plano de corte), los cuatro lados, el film, el cemento con su perfil (el
   // mismo perfil volteado si es de dos lados), y la maceta real (potGroup) que se voltea al lado de la arena. Los cuerpos se
   // arman desplazando el contorno de la boca por las medias secciones (handGeom): anillo(u) = boca desplazada m − u.
-  const CA_STEPS=['1. Pon la base (el aro) sobre una mesa plana y nivelada.','2. Echa arena húmeda (que al apretarla en la mano no se desmorone) y apisónala, un poco más alta que el hueco.','3. Pasa el perfil de arena: el pie baja por el canto de la base y el borde de abajo apoya sobre ella. Llévalo perpendicular al canto, de punta a punta.','4. Repite en los cuatro lados hasta que el montículo quede liso. Termina las esquinas con la paleta y retira la arena que cae sobre la base.','5. Cubre la arena con film plástico (o papel periódico mojado) para que el cemento no se pegue.','6. Echa el mortero con fibra en capas, apretándolo contra la arena, un poco más grueso que la pared.','7. Pasa el perfil de cemento por el canto, igual que el de arena (si es de dos lados, voltéalo). Recorta entre las patas y alisa con la paleta.','8. Tapa con plástico 24 h. Luego voltea, retira la base y saca la arena: la maceta queda boca arriba. Cura 7 días húmeda.'];
+  const CA_STEPS=['1. Pon la base (el aro) sobre una mesa plana y nivelada.','2. Echa arena húmeda (que al apretarla en la mano no se desmorone) y apisónala, un poco más alta que el hueco.','3. Pasa el perfil de arena: el pie baja por el canto de la base y el borde de abajo apoya sobre ella. Llévalo perpendicular al canto, de punta a punta.','4. Repite en los cuatro lados hasta que el montículo quede liso. Termina las esquinas con la paleta y retira la arena que cae sobre la base.','5. Cubre la arena con film plástico (o papel periódico mojado) para que el cemento no se pegue.','6. Echa el mortero con fibra en capas, apretándolo contra la arena, un poco más grueso que la pared.','7. Pasa el perfil de cemento por el canto, igual que el de arena (si es de dos lados, voltéalo). Recorta entre las patas y alisa con la paleta.','8. Tapa con plástico 24 h. Luego voltea, retira la base y saca la arena: la maceta queda boca arriba. Cura 7 días húmeda.','9. Así queda (cortada para ver el grosor).'];
   function caOffs(P,d){ let A2=0; P.forEach((p,i)=>{ const q=P[(i+1)%P.length]; A2+=p[0]*q[1]-q[0]*p[1]; }); const sg=A2>0?1:-1, n=P.length;
     const nrm=(a,c)=>{ const dx=c[0]-a[0], dz=c[1]-a[1], l=Math.hypot(dx,dz)||1; return [sg*dz/l,-sg*dx/l]; };
     return P.map((p,i)=>{ const n1=nrm(P[(i+n-1)%n],p), n2=nrm(p,P[(i+1)%n]); let vx=n1[0]+n2[0], vz=n1[1]+n2[1]; const l=Math.hypot(vx,vz)||1; vx/=l; vz/=l; const c=Math.max(0.35,vx*n1[0]+vz*n1[1]); return [p[0]+vx*d/c,p[1]+vz*d/c]; }); }
@@ -5424,7 +5424,11 @@
     cemR.geometry=cemR.geometry.clone(); { const P=cemR.geometry.attributes.position; for(let i=0;i<P.count;i++){ const x=P.getX(i), y=P.getY(i), z=P.getZ(i); const nz=Math.sin(x*0.17+z*0.11)*2+Math.sin(z*0.31)*1.4; P.setXYZ(i,x*1.04,lift+(y-lift)*1.12+nz,z*1.05); } P.needsUpdate=true; cemR.geometry.computeVertexNormals(); }
     grp.add(sand,sandR,film,cem,cemR);
     const pa=caPlate(THREE,dual?G.dual:G.arena,0xd9773a), pc=dual?pa:caPlate(THREE,G.cemento,0xd9773a); grp.add(pa); if(!dual) grp.add(pc);
-    const pot=potGroup(THREE,s,b,{tree:false,cut:false}), pb=new THREE.Box3().setFromObject(pot), H=pb.max.y-pb.min.y, piv=new THREE.Group(); pot.position.y=-pb.min.y-H/2; piv.add(pot); grp.add(piv);
+    const pot=potGroup(THREE,s,b,{tree:false,cut:true}), pb=new THREE.Box3().setFromObject(pot), H=pb.max.y-pb.min.y, piv=new THREE.Group(); pot.position.y=-pb.min.y-H/2; piv.add(pot); grp.add(piv);
+    // paso 9: la maceta cortada por el eje largo (se quita la mitad que mira a la cámara) con el grosor de pared y fondo
+    const keep=new THREE.Plane(new THREE.Vector3(0,0,1),0.3); pot.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.clippingPlanes=[]; } });
+    const clipPot=on=>pot.traverse(o=>{ if(o.material) o.material.clippingPlanes=on?[keep]:[]; });
+    const potX=span=>span/2+Math.max(s.L,s.W)/2+45, lbl=label3(THREE,`Pared ${cm(s.t)} cm · fondo ${cm(s.base)} cm`,Math.max(9,Math.max(s.L,s.W)*0.07),true); lbl.visible=false; grp.add(lbl);
     // recorrido del perfil: el lado de delante (z < 0) de punta a punta y luego todo el canto
     let x0=Infinity,x1=-Infinity; edge.forEach(([x])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); });
     const frontZ=x=>{ let z=Infinity; for(let i=0;i<edge.length;i++){ const a=edge[i], c=edge[(i+1)%edge.length]; if((a[0]-x)*(c[0]-x)<=0&&a[0]!==c[0]){ const zz=a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0]); if(zz<0&&Math.abs(zz)<Math.abs(z===Infinity?1e9:z)) z=zz; else if(zz<0&&z===Infinity) z=zz; } } return z===Infinity?edge.reduce((m,q)=>Math.min(m,q[1]),0):Math.min(z,0); };
@@ -5444,10 +5448,12 @@
       pa.visible=k===2||k===3||(dual&&k===6); if(!dual) pc.visible=k===6;
       const prof=k===6?pc:pa; prof.userData.inner.rotation.z=dual&&k===6?Math.PI:0; prof.userData.inner.position.set(dual&&k===6?G.R0-HB.leg:0,dual&&k===6?G.Yd:0,0);
       if(k===2||k===6) put(prof,front(Math.min(1,Math.max(0,(xp-x0)/span)))); if(k===3) put(pa,loopAt(q));
-      piv.visible=k===7&&pr>=0.55; if(piv.visible){ const f=e((pr-0.55)/0.4); piv.rotation.x=Math.PI*(1-f); piv.position.set(f*(span/2+Math.max(s.L,s.W)/2+45),lift+H/2+Math.sin(Math.PI*f)*H*0.8+(H/2-lift-H/2)*f*0,0); piv.position.y=lift+H/2+Math.sin(Math.PI*f)*H*0.8-f*lift; }
-      $('caTxt').textContent=CA_STEPS[k]; };
+      piv.visible=(k===7&&pr>=0.55)||k===8; clipPot(k===8); lbl.visible=k===8; base.visible=k!==8; if(k===8){ sand.visible=false; piv.rotation.x=0; piv.position.set(potX(span),H/2,0); lbl.position.set(potX(span),H*1.35+8,Math.max(s.W,s.L)*0.35); }
+      if(k===7&&piv.visible){ const f=e((pr-0.55)/0.4); piv.rotation.x=Math.PI*(1-f); piv.position.set(f*potX(span),lift+H/2+Math.sin(Math.PI*f)*H*0.8+(H/2-lift-H/2)*f*0,0); piv.position.y=lift+H/2+Math.sin(Math.PI*f)*H*0.8-f*lift; }
+      $('caTxt').textContent=k===8?`9. Así queda la maceta, cortada por la mitad para ver el grosor: pared de ${cm(s.t)} cm y fondo de ${cm(s.base)} cm. Para cambiarlos, usa «Pared de la maceta» y «Fondo»; los perfiles y esta animación se recalculan.`:CA_STEPS[k]; };
     set(0); const box=new THREE.Box3().setFromObject(grp); box.expandByPoint(new THREE.Vector3(span/2+Math.max(s.L,s.W)+45,0,0));
-    return {grp,set,N,box}; }
+    const pr2=new THREE.Box3().setFromObject(pot).getSize(new THREE.Vector3()).length()/2;
+    return {grp,set,N,box,focus:{c:new THREE.Vector3(potX(span),H*0.5,0),r:pr2+12}}; }
   async function handAnim(s,b){ const cv=$('cemAnimCv'); if(!cv) return; const st=handAnim.st||(handAnim.st={U:0,play:true});
     let THREE; try{ THREE=await import('three'); }catch(e){ $('caTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
     if(!st.r){ if(st.loading) return; st.loading=true; let OC; try{ ({OrbitControls:OC}=await import('three/addons/controls/OrbitControls.js')); }catch(e){ st.loading=false; return; }
@@ -5458,13 +5464,17 @@
       const cam=new THREE.PerspectiveCamera(30,4/3,1,20000), ctl=new OC(cam,cv); ctl.enableDamping=true; ctl.enablePan=false; ctl.maxPolarAngle=Math.PI*0.48;
       const fit=()=>{ const w=cv.clientWidth, h=cv.clientHeight; if(w&&h&&(st.w!==w||st.h!==h)){ st.w=w; st.h=h; r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } };
       Object.assign(st,{r,sc,cam,ctl,table,fit,last:performance.now()}); st.loading=false;
-      const loop=now=>{ requestAnimationFrame(loop); const dt=Math.min(0.1,(now-st.last)/1000); st.last=now; if(!cv.isConnected||!cv.getClientRects().length) return; fit(); if(st.scene){ if(st.play) st.U=(st.U+dt/4.6)%st.N; st.scene.set(st.U); } ctl.update(); r.render(sc,cam); };
+      const loop=now=>{ requestAnimationFrame(loop); const dt=Math.min(0.1,(now-st.last)/1000); st.last=now; if(!cv.isConnected||!cv.getClientRects().length) return; fit(); if(st.scene){ if(st.play) st.U=(st.U+dt/4.6)%st.N; st.scene.set(st.U);
+          // en el paso 9 la cámara se acerca a la maceta cortada y al salir vuelve a la vista general (1,5 s, luego manda el usuario)
+          const k=Math.floor(st.U)%st.N; if(k!==st.kPrev){ if(k===8||st.kPrev===8) st.fly=1.5; st.kPrev=k; }
+          if(st.fly>0&&st.home){ const W=k===8?st.focusView:st.home; ctl.target.lerp(W.t,0.09); cam.position.lerp(W.p,0.09); st.fly-=dt; } } ctl.update(); r.render(sc,cam); };
       requestAnimationFrame(loop); }
     const dual=$('cemDual').checked&&dualOk(s,handGeom(s,b)), key=JSON.stringify([s.type,s.L,s.W,s.H,s.feet,s.flare,s.lip,s.rim,s.body,s.corner,s.foot,s.c,s.lobes,s.t,s.base,b.core,dual]); if(st.key===key) return; st.key=key;
     if(st.scene){ st.sc.remove(st.scene.grp); st.scene.grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
     const S=handScene(THREE,s,b,dual); st.scene=S; st.N=S.N; st.sc.add(S.grp);
     const c=S.box.getCenter(new THREE.Vector3()), rad=S.box.getSize(new THREE.Vector3()).length()/2; st.table.scale.setScalar(rad*40); c.y*=0.6;
-    st.ctl.target.copy(c); st.cam.position.copy(c).add(new THREE.Vector3(-0.25,0.62,-1).normalize().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.62)); st.ctl.minDistance=rad*0.6; st.ctl.maxDistance=rad*8; st.ctl.update(); }
+    st.ctl.target.copy(c); st.cam.position.copy(c).add(new THREE.Vector3(-0.25,0.62,-1).normalize().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.62)); st.ctl.minDistance=rad*0.2; st.ctl.maxDistance=rad*8; st.ctl.update();
+    const dir=new THREE.Vector3(-0.25,0.62,-1).normalize(); st.home={t:st.ctl.target.clone(),p:st.cam.position.clone()}; st.focusView={t:S.focus.c.clone(),p:S.focus.c.clone().add(dir.multiplyScalar(S.focus.r/Math.sin(15*Math.PI/180)*0.75))}; st.kPrev=null; }
   // esquema para el panel: la base en corte, la arena y el cemento, y cada perfil en su sitio
   function cemHandPreview(s,b){
     const G=handGeom(s,b), r=v=>Math.round(v*10)/10, P=L=>L.map(([u,v])=>`${r(u)},${r(-v)}`).join(' ');
