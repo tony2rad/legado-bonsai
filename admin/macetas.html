@@ -38,6 +38,8 @@
   .btn.alt{background:var(--glaze);color:#fff}
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
   .mold-lead{font-size:12.5px;line-height:1.45;color:var(--muted);margin:6px 0 10px}
+#cemAnim{margin:8px 0}#cemAnim canvas{width:100%;height:230px;display:block;border-radius:8px}#cemAnim .ca-bar{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}#cemAnim .ca-bar .btn{padding:4px 10px}#caTxt{flex:1 1 140px;font-size:12px;line-height:1.35;color:var(--muted)}
+#cemAnim.big{position:fixed;inset:4vh 4vw;z-index:300;margin:0;background:var(--panel,#1d2621);padding:12px;border-radius:12px;box-shadow:0 12px 50px rgba(0,0,0,.55);display:flex;flex-direction:column}#cemAnim.big canvas{flex:1 1 0;min-height:0;height:auto}#cemAnim.big #caTxt{font-size:15px}
   .mold-out{font-size:12.5px;line-height:1.45;margin-top:10px;display:grid;gap:8px}
   .mold-out table{width:100%;border-collapse:collapse;font:12px/1.4 var(--mono);font-variant-numeric:tabular-nums}
   .mold-out td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -271,6 +273,13 @@
         <label class="f"><span>Sistema</span><select id="cemSys"><option value="mano" selected>A mano: base, perfil de arena y perfil de cemento</option><option value="maquina">Máquina de barrido: plato-guía y perfiles</option></select></label>
         <p class="mold-lead" id="cemLeadMano">La maceta se arma <b>boca abajo</b> sobre la <b>base</b> (un aro de 5 mm con la forma de la boca, 1 cm más grande). Con arena húmeda se forma el hueco pasando el <b>perfil de arena</b> por todo el canto de la base; se cubre con film plástico y encima se echa el cemento, que se forma con el <b>perfil de cemento</b>. El pie de cada perfil baja por el canto de la base y lo guía; llévalo siempre perpendicular al canto. Las esquinas vivas y las patas se terminan con la paleta. Cura, voltea y saca la arena.</p>
         <p class="mold-lead" id="cemLeadMaq" hidden>En vez de cortar el plato-guía en tablero y los perfiles en tol o acrílico, imprímelos: el <b>plato-guía</b> sale del grosor del tablero que elijas, con el contorno exacto donde rueda el seguidor y el agujero del eje; los <b>perfiles exterior e interior</b> salen en placas de 4 mm con sus ranuras para los pernos. Lija el borde de barrido de los perfiles.</p>
+        <div id="cemManoOpts">
+          <div class="grid2"><label class="f"><span>Pared de la maceta <b>cm</b></span><input id="cemT" type="number" step="0.1" min="0.6" max="4"></label><label class="f"><span>Fondo <b>cm</b></span><input id="cemB" type="number" step="0.1" min="0.5" max="5"></label></div>
+          <p class="mold-lead" id="cemTNote">El grosor de la maceta lo da la <b>distancia entre los dos perfiles</b> (el de cemento menos el de arena), no el grosor del plástico: para una pared más delgada se cambia aquí y los dos perfiles se recalculan.</p>
+          <label class="check"><input type="checkbox" id="cemDual" checked><span>Un solo perfil de dos lados: el borde de abajo para la arena y el de arriba para el cemento (se voltea)</span></label>
+          <figure id="cemAnim"><canvas id="cemAnimCv" aria-label="Animación: cómo usar la base y los perfiles de arena y cemento"></canvas>
+            <figcaption class="ca-bar"><button class="btn ghost" id="caPrev" type="button" aria-label="Paso anterior">◀</button><button class="btn ghost" id="caPlay" type="button" aria-label="Pausa">⏸</button><button class="btn ghost" id="caNext" type="button" aria-label="Paso siguiente">▶</button><button class="btn ghost" id="caBig" type="button" aria-label="Ver en grande">⛶</button><span id="caTxt"></span></figcaption></figure>
+        </div>
         <div id="cemPrev"></div>
         <p class="mold-lead" style="margin-top:0">Las piezas que no caben en la cama salen en partes que encajan con una cola de milano (pégalas sobre una mesa plana).</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnCem3mf" type="button">Piezas para imprimir (3MF)</button></div>
@@ -4636,7 +4645,7 @@
   let lastFix=[];
   function propGuard(s,clay,skipT){
     const short=Math.min(s.L,s.W), hb=s.H-s.feet, R={}, msgs=[], fix=[], hints={}, c1=v=>Math.round(v)/10;
-    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[12,Math.min(40,Math.max(20,s.L*0.13))];
+    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[Math.max(8,Math.min(12,s.L*0.035)),Math.min(40,Math.max(20,s.L*0.13))];   // cemento con fibra: desde 8 mm en macetas chicas
     if(s.rim!=='kittate'){ const hi=clay?Math.max(s.t*0.6,Math.min(s.t*1.5,short*0.07)):Math.max(5,Math.min(s.t,short*0.08)); R.lip=[clay?Math.min(s.t*0.5,hi):3,hi]; }
     if(s.feet>0) R.feet=[Math.max(3,s.H*0.07),Math.max(5,s.H*0.3)];
     if(!$('flare').disabled) R.flare=[0,Math.max(2,Math.min(hb*0.3,short*0.12))];
@@ -4651,7 +4660,11 @@
     const s=readState(), b=build(s), clay=s.mat==='clay', single=s.paper==='single'; let paper=PAPER[s.paper]||PAPER.A3;
     { const ty=$('type').value, lu=ty==='luna'; $('beltF').hidden=$('body').value!=='cinturon'||lu; $('rivetsF').hidden=$('body').value!=='cinturon'||lu||s.mat!=='clay'||!!s.plasterMode||s.printable; $('lunaCF').hidden=$('lunaRF').hidden=!lu; ['rim','lip','body','corner','foot','feet','flare'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.classList.toggle('dim',lu&&s.printable); }); }
     $('W').disabled=s.type==='round'||!!SHP(s); $('foot').disabled=s.type==='rect'&&s.corner==='sumiiri'; $('bedXY').disabled=s.printer!=='otra'; $('clayOpts').hidden=!clay&&!s.plasterMode; $('joint').disabled=s.type==='oval'||s.type==='round'||!!SHP(s); $('panel').disabled=s.type==='oval'||s.type==='round'; ['panelStyle','panelMode','panelW','panelH'].forEach(id=>$(id).disabled=!s.panel); $('panelWhere').disabled=!s.panel||s.type!=='rect'; $('flare').disabled=s.type==='oval'||(clay&&s.type==='round'); $('corner').disabled=s.type!=='rect'; $('lobes').disabled=!(s.type==='oval'||s.type==='round'); $('lip').disabled=s.rim==='kittate';
-    $('shrinkF').hidden=!clay; $('cemPrintBox').hidden=s.mode!=='cement'; if(s.mode==='cement'){ const mano=$('cemSys').value==='mano'; $('cemLeadMano').hidden=!mano; $('cemLeadMaq').hidden=mano; $('cemPrev').innerHTML=mano?cemHandPreview(s,b):''; } $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
+    $('shrinkF').hidden=!clay; $('cemPrintBox').hidden=s.mode!=='cement'; if(s.mode==='cement'){ const mano=$('cemSys').value==='mano'; $('cemLeadMano').hidden=!mano; $('cemLeadMaq').hidden=mano; $('cemManoOpts').hidden=!mano; $('cemPrev').innerHTML=mano?cemHandPreview(s,b):'';
+      if(document.activeElement!==$('cemT')) $('cemT').value=$('t').value; if(document.activeElement!==$('cemB')) $('cemB').value=$('base').value;
+      $('cemTNote').innerHTML=`El grosor de la maceta lo da la <b>distancia entre los dos perfiles</b> (el de cemento menos el de arena), no el grosor del plástico. Ahora: pared de ${cm(s.t)} cm y fondo de ${cm(s.base)} cm; cámbialos aquí y los dos perfiles se recalculan. Con mortero con fibra, 0,8–1 cm sirve hasta unos 25 cm de largo.`;
+      if(mano) handAnim(s,b); }
+    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable||!!s.plasterMode;
@@ -5363,8 +5376,85 @@
     const prof=half=>{ const c=half.map(U), last=c[c.length-1], top=Math.max(...half.map(q=>q[1]))+HB.band;
       return [[0,0],...c,[R0,last[1]],[R0,top],[-HB.leg,top],[-HB.leg,-HB.t],[0,-HB.t]]; };
     const Lg=s.L+2*s.lipX, Wg=s.W+2*s.lipX, N=SHP(s), d=N?polyPath(polyPts(0,0,Wg/2,N)):(s.lobes||s.type==='round'||s.type==='oval')?ovalPath(0,0,Lg/2,Wg/2,s.lobes||0):cornerPath(-Lg/2,-Wg/2,Lg,Wg,s.corner,s.c);
-    return {R0,mouth:samplePath(d,Math.min(720,Math.max(240,Math.round((Lg+Wg)*1.6)))),arena:prof(A.int[0]),cemento:prof(A.ext[0]),int:A.int[0].map(U),ext:A.ext[0].map(U),rim:HB.m+s.t+(s.rim==='uchien'?s.lip:0)+15};
+    // perfil de dos lados: la arena en el borde de abajo y el cemento girado 180° arriba (rot es su propio inverso: aplicada a
+    // la pieza devuelve el borde de cemento a su posición de uso), con una franja de HB.band mm entre los dos
+    const Ai=A.int[0].map(U), Ae=A.ext[0].map(U), hs=Math.max(...Ai.map(q=>q[1])), he=Math.max(...Ae.map(q=>q[1])), Yd=hs+HB.band+he, rot=([u,v])=>[R0-HB.leg-u,Yd-v];
+    const dual=[[-HB.leg,-HB.t],[0,-HB.t],[0,0],...Ai,[R0,Ai[Ai.length-1][1]],...[[-HB.leg,-HB.t],[0,-HB.t],[0,0],...Ae,[R0,Ae[Ae.length-1][1]]].map(rot)];
+    return {R0,Yd,dual,mouth:samplePath(d,Math.min(720,Math.max(240,Math.round((Lg+Wg)*1.6)))),arena:prof(A.int[0]),cemento:prof(A.ext[0]),int:Ai,ext:Ae,rim:HB.m+s.t+(s.rim==='uchien'?s.lip:0)+15};
   }
+  // ANIMACIÓN «cómo se usa» (visor propio en #cemAnimCv, como v2Photo): la base, la arena pasada con su perfil por el canto
+  // (se revela la forma detrás del perfil con un plano de corte), los cuatro lados, el film, el cemento con su perfil (el
+  // mismo perfil volteado si es de dos lados), y la maceta real (potGroup) que se voltea al lado de la arena. Los cuerpos se
+  // arman desplazando el contorno de la boca por las medias secciones (handGeom): anillo(u) = boca desplazada m − u.
+  const CA_STEPS=['1. Pon la base (el aro) sobre una mesa plana y nivelada.','2. Echa arena húmeda (que al apretarla en la mano no se desmorone) y apisónala, un poco más alta que el hueco.','3. Pasa el perfil de arena: el pie baja por el canto de la base y el borde de abajo apoya sobre ella. Llévalo perpendicular al canto, de punta a punta.','4. Repite en los cuatro lados hasta que el montículo quede liso. Termina las esquinas con la paleta y retira la arena que cae sobre la base.','5. Cubre la arena con film plástico (o papel periódico mojado) para que el cemento no se pegue.','6. Echa el mortero con fibra en capas, apretándolo contra la arena, un poco más grueso que la pared.','7. Pasa el perfil de cemento por el canto, igual que el de arena (si es de dos lados, voltéalo). Recorta entre las patas y alisa con la paleta.','8. Tapa con plástico 24 h. Luego voltea, retira la base y saca la arena: la maceta queda boca arriba. Cura 7 días húmeda.'];
+  function caOffs(P,d){ let A2=0; P.forEach((p,i)=>{ const q=P[(i+1)%P.length]; A2+=p[0]*q[1]-q[0]*p[1]; }); const sg=A2>0?1:-1, n=P.length;
+    const nrm=(a,c)=>{ const dx=c[0]-a[0], dz=c[1]-a[1], l=Math.hypot(dx,dz)||1; return [sg*dz/l,-sg*dx/l]; };
+    return P.map((p,i)=>{ const n1=nrm(P[(i+n-1)%n],p), n2=nrm(p,P[(i+1)%n]); let vx=n1[0]+n2[0], vz=n1[1]+n2[1]; const l=Math.hypot(vx,vz)||1; vx/=l; vz/=l; const c=Math.max(0.35,vx*n1[0]+vz*n1[1]); return [p[0]+vx*d/c,p[1]+vz*d/c]; }); }
+  function caLoft(THREE,rings,ys,color,opt={}){ const n=rings[0].length, pos=[], idx=[];
+    rings.forEach((Rg,k)=>Rg.forEach(([x,z])=>pos.push(x,ys[k],z)));
+    for(let k=0;k<rings.length-1;k++) for(let i=0;i<n;i++){ const j=(i+1)%n, a=k*n+i, b2=k*n+j, c=(k+1)*n+j, d=(k+1)*n+i; idx.push(a,b2,c,a,c,d); }
+    const cap=(k)=>{ const o=pos.length/3, Rg=rings[k]; Rg.forEach(([x,z])=>pos.push(x,ys[k],z)); THREE.ShapeUtils.triangulateShape(Rg.map(([x,z])=>new THREE.Vector2(x,z)),[]).forEach(tr=>idx.push(o+tr[0],o+tr[1],o+tr[2])); };
+    cap(rings.length-1); cap(0);
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals();
+    return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.95,side:THREE.DoubleSide,flatShading:!!opt.flat},opt.mat||{}))); }
+  function caPlate(THREE,poly,color){ const sh=new THREE.Shape(poly.map(([u,v])=>new THREE.Vector2(u,v))), g=new THREE.ExtrudeGeometry(sh,{depth:3,bevelEnabled:false,curveSegments:1});
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:0.6,side:THREE.DoubleSide})), inner=new THREE.Group(), mid=new THREE.Group(), out=new THREE.Group(); inner.add(m); mid.add(inner); mid.rotation.y=-Math.PI/2; mid.position.x=1.5; out.add(mid); out.userData.inner=inner; return out; }
+  function handScene(THREE,s,b,dual){
+    const G=handGeom(s,b), M=G.mouth, grp=new THREE.Group(), lift=HB.t;
+    const ring=u=>caOffs(M,HB.m-u), loft=(C,color,opt)=>caLoft(THREE,C.map(([u])=>ring(u)),C.map(([,v])=>lift+v),color,opt);
+    // base: aro con el canto en la boca + m y el hueco a G.rim del canto
+    const edge=caOffs(M,HB.m), hole=caOffs(M,HB.m-G.rim), sh=new THREE.Shape(edge.map(([x,z])=>new THREE.Vector2(x,-z))); sh.holes.push(new THREE.Path(hole.map(([x,z])=>new THREE.Vector2(x,-z))));
+    const bg=new THREE.ExtrudeGeometry(sh,{depth:HB.t,bevelEnabled:false,curveSegments:1}); bg.rotateX(-Math.PI/2);
+    const base=new THREE.Mesh(bg,new THREE.MeshStandardMaterial({color:0x5f7a68,roughness:0.6})); grp.add(base);
+    const cut=new THREE.Plane(new THREE.Vector3(-1,0,0),0), cutR=new THREE.Plane(new THREE.Vector3(1,0,0),0);
+    const sand=loft(G.int,0xc9a86a,{mat:{clippingPlanes:[cut]}}), sandR=loft(G.int,0xb8955a,{mat:{clippingPlanes:[cutR]},flat:true});
+    sandR.geometry=sandR.geometry.clone(); { const P=sandR.geometry.attributes.position; for(let i=0;i<P.count;i++){ const x=P.getX(i), y=P.getY(i), z=P.getZ(i); const nz=Math.sin(x*0.21+z*0.13)*1.6+Math.sin(z*0.37)*1.2; P.setXYZ(i,x*1.05,lift+(y-lift)*1.25+nz,z*1.07); } P.needsUpdate=true; sandR.geometry.computeVertexNormals(); }
+    const film=loft(G.int,0xffffff,{mat:{transparent:true,opacity:0.35,depthWrite:false}}); film.scale.set(1.006,1.01,1.008); film.position.y=-lift*0.01;
+    const cem=loft(G.ext,0x8f9692,{mat:{clippingPlanes:[cut]}}), cemR=loft(G.ext,0x7d8480,{mat:{clippingPlanes:[cutR]},flat:true});
+    cemR.geometry=cemR.geometry.clone(); { const P=cemR.geometry.attributes.position; for(let i=0;i<P.count;i++){ const x=P.getX(i), y=P.getY(i), z=P.getZ(i); const nz=Math.sin(x*0.17+z*0.11)*2+Math.sin(z*0.31)*1.4; P.setXYZ(i,x*1.04,lift+(y-lift)*1.12+nz,z*1.05); } P.needsUpdate=true; cemR.geometry.computeVertexNormals(); }
+    grp.add(sand,sandR,film,cem,cemR);
+    const pa=caPlate(THREE,dual?G.dual:G.arena,0xd9773a), pc=dual?pa:caPlate(THREE,G.cemento,0xd9773a); grp.add(pa); if(!dual) grp.add(pc);
+    const pot=potGroup(THREE,s,b,{tree:false,cut:false}), pb=new THREE.Box3().setFromObject(pot), H=pb.max.y-pb.min.y, piv=new THREE.Group(); pot.position.y=-pb.min.y-H/2; piv.add(pot); grp.add(piv);
+    // recorrido del perfil: el lado de delante (z < 0) de punta a punta y luego todo el canto
+    let x0=Infinity,x1=-Infinity; edge.forEach(([x])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); });
+    const frontZ=x=>{ let z=Infinity; for(let i=0;i<edge.length;i++){ const a=edge[i], c=edge[(i+1)%edge.length]; if((a[0]-x)*(c[0]-x)<=0&&a[0]!==c[0]){ const zz=a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0]); if(zz<0&&Math.abs(zz)<Math.abs(z===Infinity?1e9:z)) z=zz; else if(zz<0&&z===Infinity) z=zz; } } return z===Infinity?edge.reduce((m,q)=>Math.min(m,q[1]),0):Math.min(z,0); };
+    const front=t2=>{ const x=x0+6+(x1-x0-12)*t2, z=frontZ(x), z2=frontZ(Math.min(x1-6,x+2)), z1=frontZ(Math.max(x0+6,x-2)), sl=(z2-z1)/4; return {x,z,phi:Math.atan2(-sl,1)}; };
+    const cumL=[0]; for(let i=1;i<=edge.length;i++){ const a=edge[i-1], c=edge[i%edge.length]; cumL.push(cumL[i-1]+Math.hypot(c[0]-a[0],c[1]-a[1])); }
+    const loopAt=t2=>{ const L=cumL[edge.length]*t2; let i=1; while(i<edge.length&&cumL[i]<L) i++; const a=edge[i-1], c=edge[i%edge.length], f=(L-cumL[i-1])/Math.max(1e-6,cumL[i]-cumL[i-1]), x=a[0]+(c[0]-a[0])*f, z=a[1]+(c[1]-a[1])*f;
+      let nx=-(c[1]-a[1]), nz=(c[0]-a[0]); const l=Math.hypot(nx,nz)||1; nx/=l; nz/=l; if(nx*(-x)+nz*(-z)<0){ nx=-nx; nz=-nz; } return {x,z,phi:Math.atan2(nx,nz)}; };
+    const put=(o,P)=>{ o.position.set(P.x,lift,P.z); o.rotation.y=P.phi; };
+    const e=x=>x<=0?0:x>=1?1:x*x*(3-2*x), N=CA_STEPS.length, span=Math.max(x1-x0,1);
+    const set=U=>{ const k=Math.floor(U)%N, pr=U-Math.floor(U), q=e(pr/0.85);
+      base.position.y=k===0?(1-e(pr/0.6))*60:0; base.visible=true;
+      const xp=x0-8+(span+16)*q; cut.constant=xp; cutR.constant=-xp;
+      sandR.visible=k===1||k===2; sand.visible=k>=2; sand.material.clippingPlanes=k===2?[cut]:[]; sandR.material.clippingPlanes=k===2?[cutR]:[]; if(k===1){ sandR.scale.set(1,Math.max(0.02,e(pr/0.7)),1); sandR.position.y=lift*(1-sandR.scale.y); } else { sandR.scale.set(1,1,1); sandR.position.y=0; }
+      film.visible=k>=4&&k<=6; film.material.opacity=k===4?0.35*e(pr/0.6):0.35;
+      cemR.visible=k===5||k===6; cemR.material.transparent=k===5; cemR.material.opacity=k===5?e(pr/0.6):1; cemR.material.clippingPlanes=k===6?[cutR]:[];
+      cem.visible=k===6||(k===7&&pr<0.55); cem.material.clippingPlanes=k===6?[cut]:[];
+      pa.visible=k===2||k===3||(dual&&k===6); if(!dual) pc.visible=k===6;
+      const prof=k===6?pc:pa; prof.userData.inner.rotation.z=dual&&k===6?Math.PI:0; prof.userData.inner.position.set(dual&&k===6?G.R0-HB.leg:0,dual&&k===6?G.Yd:0,0);
+      if(k===2||k===6) put(prof,front(Math.min(1,Math.max(0,(xp-x0)/span)))); if(k===3) put(pa,loopAt(q));
+      piv.visible=k===7&&pr>=0.55; if(piv.visible){ const f=e((pr-0.55)/0.4); piv.rotation.x=Math.PI*(1-f); piv.position.set(f*(span/2+Math.max(s.L,s.W)/2+45),lift+H/2+Math.sin(Math.PI*f)*H*0.8+(H/2-lift-H/2)*f*0,0); piv.position.y=lift+H/2+Math.sin(Math.PI*f)*H*0.8-f*lift; }
+      $('caTxt').textContent=CA_STEPS[k]; };
+    set(0); const box=new THREE.Box3().setFromObject(grp); box.expandByPoint(new THREE.Vector3(span/2+Math.max(s.L,s.W)+45,0,0));
+    return {grp,set,N,box}; }
+  async function handAnim(s,b){ const cv=$('cemAnimCv'); if(!cv) return; const st=handAnim.st||(handAnim.st={U:0,play:true});
+    let THREE; try{ THREE=await import('three'); }catch(e){ $('caTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
+    if(!st.r){ if(st.loading) return; st.loading=true; let OC; try{ ({OrbitControls:OC}=await import('three/addons/controls/OrbitControls.js')); }catch(e){ st.loading=false; return; }
+      const r=new THREE.WebGLRenderer({canvas:cv,antialias:true}); r.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); r.localClippingEnabled=true;
+      const sc=new THREE.Scene(); sc.background=new THREE.Color(0xf3efe6); sc.add(new THREE.HemisphereLight(0xffffff,0x8a8478,1.3));
+      const sun=new THREE.DirectionalLight(0xffffff,1.7); sun.position.set(-300,500,400); sc.add(sun); const fl=new THREE.DirectionalLight(0xffffff,0.5); fl.position.set(400,200,-300); sc.add(fl);
+      const table=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xd8c7a6,roughness:0.95})); table.rotation.x=-Math.PI/2; table.position.y=-0.05; sc.add(table);
+      const cam=new THREE.PerspectiveCamera(30,4/3,1,20000), ctl=new OC(cam,cv); ctl.enableDamping=true; ctl.enablePan=false; ctl.maxPolarAngle=Math.PI*0.48;
+      const fit=()=>{ const w=cv.clientWidth, h=cv.clientHeight; if(w&&h&&(st.w!==w||st.h!==h)){ st.w=w; st.h=h; r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } };
+      Object.assign(st,{r,sc,cam,ctl,table,fit,last:performance.now()}); st.loading=false;
+      const loop=now=>{ requestAnimationFrame(loop); const dt=Math.min(0.1,(now-st.last)/1000); st.last=now; if(!cv.isConnected||!cv.getClientRects().length) return; fit(); if(st.scene){ if(st.play) st.U=(st.U+dt/4.6)%st.N; st.scene.set(st.U); } ctl.update(); r.render(sc,cam); };
+      requestAnimationFrame(loop); }
+    const dual=$('cemDual').checked&&dualOk(s,handGeom(s,b)), key=JSON.stringify([s.type,s.L,s.W,s.H,s.feet,s.flare,s.lip,s.rim,s.body,s.corner,s.foot,s.c,s.lobes,s.t,s.base,b.core,dual]); if(st.key===key) return; st.key=key;
+    if(st.scene){ st.sc.remove(st.scene.grp); st.scene.grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+    const S=handScene(THREE,s,b,dual); st.scene=S; st.N=S.N; st.sc.add(S.grp);
+    const c=S.box.getCenter(new THREE.Vector3()), rad=S.box.getSize(new THREE.Vector3()).length()/2; st.table.scale.setScalar(rad*40); c.y*=0.6;
+    st.ctl.target.copy(c); st.cam.position.copy(c).add(new THREE.Vector3(-0.25,0.62,-1).normalize().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.62)); st.ctl.minDistance=rad*0.6; st.ctl.maxDistance=rad*8; st.ctl.update(); }
   // esquema para el panel: la base en corte, la arena y el cemento, y cada perfil en su sitio
   function cemHandPreview(s,b){
     const G=handGeom(s,b), r=v=>Math.round(v*10)/10, P=L=>L.map(([u,v])=>`${r(u)},${r(-v)}`).join(' ');
@@ -5379,11 +5469,15 @@
     return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0">${panel(G.arena,'Perfil de arena',false)}${panel(G.cemento,'Perfil de cemento',true)}</div>
       <div class="hint">Corte por el lado largo: base (marrón), arena (ocre), cemento (gris) y el perfil (naranja). La línea de trazos es el eje de la maceta. El pie del perfil baja por el canto de la base.</div>`;
   }
+  // el perfil de dos lados solo si cabe entero en la cama (un perfil de raspado partido no sirve): en macetas altas, dos perfiles
+  const dualOk=(s,G)=>{ const w=G.R0+HB.leg, h=G.Yd+2*HB.t, bx=s.bedX-12, by=s.bedY-12; return (w<=bx&&h<=by)||(w<=by&&h<=bx); };
   function cementoParts(THREE,s,b,sys){
     if(sys==='mano'){ const out=[], notes=[], G=handGeom(s,b), V=L=>L.map(([u,v])=>[u,-v]);
       plantillaPiece(THREE,s,{loops:[G.mouth],name:'Base (aro)',qty:1},{t:HB.t,pre:'',key:'baseMano',grow:HB.m,wins:true,rim:G.rim,bars:false},out,notes);
-      plantillaPiece(THREE,s,{loops:[V(G.arena)],name:'Perfil de arena',qty:1},{t:HB.pt,text:true,pre:'',key:'perfilMano'},out,notes);
-      plantillaPiece(THREE,s,{loops:[V(G.cemento)],name:'Perfil de cemento',qty:1},{t:HB.pt,text:true,pre:'',key:'perfilMano'},out,notes);
+      if($('cemDual').checked&&!dualOk(s,G)) notes.push('El perfil de dos lados no cabe entero en la cama: van dos perfiles');
+      if($('cemDual').checked&&dualOk(s,G)) plantillaPiece(THREE,s,{loops:[V(G.dual)],name:'Perfil arena · cemento',qty:1},{t:HB.pt,text:true,pre:'',key:'perfilMano'},out,notes);
+      else { plantillaPiece(THREE,s,{loops:[V(G.arena)],name:'Perfil de arena',qty:1},{t:HB.pt,text:true,pre:'',key:'perfilMano'},out,notes);
+        plantillaPiece(THREE,s,{loops:[V(G.cemento)],name:'Perfil de cemento',qty:1},{t:HB.pt,text:true,pre:'',key:'perfilMano'},out,notes); }
       return {parts:out,notes}; }
     const out=[], notes=[], A=profileArgs(s,b), axis=Array.from({length:48},(_,i)=>{ const a=i/48*2*Math.PI; return [5*Math.cos(a),5*Math.sin(a)]; });
     plantillaPiece(THREE,s,{loops:[guideOutline(s),axis],name:'Plato-guía',qty:1},{t:s.m,pre:'',key:'guiaCem'},out,notes);
@@ -5513,7 +5607,7 @@
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
     let leeme=false; if(s.mode==='plaster'&&!kit){ const txt=await exportPlaster(true); if(txt){ await new Promise(r=>setTimeout(r,700)); download(new Blob([txt],{type:'text/plain;charset=utf-8'}),`LEEME-${what}-${nm}.txt`); leeme=true; } }
     const lista=beds.map((bd,k)=>`cama ${k+1}: ${bd.map(p=>p.name.split(' — ')[0].toLowerCase()).join(', ')}${bd[0]&&bd[0].big?' (no cabe en la cama: pártela en el laminador)':''}`).join(' · ');
-    out.textContent=`${s.mode==='mold'&&s.obj!=='mesa'&&s.moldAuto&&s.autoBeds?`Molde automático: ${autoTxt(s)}, ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos). `:''}Listo: ${P.length} pieza${P.length>1?'s':''} en ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?`UN solo 3MF con ${nb>1?nb+' placas (una por cama)':'una placa'} para la ${s.bedName}`:nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?'Ábrelo con doble clic en Bambu Studio: trae la impresora, el PLA, la cama Textured PEI y el relleno y las paredes de cada pieza; solo lamina placa por placa («Laminar todo») e imprime.'+(leeme?' Junto al 3MF se descargó un LEEME con las instrucciones paso a paso, las cantidades de yeso y, si usas melamina, la lista de cortes de las tablas.':''):'Ábrelo con doble clic en Bambu Studio; con «Otra» impresora avisa «configuración no válida, carga solo los datos de geometría»: pulsa OK. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.'}`;
+    out.textContent=`${P.notes&&P.notes.length?P.notes.join(' ')+'. ':''}${s.mode==='mold'&&s.obj!=='mesa'&&s.moldAuto&&s.autoBeds?`Molde automático: ${autoTxt(s)}, ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos). `:''}Listo: ${P.length} pieza${P.length>1?'s':''} en ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?`UN solo 3MF con ${nb>1?nb+' placas (una por cama)':'una placa'} para la ${s.bedName}`:nb>1?nb+' archivos 3MF, uno por cama de la '+s.bedName:'un 3MF para la '+s.bedName} (${(mb/1048576).toFixed(1).replace('.',',')} MB): ${lista}. ${BBL_CFG[{a2l:'a2l',a1:'a1',mini:'mini'}[$('printer').value]]?'Ábrelo con doble clic en Bambu Studio: trae la impresora, el PLA, la cama Textured PEI y el relleno y las paredes de cada pieza; solo lamina placa por placa («Laminar todo») e imprime.'+(leeme?' Junto al 3MF se descargó un LEEME con las instrucciones paso a paso, las cantidades de yeso y, si usas melamina, la lista de cortes de las tablas.':''):'Ábrelo con doble clic en Bambu Studio; con «Otra» impresora avisa «configuración no válida, carga solo los datos de geometría»: pulsa OK. Los ajustes recomendados van en el nombre de cada pieza: aplícalos con clic derecho sobre ella.'}`;
   }
   $('spMotif').addEventListener('change',()=>{ const L=SPRIG_LIB[$('spMotif').value]; if(L&&L.w) $('spW').value=L.w; sprigPreview(); render(); });
   { let tm=0; $('spText').addEventListener('input',()=>{ clearTimeout(tm); tm=setTimeout(()=>{ SPRIG_CACHE.clear(); sprigPreview(); render(); },400); }); }
@@ -5528,7 +5622,16 @@
     download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (placa en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
   ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMt','slT','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnPinTest').addEventListener('click',()=>export3MF('printOut','pintest'));
-  $('cemSys').addEventListener('change',()=>render());
+  $('cemSys').addEventListener('change',()=>render()); $('cemDual').addEventListener('change',()=>render());
+  [['cemT','t'],['cemB','base']].forEach(([a,c])=>$(a).addEventListener('input',()=>{ $(c).value=$(a).value; $(c).dispatchEvent(new Event('input',{bubbles:true})); $(c).dispatchEvent(new Event('change',{bubbles:true})); }));
+  $('caPlay').addEventListener('click',()=>{ const st=handAnim.st; if(!st) return; st.play=!st.play; $('caPlay').textContent=st.play?'⏸':'▶︎'; $('caPlay').setAttribute('aria-label',st.play?'Pausa':'Reproducir'); });
+  $('caPrev').addEventListener('click',()=>{ const st=handAnim.st; if(!st||!st.N) return; st.U=((Math.floor(st.U)-1)%st.N+st.N)%st.N; });
+  $('caNext').addEventListener('click',()=>{ const st=handAnim.st; if(!st||!st.N) return; st.U=(Math.floor(st.U)+1)%st.N; });
+  // en grande la figura pasa al <body> (dentro del panel lateral el position:fixed queda atrapado bajo la hoja) y vuelve a su sitio
+  const caHome=document.createComment('cemAnim'); $('cemAnim').before(caHome);
+  const caBig=on=>{ const f=$('cemAnim'); if(on){ document.body.append(f); f.classList.add('big'); } else { f.classList.remove('big'); caHome.after(f); } $('caBig').setAttribute('aria-label',on?'Cerrar':'Ver en grande'); $('caBig').textContent=on?'✕':'⛶'; };
+  $('caBig').addEventListener('click',()=>caBig(!$('cemAnim').classList.contains('big')));
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('cemAnim').classList.contains('big')) caBig(false); });
   $('btnCem3mf').addEventListener('click',()=>{ if(!last3||last3.s.mode!=='cement'){ $('cemOut').textContent='Elige la sección Cemento.'; return; } export3MF('cemOut','cemento'); });
   $('btnPlant3mf').addEventListener('click',()=>{ if(!last3||last3.s.mat!=='clay'){ $('plantOut').textContent='Elige la sección Arcilla.'; return; } export3MF('plantOut','plantillas'); });
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
