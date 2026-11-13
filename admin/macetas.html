@@ -249,6 +249,14 @@
           <label class="f"><span>Labio</span><select id="rimMode"><option value="marco">Marco de placa</option><option value="rollo">Rollo (cordón)</option></select></label>
         </div>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="nest"><span>Ahorrar papel: dibujar las piezas dentro del fondo (se sobremontan)</span></label>
+        <div id="plantBox" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+          <h2>Plantillas rígidas para imprimir en 3D</h2>
+          <p class="mold-lead">Cada pieza de corte sale como una <b>placa de PLA de 2,4 mm</b> con su contorno exacto en crudo, los agujeros de drenaje y alambre abiertos y el nombre en relieve. Apóyala sobre la placa de arcilla y repasa el borde con la aguja o el cúter. Una plantilla por pieza: calca el número de veces que indica (×2, ×4). Las piezas que no caben en la cama salen en partes que encajan con una cola de milano.</p>
+          <label class="check"><input type="checkbox" id="plantDots" checked><span>Puntos para marcar con la aguja las líneas de referencia (asiento de las paredes, patas)</span></label>
+          <label class="check"><input type="checkbox" id="plantWin" checked><span>Ventanas en las piezas grandes: marco de 14 mm con travesaños (gasta la mitad y deja ver la arcilla)</span></label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="btnPlant3mf" type="button">Plantillas para calcar (3MF)</button></div>
+          <div class="hint" id="plantOut" style="margin-top:6px"></div>
+        </div>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="panel"><span>Panel decorativo en las paredes</span></label>
         <div class="grid2" id="panelOpts" style="margin-top:8px">
           <label class="f"><span>Forma del panel</span><select id="panelStyle"><option value="ventana">Ventana · esquinas entrantes</option><option value="recto">Rectángulo</option><option value="redondo">Esquinas redondeadas</option><option value="corte">Esquinas cortadas</option><option value="mokko">Mokko · esquinas en arco</option><option value="ovalo">Óvalo · medallón</option><option value="doble">Doble marco</option></select></label>
@@ -4768,7 +4776,7 @@
       }
       if(s.plasterMode){ set('L',`maceta cocida · hueco del molde en crudo ${cm(s.L*s.pk)}`); set('W',s.type==='round'?'igual al diámetro':SHP(s)?'igual: medida entre caras':`maceta cocida · hueco del molde ${cm(s.W*s.pk)}`); set('H',`maceta cocida · hueco del molde ${cm(s.H*s.pk)}`); set('feet',`en crudo ${cm(s.feet*s.pk)}`); set('lip','');
         $('h_pCast').textContent=`colar ≈ ${castMin(s)} min · en crudo ${String(Math.round(s.pCast*s.pk*10)/10).replace('.',',')} mm`; $('panelMode').value='relieve'; $('panelWhere').value='largas'; $('panelMode').disabled=true; $('panelWhere').disabled=true; }
-      $('t').closest('label').hidden=!!s.plasterMode; $('shrinkF').hidden=!clay||!!s.plasterMode; $('clayBuild').hidden=!!s.plasterMode; $('nest').closest('label').hidden=!!s.plasterMode;
+      $('t').closest('label').hidden=!!s.plasterMode; $('shrinkF').hidden=!clay||!!s.plasterMode; $('clayBuild').hidden=!!s.plasterMode; $('plantBox').hidden=!!s.plasterMode; $('nest').closest('label').hidden=!!s.plasterMode;
       $('clayOpts').querySelector('h2').textContent=s.plasterMode?'Panel decorativo (en relieve, paredes largas)':'Construcción en placas';
       renderFicha(s,b); renderReco(s,b,guard);
       if(s.plasterMode) $('h_pThick').textContent=$('pThick').value==='auto'?`${s.pThick} mm para esta maceta`:`recomendado ${recPlaster(s)} mm para esta maceta`;
@@ -5053,7 +5061,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},plantilla:{infill:15,walls:2},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -5295,11 +5303,111 @@
   }
   // Piezas tal como se imprimen en la sección actual (maceta con patas aparte, molde, mesa o madre + caja), con nombre
   // y, si está la casilla «Ajustes recomendados», el ajuste de cada una en el nombre.
+  // PLANTILLAS RÍGIDAS PARA CALCAR (pedido del usuario: imprimir en 3D las piezas de arcilla para calcarlas sobre la placa).
+  // Cada pieza de clayPieces (sin anidar) sale como una placa de PLT.t mm con su contorno de corte: los elementos con el trazo
+  // CUT (0,35), agujeros incluidos, muestreados del SVG ya dibujado (getPointAtLength + getScreenCTM, así valen transformaciones
+  // y arcos). Se rasteriza a 0,1 mm y se vuelve a contornear con rasterLoops (error < 0,1 mm): partir una pieza que no cabe en
+  // la cama, abrir los puntos y poner el nombre es pintar la máscara. Puntos pasantes de Ø 1,6 mm cada 10 mm sobre las líneas
+  // de referencia (REF y los puntos gruesos de las patas), a más de 2,4 mm de cualquier borde, para marcarlas con la aguja.
+  // Nombre en relieve de PLT.tx mm, al mayor tamaño que quepa (3,5–8 mm). Las partes de una pieza partida se unen con una
+  // cola de milano por tramo de borde (la cabeza en la parte izquierda, el hueco 0,15 mm mayor en la otra).
+  const PLT={px:10,t:2.4,tx:0.8,dot:0.8,step:10,clr:0.15,rim:14};
+  function plantillaGeom(p){
+    const host=document.createElement('div'); host.style.cssText='position:fixed;left:-99999px;top:0;width:10px;height:10px;overflow:hidden;pointer-events:none';
+    host.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${p.w}" height="${p.h}" viewBox="0 0 ${p.w} ${p.h}">${p.inner}</svg>`; document.body.appendChild(host);
+    const svg=host.firstChild, inv=svg.getScreenCTM().inverse();
+    const pts=(el,n,closed)=>{ const M=inv.multiply(el.getScreenCTM()), L=el.getTotalLength(), q=[]; for(let i=0;i<(closed?n:n+1);i++){ const a=el.getPointAtLength(L*i/n); q.push([M.a*a.x+M.c*a.y+M.e,M.b*a.x+M.d*a.y+M.f]); } return q; };
+    const subs=el=>{ if(el.tagName!=='path') return [el]; const d=el.getAttribute('d'), parts=d.split(/(?=[M])/).filter(x=>x.trim()); if(parts.length<2) return [el];
+      return parts.map(sd=>{ const c=el.cloneNode(); c.setAttribute('d',sd); el.parentNode.insertBefore(c,el); return c; }); };
+    const loops=[], seen=new Set();
+    svg.querySelectorAll('[stroke-width="0.35"],[stroke-width=".35"]').forEach(el=>{ if(el.tagName==='line'||el.tagName==='polyline') return;
+      subs(el).forEach(e2=>{ const L=e2.getTotalLength(); if(L<1) return; const P=pts(e2,Math.max(16,Math.ceil(L/0.25)),true);
+        let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; P.forEach(([x,y])=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); });
+        const key=[x0,y0,x1,y1,L].map(v=>Math.round(v*2)).join(','); if(seen.has(key)) return; seen.add(key); loops.push(P); }); });
+    const refs=[]; svg.querySelectorAll('[stroke-dasharray]').forEach(el=>{ const w=+el.getAttribute('stroke-width'); if(!(w===0.25||w===1.3)||!el.getTotalLength) return; const L=el.getTotalLength(); if(L<4) return;
+      pts(el,Math.max(1,Math.round(L/PLT.step)),false).forEach(q=>refs.push(q)); });
+    host.remove(); return {loops,refs};
+  }
+  // contornos de una máscara (canvas negro sobre transparente) en mm, anidados
+  function maskRegions(cv,ox,oy){ const w=cv.width, h=cv.height, c2=document.createElement('canvas'); c2.width=w; c2.height=h; const g=c2.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,w,h); g.drawImage(cv,0,0);
+    const k=PLT.px; return nestLoops(rasterLoops(c2).map(L=>L.map(([x,y])=>[ox+x/k,oy+y/k]))); }
+  function plantillaParts(THREE,s,b,dots,wins){
+    const k=PLT.px, out=[], notes=[], bx=s.bedX-12, by=s.bedY-12, fits=(w,h)=>(w<=bx&&h<=by)||(w<=by&&h<=bx);
+    const pcs=clayPieces({...s,nest:false},b).filter(p=>!/Leyenda|Regla|Guía/.test(p.name));
+    pcs.forEach(p=>{
+      let {loops,refs}=plantillaGeom(p); if(!loops.length) return;
+      let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; loops.forEach(L=>L.forEach(([x,y])=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); }));
+      // una pieza más alta que ancha que no cabe se gira 90° (giro, nunca espejo) para partirla a lo largo de x
+      if(!fits(x1-x0,y1-y0)&&y1-y0>x1-x0){ const rot=([x,y])=>[y,-x]; loops=loops.map(L=>L.map(rot)); refs=refs.map(rot); [x0,y0,x1,y1]=[y0,-x1,y1,-x0]; }
+      const ox=x0-0.3, oy=y0-0.3, W=Math.ceil((x1-x0+0.6)*k), H=Math.ceil((y1-y0+0.6)*k), X=x=>(x-ox)*k, Y=y=>(y-oy)*k;
+      const body=document.createElement('canvas'); body.width=W; body.height=H; const g=body.getContext('2d'), P2=new Path2D();
+      loops.forEach(L=>{ L.forEach(([x,y],i)=>i?P2.lineTo(X(x),Y(y)):P2.moveTo(X(x),Y(y))); P2.closePath(); }); g.fillStyle='#000'; g.fill(P2,'evenodd');
+      let A=g.getImageData(0,0,W,H).data; const solid=(x,y)=>{ const i=Math.round(X(x)), j=Math.round(Y(y)); return i>=0&&j>=0&&i<W&&j<H&&A[4*(j*W+i)+3]>128; };
+      // partes: cortes a lo largo de x con una cola de milano por tramo de borde (sin puntos a menos de 10 mm del corte)
+      const len=x1-x0; let n=1; while(!fits(len/n+8,y1-y0)&&n<12) n++;
+      const cuts=[]; for(let i=1;i<n;i++) cuts.push(x0+len*i/n);
+      if(dots){ const ok=[]; refs.forEach(([x,y])=>{ if(!solid(x,y)||cuts.some(c=>Math.abs(x-c)<10)||ok.some(([u,v])=>Math.hypot(u-x,v-y)<6)) return; for(let a=0;a<16;a++){ const an=a*Math.PI/8; if(!solid(x+2.4*Math.cos(an),y+2.4*Math.sin(an))) return; } ok.push([x,y]); });
+        g.globalCompositeOperation='destination-out'; ok.forEach(([x,y])=>{ g.beginPath(); g.arc(X(x),Y(y),PLT.dot*k,0,2*Math.PI); g.fill(); }); g.globalCompositeOperation='source-over'; A=g.getImageData(0,0,W,H).data; }
+      // VENTANAS (piezas de más de 8 cm por lado): la plantilla queda como un marco de PLT.rim mm por el borde, que es lo que
+      // se calca y donde van los puntos del asiento (a 7 mm), con travesaños de 8 mm cada 7 cm, un aro de 5 mm alrededor de
+      // cada agujero unido por un travesaño, y una franja entera en la fila del nombre: gasta la mitad y deja ver la arcilla.
+      let win=null;
+      if(wins&&Math.min(x1-x0,y1-y0)>80){ win=document.createElement('canvas'); win.width=W; win.height=H; const wg=win.getContext('2d'); wg.fillStyle='#000'; wg.fill(P2,'evenodd');
+        wg.globalCompositeOperation='destination-out'; wg.lineJoin='round';
+        const reg=nestLoops(loops), path=L=>{ const q2=new Path2D(); L.forEach(([x,y],i)=>i?q2.lineTo(X(x),Y(y)):q2.moveTo(X(x),Y(y))); q2.closePath(); return q2; };
+        reg.forEach(r=>{ wg.lineWidth=2*(r.d%2?5:PLT.rim)*k; wg.stroke(path(r.L)); });
+        const bar=(x,y,w,h)=>wg.fillRect(X(x),Y(y),w*k,h*k), cxm=(x0+x1)/2, cym=(y0+y1)/2;
+        for(let x=cxm-Math.floor((cxm-x0)/70)*70;x<x1;x+=70) bar(x-4,y0,8,y1-y0);
+        for(let y=cym-Math.floor((cym-y0)/70)*70;y<y1;y+=70) bar(x0,y-4,x1-x0,8);
+        reg.filter(r=>r.d%2).forEach(r=>{ let u0=Infinity,u1=-Infinity,v0=Infinity,v1=-Infinity; r.L.forEach(([x,y])=>{ u0=Math.min(u0,x); u1=Math.max(u1,x); v0=Math.min(v0,y); v1=Math.max(v1,y); }); bar(x0,(v0+v1)/2-4,x1-x0,8); });
+        cuts.forEach(c=>bar(c-12,y0,24,y1-y0)); }
+      const tabs=cuts.map(c=>{ const ic=Math.round(X(c)), T2=[]; let j=0; while(j<H){ if(A[4*(j*W+ic)+3]<=128){ j++; continue; } let e=j; while(e<H&&A[4*(e*W+ic)+3]>128) e++;
+          const ya=oy+j/k, yb=oy+e/k, lm=yb-ya; j=e; if(lm<14) continue; const hn=Math.min(5,0.2*lm), hh=hn*1.6, dep=Math.min(7,0.3*len/n), nt=lm>120?2:1;
+          // una cola (dos si el tramo pasa de 12 cm), corrida si cae sobre un agujero o un punto: toda su área, con 1 mm de margen, sobre la placa
+          for(let t2=0;t2<nt;t2++){ const y0t=ya+lm*(t2+0.5)/nt;
+            for(const dy of [0,-0.12,0.12,-0.22,0.22].map(f=>f*lm/nt)){ const ym=y0t+dy; if(ym-hh<ya+3||ym+hh>yb-3) continue;
+              let ok=true; for(let x=c-2;x<=c+dep+1&&ok;x+=0.5) for(let y=ym-hh-1;y<=ym+hh+1;y+=0.5) if(!solid(x,y)){ ok=false; break; }
+              if(ok){ T2.push([[c-0.6,ym-hn],[c+dep,ym-hh],[c+dep,ym+hh],[c-0.6,ym+hn]]); break; } } } }
+        return T2; });
+      const base=p.name.replace(/\s*\(.*?\)/g,'').trim(), lbl=base+(p.qty>1?` ×${p.qty}`:'');
+      for(let i=0;i<n;i++){
+        const a=i?cuts[i-1]:x0-1, e=i<n-1?cuts[i]:x1+1, ia=Math.max(0,Math.floor(X(a))-2), ib=Math.min(W,Math.ceil(X(e+8))+2), Wl=ib-ia;
+        const sc=document.createElement('canvas'); sc.width=Wl; sc.height=H; const q=sc.getContext('2d'), keep=new Path2D(); q.translate(-ia,0);
+        keep.rect(X(a),0,X(e)-X(a),H); if(i<n-1) tabs[i].forEach(P=>{ P.forEach(([x,y],m)=>m?keep.lineTo(X(x),Y(y)):keep.moveTo(X(x),Y(y))); keep.closePath(); });
+        q.fillStyle='#000'; q.fill(keep,'nonzero'); q.globalCompositeOperation='destination-in'; q.drawImage(body,0,0);
+        if(i){ q.globalCompositeOperation='destination-out'; q.lineWidth=2*PLT.clr*k; q.lineJoin='miter'; tabs[i-1].forEach(P=>{ const h2=new Path2D(); P.forEach(([x,y],m)=>m?h2.lineTo(X(x),Y(y)):h2.moveTo(X(x),Y(y))); h2.closePath(); q.fill(h2); q.stroke(h2); }); }
+        q.globalCompositeOperation='source-over'; q.setTransform(1,0,0,1,0,0);
+        // nombre en relieve: el mayor tamaño (3,5–8 mm de alto) cuyo recuadro, con 1,2 mm de margen, queda todo sobre la placa
+        const M=q.getImageData(0,0,Wl,H).data, S=new Int32Array((Wl+1)*(H+1)); let sx=0,sy=0,sn=0;
+        for(let j=0;j<H;j++){ let r=0; for(let i2=0;i2<Wl;i2++){ const v=M[4*(j*Wl+i2)+3]>128?1:0; r+=v; S[(j+1)*(Wl+1)+i2+1]=S[j*(Wl+1)+i2+1]+r; if(v&&(i2&3)===0&&(j&3)===0){ sx+=i2; sy+=j; sn++; } } }
+        if(!sn) continue;
+        const full=(i0,j0,i1,j1)=>i0>=0&&j0>=0&&i1<=Wl&&j1<=H&&S[j1*(Wl+1)+i1]-S[j0*(Wl+1)+i1]-S[j1*(Wl+1)+i0]+S[j0*(Wl+1)+i0]===(i1-i0)*(j1-j0);
+        const tc=document.createElement('canvas'); tc.width=Wl; tc.height=H; const tg=tc.getContext('2d'); let placed=false, tRow=null;
+        const texts=[lbl+(n>1?` · ${i+1}/${n}`:''),lbl,base].filter((v,m,arr)=>arr.indexOf(v)===m);
+        const cx=sx/sn, cy=sy/sn;
+        for(const txt of texts){ for(let hm=8;hm>=3.5&&!placed;hm-=0.5){
+            tg.font=`700 ${100}px Arial, Helvetica, sans-serif`; const m0=tg.measureText(txt), asc=m0.actualBoundingBoxAscent, des=m0.actualBoundingBoxDescent, F=100*hm/(asc+des), tw=m0.width*F/100*k, th=hm*k, mg=1.2*k;
+            for(let dj=0;dj<H&&!placed;dj+=k){ for(const sgn of dj?[-1,1]:[1]){ for(let di=0;di<Wl&&!placed;di+=2*k){ for(const sg2 of di?[-1,1]:[1]){
+              const ci=cx+sg2*di, cj=cy+sgn*dj, i0=Math.floor(ci-tw/2-mg), i1=Math.ceil(ci+tw/2+mg), j0=Math.floor(cj-th/2-mg), j1=Math.ceil(cj+th/2+mg);
+              if(full(i0,j0,i1,j1)){ tRow=[j0,j1]; tg.font=`700 ${F*k}px Arial, Helvetica, sans-serif`; tg.textAlign='center'; tg.textBaseline='alphabetic'; tg.fillStyle='#000'; tg.fillText(txt,ci,cj+(asc-des)/2*F/100*k); placed=true; break; } } } if(placed) break; } } }
+          if(placed) break; }
+        if(win){ const wc=document.createElement('canvas'); wc.width=Wl; wc.height=H; const wq=wc.getContext('2d'); wq.drawImage(win,-ia,0); wq.globalCompositeOperation='destination-out';
+          if(tRow) wq.fillRect(0,tRow[0]-1.5*k,Wl,tRow[1]-tRow[0]+3*k); q.globalCompositeOperation='destination-out'; q.drawImage(wc,0,0); q.globalCompositeOperation='source-over'; }
+        const T=[], oxl=ox+ia/k; maskRegions(sc,oxl,oy).filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,0,PLT.t,T));
+        if(placed) maskRegions(tc,oxl,oy).filter(r=>r.d%2===0).forEach(r=>prismXZ(THREE,r.L,r.kids,PLT.t-0.2,PLT.t+PLT.tx,T));
+        if(!T.length) continue; const TP=[]; for(let m=0;m<T.length;m+=3) TP.push(T[m],-T[m+2],T[m+1]);
+        out.push({name:`Plantilla: ${base}${p.qty>1?` (calcar ×${p.qty})`:''}${n>1?` · parte ${i+1} de ${n}`:''}`,T:TP});
+      }
+      if(n>1) notes.push(`${base}: ${n} partes con cola de milano`);
+    });
+    return {parts:out,notes};
+  }
   async function exportPieces(s,b,kit){
     let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three'); await prepareSeal(s);
     const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&recOf(key); return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
     const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F,set:pieceOpts({key},o)}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
+    if(kit==='plantillas'){ const R2=plantillaParts(THREE,s,b,$('plantDots').checked,$('plantWin').checked); R2.parts.forEach(q=>add(q.name,q.T,'plantilla')); out.notes=R2.notes; return out; }
     if(kit==='pintest'){ const blk=blindBlockTris(THREE,0,0,0,0,6,[-12,0,12].map(x=>({c:[x,0],hole:PIN.hole,hf:PIN.hp})),[[-19,-7],[19,-7],[19,7],[-19,7]]), TB=[];
       for(let i=0;i<blk.length;i+=3) TB.push(blk[i],blk[i+2],-blk[i+1]);   // agujeros en la cama, como en la maceta y las patas
       add('Taco de prueba con 3 agujeros (agujeros abajo)',TB,'kit');
@@ -5339,8 +5447,8 @@
   async function export3MF(outId,kit){
     if(!last3) return; await ensureAuto(t=>{ $(outId).textContent=t; }); const out=$(outId), {s,b}=last3, mm=x=>String(Math.round(x)/10).replace('.',',');
     out.textContent='Preparando el 3MF…'; await new Promise(r=>setTimeout(r,20));
-    const P=await exportPieces(s,b,kit), what=kit==='pintest'?'prueba-ajuste-espigas':kit==='sello'?'sellos-legado-bonsai':kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?(s.pskinMode?'contramolde-yeso':s.v2Mode?'molde-yeso-v2':'molde-yeso'):s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
-    const nm=kit==='pintest'?`${PIN.d}mm-agujero-${String(PIN.hole).replace('.',',')}mm`:kit==='sello'?[s.sello.keys.some(k=>!SELLO_HF[k])?`${String(s.sello.w/10).replace('.',',')}cm`:'',s.sello.keys.some(k=>SELLO_HF[k])?`montana-${String(s.sello.wm/10).replace('.',',')}cm`:'',s.sello.mode==='relieve'?'relieve':'grabado'].filter(Boolean).join('-'):kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const P=await exportPieces(s,b,kit), what=kit==='plantillas'?'plantillas-arcilla':kit==='pintest'?'prueba-ajuste-espigas':kit==='sello'?'sellos-legado-bonsai':kit==='box'?'caja-piso-y-paredes':kit==='walls'?'juego-de-paredes-universales':kit==='num'?'juego-de-numeros':kit?'juego-de-escuadras':s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')?(s.mode==='mold'?'molde-silicona-mesa':'mesa'):s.mode==='plaster'?(s.pskinMode?'contramolde-yeso':s.v2Mode?'molde-yeso-v2':'molde-yeso'):s.mode==='mold'?(s.skinMode?'contramolde':'molde'):'maceta-para-imprimir';
+    const nm=kit==='plantillas'?(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''):kit==='pintest'?`${PIN.d}mm-agujero-${String(PIN.hole).replace('.',',')}mm`:kit==='sello'?[s.sello.keys.some(k=>!SELLO_HF[k])?`${String(s.sello.w/10).replace('.',',')}cm`:'',s.sello.keys.some(k=>SELLO_HF[k])?`montana-${String(s.sello.wm/10).replace('.',',')}cm`:'',s.sello.mode==='relieve'?'relieve':'grabado'].filter(Boolean).join('-'):kit==='box'?(s.cajaDims&&s.cajaDims.modular?'modular-':'')+`${String(s.cajaDims?s.cajaDims.L/10:33).replace('.',',')}x${String(s.cajaDims?s.cajaDims.W/10:26).replace('.',',')}x${String(s.cajaDims?s.cajaDims.H/10:15).replace('.',',')}cm`:kit==='walls'?'molinete':kit==='num'?'fichas':kit?'melamina':(current?current.name:shapeName(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const beds=planBeds(P,s), nb=beds.length; let mb=0;
     if(await bambuConfig()){ const blob=await make3MF(beds,s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}`); mb=blob.size; download(blob,`${what}-${nm}${$('pFil').value==='PETG'?'-petg':''}.3mf`); }
     else for(let k=0;k<nb;k++){ const blob=await make3MF(beds[k],s,`Legado Bonsai — ${what.replace(/-/g,' ')} ${nm}${nb>1?` · cama ${k+1} de ${nb}`:''}`); mb+=blob.size; download(blob,`${what}-${nm}${nb>1?`-cama-${k+1}-de-${nb}`:''}.3mf`); if(k<nb-1) await new Promise(r=>setTimeout(r,700)); }
@@ -5361,6 +5469,7 @@
     download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (placa en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
   ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMt','slT','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnPinTest').addEventListener('click',()=>export3MF('printOut','pintest'));
+  $('btnPlant3mf').addEventListener('click',()=>{ if(!last3||last3.s.mat!=='clay'){ $('plantOut').textContent='Elige la sección Arcilla.'; return; } export3MF('plantOut','plantillas'); });
   $('btnMold3mf').addEventListener('click',()=>export3MF('moldOut')); $('btnPrint3mf').addEventListener('click',()=>export3MF('printOut')); $('btnTable3mf').addEventListener('click',()=>export3MF('tableOut'));
   const showMold=()=>setMode('mold');
   document.body.dataset.mode='clay'; $('modeHint').textContent=MODE_HINT.clay;
