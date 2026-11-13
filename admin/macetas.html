@@ -4996,14 +4996,22 @@
     SCALED.forEach(id=>{ const [lo,hi,st]=lim[id]; const v=Math.min(hi,Math.max(lo,Math.round(baseline[id]*k/st)*st)); $(id).value=Math.round(v*100)/100; });
     return true;
   }
+  // Pared de cemento elegida por el usuario: se recuerda (también al recargar) y al volver a cemento no se pisa con la del
+  // modelo (antes subía a 1,8 cm al cambiar de arcilla a cemento).
+  const WALL_KEY='legadoParedCemento'; let wallMem=null, clayMem=null; try{ const v=parseFloat(localStorage.getItem(WALL_KEY)); if(v>0) wallMem=v; }catch(e){}
+  const keepWall=()=>{ if($('matClay').checked) return; const v=+$('t').value; if(v>0){ wallMem=v; try{ localStorage.setItem(WALL_KEY,String(v)); }catch(e){} } };
   function switchMaterial(){
-    const clay=$('matClay').checked;
+    const clay=$('matClay').checked, prev=+$('t').value;
+    // el campo #t es compartido: al cambiar, lo que tenía es el grosor del material anterior (placa de arcilla o pared de cemento)
+    if(prev>0){ if(clay) wallMem=prev; else clayMem=prev; }
     const f=$('finish'); if(clay&&['gris','oxido','negro'].includes(f.value)) f.value='shudei'; if(!clay&&!['gris','oxido','negro'].includes(f.value)) f.value='gris';
     if(current){
       const Lprev=+$('L').value; applyPreset(current.id);
       if($('prop').checked&&Math.abs(Lprev-current.L)>0.01){ $('L').value=Lprev; scaleFromL(); render(); snapBaseline(); } // conserva el tamaño escalado
     }
     else { if(!clay){ if(+$('t').value<1.2) $('t').value=1.8; $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); baseHint(); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); snapBaseline(); }
+    if(clay&&clayMem&&Math.abs(+$('t').value-clayMem)>0.01){ $('t').value=clayMem; render(); snapBaseline(); }
+    if(!clay&&wallMem&&Math.abs(+$('t').value-wallMem)>0.01){ $('t').value=wallMem; $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,wallMem); baseHint(); render(); snapBaseline(); }
   }
   const sel=$('preset');
   sel.innerHTML=PRESETS.map(p=>`<option value="${p.id}">${esc(p.style)} — ${esc(p.name)} ${p.type==='round'?'Ø'+p.L:(p.type==='hex'||p.type==='oct')?p.L+' e/caras':p.L+'×'+p.W}×${p.H}</option>`).join('')+'<option value="custom">Personalizada</option>';
@@ -5623,6 +5631,7 @@
   ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMt','slT','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnPinTest').addEventListener('click',()=>export3MF('printOut','pintest'));
   $('cemSys').addEventListener('change',()=>render()); $('cemDual').addEventListener('change',()=>render());
+  $('t').addEventListener('input',keepWall);
   [['cemT','t'],['cemB','base']].forEach(([a,c])=>$(a).addEventListener('input',()=>{ $(c).value=$(a).value; $(c).dispatchEvent(new Event('input',{bubbles:true})); $(c).dispatchEvent(new Event('change',{bubbles:true})); }));
   $('caPlay').addEventListener('click',()=>{ const st=handAnim.st; if(!st) return; st.play=!st.play; $('caPlay').textContent=st.play?'⏸':'▶︎'; $('caPlay').setAttribute('aria-label',st.play?'Pausa':'Reproducir'); });
   $('caPrev').addEventListener('click',()=>{ const st=handAnim.st; if(!st||!st.N) return; st.U=((Math.floor(st.U)-1)%st.N+st.N)%st.N; });
