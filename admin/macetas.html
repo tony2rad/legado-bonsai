@@ -5497,7 +5497,8 @@
       const see=k===3||k===8||k===9; exts.forEach(G=>G.traverse(o=>{ if(o.material){ o.material.transparent=see; o.material.opacity=see?0.28:1; o.material.depthWrite=!see; } }));
       skin.traverse(o=>{ if(o.material){ o.material.opacity=k===8||k===9?0.32:0.8; o.material.depthWrite=false; } });
       $('skTxt').textContent=SK_STEPS[k]; };
-    set(0); const box=new THREE.Box3().setFromObject(all); box.expandByPoint(new THREE.Vector3(potX+Math.max(s.L,s.W)/2,0,0)); box.expandByPoint(new THREE.Vector3(0,yTop+up,0));
+    // la vista general encuadra solo el molde (la maceta terminada tiene su propia vista en el último paso)
+    set(0); const box=new THREE.Box3(); [madre,base,...exts].forEach(o=>box.expandByObject(o)); box.expandByPoint(new THREE.Vector3(0,yTop+up*0.4,0));
     return {grp,set,N,box,focus:{c:new THREE.Vector3(potX,Hp/2,0),r:new THREE.Box3().setFromObject(pot).getSize(new THREE.Vector3()).length()/2+12}}; }
   async function skinAnim(s,b){ const cv=$('skAnimCv'); if(!cv) return; const st=skinAnim.st||(skinAnim.st={U:0,play:true});
     let THREE; try{ THREE=await import('three'); }catch(e){ $('skTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
@@ -5519,8 +5520,8 @@
     let S; try{ S=skinScene(THREE,s,b); }catch(e){ $('skTxt').textContent='No se pudo armar la animación para este diseño.'; return; }
     st.scene=S; st.N=S.N; st.sc.add(S.grp);
     const c=S.box.getCenter(new THREE.Vector3()), rad=S.box.getSize(new THREE.Vector3()).length()/2; st.table.scale.setScalar(rad*40); c.y*=0.55;
-    const dir=new THREE.Vector3(-0.25,0.6,-1).normalize();
-    st.ctl.target.copy(c); st.cam.position.copy(c).add(dir.clone().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.5)); st.ctl.minDistance=rad*0.2; st.ctl.maxDistance=rad*8; st.ctl.update();
+    const dir=new THREE.Vector3(-0.25,0.6,-1).normalize(), asp=cv.clientWidth&&cv.clientHeight?cv.clientWidth/cv.clientHeight:1.33;
+    st.ctl.target.copy(c); st.cam.position.copy(c).add(dir.clone().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.62*Math.max(1,1.5/asp))); st.ctl.minDistance=rad*0.2; st.ctl.maxDistance=rad*8; st.ctl.update();
     st.home={t:st.ctl.target.clone(),p:st.cam.position.clone()}; st.focusView={t:S.focus.c.clone(),p:S.focus.c.clone().add(dir.multiplyScalar(S.focus.r/Math.sin(15*Math.PI/180)*0.75))}; st.kPrev=null; }
   async function handAnim(s,b){ const cv=$('cemAnimCv'); if(!cv) return; const st=handAnim.st||(handAnim.st={U:0,play:true});
     let THREE; try{ THREE=await import('three'); }catch(e){ $('caTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
