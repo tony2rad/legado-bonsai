@@ -39,6 +39,8 @@
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
   .mold-lead{font-size:12.5px;line-height:1.45;color:var(--muted);margin:6px 0 10px}
 #cemAnim{margin:8px 0}#cemAnim canvas{width:100%;height:230px;display:block;border-radius:8px}#cemAnim .ca-bar{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}#cemAnim .ca-bar .btn{padding:4px 10px}#caTxt{flex:1 1 140px;font-size:12px;line-height:1.35;color:var(--muted)}
+#skAnim{margin:8px 0}#skAnim canvas{width:100%;height:230px;display:block;border-radius:8px}#skAnim .ca-bar{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}#skAnim .ca-bar .btn{padding:4px 10px}#skTxt{flex:1 1 140px;font-size:12px;line-height:1.35;color:var(--muted)}
+#skAnim.big{position:fixed;inset:4vh 4vw;z-index:300;margin:0;background:var(--panel,#1d2621);padding:12px;border-radius:12px;box-shadow:0 12px 50px rgba(0,0,0,.55);display:flex;flex-direction:column}#skAnim.big canvas{flex:1 1 0;min-height:0;height:auto}#skAnim.big #skTxt{font-size:15px}
 #cemAnim.big{position:fixed;inset:4vh 4vw;z-index:300;margin:0;background:var(--panel,#1d2621);padding:12px;border-radius:12px;box-shadow:0 12px 50px rgba(0,0,0,.55);display:flex;flex-direction:column}#cemAnim.big canvas{flex:1 1 0;min-height:0;height:auto}#cemAnim.big #caTxt{font-size:15px}
   .mold-out{font-size:12.5px;line-height:1.45;margin-top:10px;display:grid;gap:8px}
   .mold-out table{width:100%;border-collapse:collapse;font:12px/1.4 var(--mono);font-variant-numeric:tabular-nums}
@@ -425,6 +427,8 @@
       <div class="grid2">
         <label class="f" style="grid-column:1/-1"><span>Grosor de la piel <b>mm</b></span><select id="skinT"><option value="8">8 · silicona de platino o macetas chicas</option><option value="10" selected>10 · silicona de condensación (estaño)</option><option value="12">12 · macetas grandes o con labio ancho</option></select></label>
       </div>
+      <figure id="skAnim"><canvas id="skAnimCv" aria-label="Animación: para qué sirve cada pieza del contramolde"></canvas>
+        <figcaption class="ca-bar"><button class="btn ghost" id="skPrev" type="button" aria-label="Paso anterior">◀</button><button class="btn ghost" id="skPlay" type="button" aria-label="Pausa">⏸</button><button class="btn ghost" id="skNext" type="button" aria-label="Paso siguiente">▶</button><button class="btn ghost" id="skBig" type="button" aria-label="Ver en grande">⛶</button><span id="skTxt"></span></figcaption></figure>
     </details>
     <details class="gloss" id="moldBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Molde para imprimir en 3D</summary>
@@ -4664,7 +4668,7 @@
       if(document.activeElement!==$('cemT')) $('cemT').value=$('t').value; if(document.activeElement!==$('cemB')) $('cemB').value=$('base').value;
       $('cemTNote').innerHTML=`El grosor de la maceta lo da la <b>distancia entre los dos perfiles</b> (el de cemento menos el de arena), no el grosor del plástico. Ahora: pared de ${cm(s.t)} cm y fondo de ${cm(s.base)} cm; cámbialos aquí y los dos perfiles se recalculan. Con mortero con fibra, 0,8–1 cm sirve hasta unos 25 cm de largo.`;
       if(mano) handAnim(s,b); }
-    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
+    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; if(s.skinMode&&s.obj!=='mesa') prepareSeal(s).then(()=>skinAnim(s,b)).catch(()=>{}); else if($('skAnim').classList.contains('big')) $('skBig').click(); $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable||!!s.plasterMode;
@@ -5454,6 +5458,70 @@
     set(0); const box=new THREE.Box3().setFromObject(grp); box.expandByPoint(new THREE.Vector3(span/2+Math.max(s.L,s.W)+45,0,0));
     const pr2=new THREE.Box3().setFromObject(pot).getSize(new THREE.Vector3()).length()/2;
     return {grp,set,N,box,focus:{c:new THREE.Vector3(potX(span),H*0.5,0),r:pr2+12}}; }
+  // ANIMACIÓN DEL CONTRAMOLDE (el usuario no entendía para qué sirve cada pieza): las piezas de buildMold en su sitio del
+  // molde armado (y = H − Y, boca abajo, como moldGroup), en 12 pasos. Parte A: madre, mitades del contramolde, perfiles de
+  // cierre, la silicona que sube (plano de corte) y la piel que sale. Parte B: base y núcleo, la piel encima, las mitades y
+  // los perfiles, el mortero que sube, la placa de patas con el logotipo, el desmolde y la maceta que se voltea.
+  const SK_STEPS=['Parte A · 1. La MADRE es tu maceta en positivo sobre su placa de vertido. Ponla en la mesa y pásale desmoldante.','2. Cierra las dos mitades del CONTRAMOLDE alrededor de la madre: entran en la ranura de la placa y dejan entre las dos el espacio de la piel.','3. Desliza los PERFILES DE CIERRE por las juntas y pon los pernos: aprietan las dos mitades. Sella las juntas con plastilina.','4. Vierte la silicona en un hilo fino por arriba, sin parar, hasta llenar el espacio. Deja curar 12–24 h.','5. Quita los perfiles, abre las mitades y saca la PIEL DE SILICONA de la madre. La madre ya no se usa: guárdala para otra piel.','Parte B · 6. Pon la BASE (el marco) en la mesa y encaja el NÚCLEO en su anillo, con las espigas: el núcleo forma el hueco de la maceta.','7. Pon la piel de silicona sobre la base, alrededor del núcleo: entre los dos queda la pared de la maceta.','8. Cierra otra vez las mitades del contramolde por fuera de la piel y desliza los perfiles: sostienen la piel para que no se deforme.','9. Echa el mortero con fibra por arriba, en capas, apisonando, hasta el borde. Es la maceta, colada boca abajo.','10. Pon la PLACA DE PATAS con el LOGOTIPO y presiona hasta el clic: forma el fondo, las patas y la firma. Cura 24 h.','11. Desmolda: quita la placa y los perfiles, abre las mitades, despega la piel doblándola y levanta la maceta del núcleo.','12. Voltea la maceta: queda boca arriba. Cura 7 días húmeda. La piel, el contramolde, la base y el núcleo sirven para la siguiente.'];
+  function skinScene(THREE,s,b){
+    const MD=buildMold(THREE,s,b), H=s.H, grp=new THREE.Group(), all=new THREE.Group(); grp.add(all);
+    const mesh=(T,color,mat={})=>{ const pos=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ pos[i]=T[i]; pos[i+1]=H-T[i+1]; pos[i+2]=-T[i+2]; }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.computeVertexNormals();
+      return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true},mat))); };
+    const P=k=>MD.parts.filter(pt=>pt.key===k||(k==='ext'&&/^ext\d/.test(pt.key))), grpOf=(list,color,mat)=>{ const G=new THREE.Group(); list.forEach(pt=>G.add(mesh(pt.T,color??pt.color,mat))); all.add(G); return G; };
+    const fill=new THREE.Plane(new THREE.Vector3(0,-1,0),0);
+    const madre=grpOf(P('madre'),0xb98c5a), base=grpOf(P('base'),0x5f7a68), nucleo=grpOf(P('nucleo'),0xd8be8a), feet=grpOf(P('feet').concat(P('sello')),0x9c8fbe);
+    const skin=grpOf(P('skin'),0xe58fa0,{transparent:true,opacity:0.78,flatShading:false,clippingPlanes:[fill]});
+    const exts=P('ext').map(pt=>{ const G=grpOf([pt],pt.color); const e=pt.explode||[0,0,0]; G.userData.v=new THREE.Vector3(e[0],0,-e[2]).multiplyScalar(1.3); return G; });
+    const clips=P('cierre').map(pt=>{ const G=grpOf([pt],0xd9773a); return G; });
+    // mortero = la maceta boca abajo en su sitio (como el fantasma de moldGroup), recortada mientras sube
+    const mort=potGroup(THREE,s,b,{tree:false,cut:false}); mort.rotation.x=Math.PI; mort.position.y=H; mort.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.clippingPlanes=[fill]; } }); all.add(mort);
+    // la maceta terminada que se voltea al final
+    const pot=potGroup(THREE,s,b,{tree:false,cut:false}), pb=new THREE.Box3().setFromObject(pot), Hp=pb.max.y-pb.min.y, piv=new THREE.Group(); pot.position.y=-pb.min.y-Hp/2; piv.add(pot); grp.add(piv);
+    // apoyado en la mesa: lo más bajo del molde armado en y = 0
+    const bb=new THREE.Box3(); [madre,base,...exts].forEach(o=>bb.expandByObject(o)); all.position.y=-bb.min.y; const lift=all.position.y, yTop=bb.max.y+lift, yBot=0;
+    const span=bb.max.x-bb.min.x, potX=bb.max.x+Math.max(s.L,s.W)/2+40, e=x=>x<=0?0:x>=1?1:x*x*(3-2*x), N=SK_STEPS.length, up=Math.max(60,H*1.3);
+    const set=U=>{ const k=Math.floor(U)%N, pr=U-Math.floor(U), q=e(pr/0.8);
+      madre.visible=k<=4; madre.position.y=k===0?(1-e(pr/0.6))*up:0;
+      exts.forEach(G=>{ let o=1; if(k===1||k===7) o=1-q; else if((k>=2&&k<=3)||(k>=8&&k<=9)) o=0; else if(k===4||k===10) o=q; G.visible=(k>=1&&k<=4)||(k>=7&&k<=10); G.position.copy(G.userData.v).multiplyScalar(o); });
+      clips.forEach(G=>{ let y=up; if(k===2||k===7) y=up*(1-q); else if(k===3||k===8||k===9) y=0; else if(k===4||k===10) y=up*q; G.visible=(k>=2&&k<=4)||(k>=7&&k<=10); G.position.y=y; });
+      skin.visible=k>=3&&k<=10; if(k===3) fill.constant=yBot+(yTop-yBot)*q; else fill.constant=1e6;
+      skin.position.y=k===4?up*0.9*q:k===5?up*0.9:k===6?up*0.9*(1-q):k===10?up*0.9*e((pr-0.3)/0.5):0;
+      base.visible=nucleo.visible=k>=5; base.position.y=nucleo.position.y=k===5?(1-q)*up:0;
+      mort.visible=k>=8&&k<=10&&!(k===10&&pr>0.85); mort.traverse(o=>{ if(o.material) o.material.clippingPlanes=k===8?[fill]:[]; }); if(k===8) fill.constant=yBot+(yTop-yBot)*q;
+      if(k===8) skin.traverse(o=>{ if(o.material) o.material.clippingPlanes=[]; }); else skin.traverse(o=>{ if(o.material) o.material.clippingPlanes=[fill]; });
+      mort.position.y=H+(k===10?e((pr-0.55)/0.3)*up*0.5:0);
+      feet.visible=k>=9&&k<=10; feet.position.y=k===9?(1-q)*up:k===10?q*up:0;
+      piv.visible=k===11||(k===10&&pr>0.85); const f=k===11?e(pr/0.6):0, y0=lift+H/2+up*0.5; piv.rotation.x=Math.PI*(1-f); piv.position.set(f*potX,(1-f)*y0+f*Hp/2+Math.sin(Math.PI*f)*Hp*0.5,0);
+      // mientras se vierte (silicona o mortero) el contramolde se ve translúcido para que se vea lo que sube por dentro
+      const see=k===3||k===8||k===9; exts.forEach(G=>G.traverse(o=>{ if(o.material){ o.material.transparent=see; o.material.opacity=see?0.28:1; o.material.depthWrite=!see; } }));
+      skin.traverse(o=>{ if(o.material){ o.material.opacity=k===8||k===9?0.32:0.8; o.material.depthWrite=false; } });
+      $('skTxt').textContent=SK_STEPS[k]; };
+    set(0); const box=new THREE.Box3().setFromObject(all); box.expandByPoint(new THREE.Vector3(potX+Math.max(s.L,s.W)/2,0,0)); box.expandByPoint(new THREE.Vector3(0,yTop+up,0));
+    return {grp,set,N,box,focus:{c:new THREE.Vector3(potX,Hp/2,0),r:new THREE.Box3().setFromObject(pot).getSize(new THREE.Vector3()).length()/2+12}}; }
+  async function skinAnim(s,b){ const cv=$('skAnimCv'); if(!cv) return; const st=skinAnim.st||(skinAnim.st={U:0,play:true});
+    let THREE; try{ THREE=await import('three'); }catch(e){ $('skTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
+    if(!st.r){ if(st.loading) return; st.loading=true; let OC; try{ ({OrbitControls:OC}=await import('three/addons/controls/OrbitControls.js')); }catch(e){ st.loading=false; return; }
+      const r=new THREE.WebGLRenderer({canvas:cv,antialias:true}); r.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); r.localClippingEnabled=true;
+      const sc=new THREE.Scene(); sc.background=new THREE.Color(0xf3efe6); sc.add(new THREE.HemisphereLight(0xffffff,0x8a8478,1.3));
+      const sun=new THREE.DirectionalLight(0xffffff,1.7); sun.position.set(-300,500,-400); sc.add(sun); const fl=new THREE.DirectionalLight(0xffffff,0.5); fl.position.set(400,200,300); sc.add(fl);
+      const table=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xd8c7a6,roughness:0.95})); table.rotation.x=-Math.PI/2; table.position.y=-0.05; sc.add(table);
+      const cam=new THREE.PerspectiveCamera(30,4/3,1,20000), ctl=new OC(cam,cv); ctl.enableDamping=true; ctl.enablePan=false; ctl.maxPolarAngle=Math.PI*0.48;
+      const fit=()=>{ const w=cv.clientWidth, h=cv.clientHeight; if(w&&h&&(st.w!==w||st.h!==h)){ st.w=w; st.h=h; r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } };
+      Object.assign(st,{r,sc,cam,ctl,table,fit,last:performance.now()}); st.loading=false;
+      const loop=now=>{ requestAnimationFrame(loop); const dt=Math.min(0.1,(now-st.last)/1000); st.last=now; if(!cv.isConnected||!cv.getClientRects().length) return; fit();
+        if(st.scene){ if(st.play) st.U=(st.U+dt/5)%st.N; st.scene.set(st.U); const k=Math.floor(st.U)%st.N; if(k!==st.kPrev){ if(k===11||st.kPrev===11) st.fly=1.5; st.kPrev=k; }
+          if(st.fly>0&&st.home){ const W=k===11?st.focusView:st.home; ctl.target.lerp(W.t,0.09); cam.position.lerp(W.p,0.09); st.fly-=dt; } }
+        ctl.update(); r.render(sc,cam); };
+      requestAnimationFrame(loop); }
+    const key=JSON.stringify([s,PAN]); if(st.key===key) return; st.key=key;
+    if(st.scene){ st.sc.remove(st.scene.grp); st.scene.grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+    let S; try{ S=skinScene(THREE,s,b); }catch(e){ $('skTxt').textContent='No se pudo armar la animación para este diseño.'; return; }
+    st.scene=S; st.N=S.N; st.sc.add(S.grp);
+    const c=S.box.getCenter(new THREE.Vector3()), rad=S.box.getSize(new THREE.Vector3()).length()/2; st.table.scale.setScalar(rad*40); c.y*=0.55;
+    const dir=new THREE.Vector3(-0.25,0.6,-1).normalize();
+    st.ctl.target.copy(c); st.cam.position.copy(c).add(dir.clone().multiplyScalar(rad/Math.sin(15*Math.PI/180)*0.5)); st.ctl.minDistance=rad*0.2; st.ctl.maxDistance=rad*8; st.ctl.update();
+    st.home={t:st.ctl.target.clone(),p:st.cam.position.clone()}; st.focusView={t:S.focus.c.clone(),p:S.focus.c.clone().add(dir.multiplyScalar(S.focus.r/Math.sin(15*Math.PI/180)*0.75))}; st.kPrev=null; }
   async function handAnim(s,b){ const cv=$('cemAnimCv'); if(!cv) return; const st=handAnim.st||(handAnim.st={U:0,play:true});
     let THREE; try{ THREE=await import('three'); }catch(e){ $('caTxt').textContent='La animación necesita conexión a internet la primera vez.'; return; }
     if(!st.r){ if(st.loading) return; st.loading=true; let OC; try{ ({OrbitControls:OC}=await import('three/addons/controls/OrbitControls.js')); }catch(e){ st.loading=false; return; }
@@ -5642,6 +5710,13 @@
     download(await zipFiles(files),`sellos-legado-bonsai-${String(s.sello.w/10).replace('.',',')}cm.zip`); $('selloOut').textContent=`ZIP descargado con ${files.length} STL (placa en la cama, cara arriba; capa de 0,12 mm para que el dibujo salga fino).`; });
   ['slvC','slvB','slvE','slvA','slvD','slvM','slvG','slWm','slMt','slT','slMode','slW','slD','slFrame','slHandle'].forEach(id=>$(id).addEventListener('input',render));
   $('btnPinTest').addEventListener('click',()=>export3MF('printOut','pintest'));
+  $('skPlay').addEventListener('click',()=>{ const st=skinAnim.st; if(!st) return; st.play=!st.play; $('skPlay').textContent=st.play?'⏸':'▶︎'; $('skPlay').setAttribute('aria-label',st.play?'Pausa':'Reproducir'); });
+  $('skPrev').addEventListener('click',()=>{ const st=skinAnim.st; if(!st||!st.N) return; st.U=((Math.floor(st.U)-1)%st.N+st.N)%st.N; });
+  $('skNext').addEventListener('click',()=>{ const st=skinAnim.st; if(!st||!st.N) return; st.U=(Math.floor(st.U)+1)%st.N; });
+  { const home=document.createComment('skAnim'); $('skAnim').before(home);
+    const big=on=>{ const f=$('skAnim'); if(on){ document.body.append(f); f.classList.add('big'); } else { f.classList.remove('big'); home.after(f); } $('skBig').setAttribute('aria-label',on?'Cerrar':'Ver en grande'); $('skBig').textContent=on?'✕':'⛶'; };
+    $('skBig').addEventListener('click',()=>big(!$('skAnim').classList.contains('big')));
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('skAnim').classList.contains('big')) big(false); }); }
   $('cemSys').addEventListener('change',()=>render()); $('cemDual').addEventListener('change',()=>render());
   $('t').addEventListener('input',keepWall);
   [['cemT','t'],['cemB','base']].forEach(([a,c])=>$(a).addEventListener('input',()=>{ $(c).value=$(a).value; $(c).dispatchEvent(new Event('input',{bubbles:true})); $(c).dispatchEvent(new Event('change',{bubbles:true})); }));
