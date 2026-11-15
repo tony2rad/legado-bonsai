@@ -2594,7 +2594,7 @@
         holes.forEach(h=>{ const Li=circle(h.c,h.r,40), Lo=circle(h.c,bR(h),40), m=40, Yb=Yf+KC.boss;               // buje: tubo del agujero
           for(let j=0;j<m;j++){ const k=(j+1)%m; C.quad([Li[j][0],Yt,Li[j][1]],[Li[k][0],Yt,Li[k][1]],[Li[k][0],Yb,Li[k][1]],[Li[j][0],Yb,Li[j][1]]); C.quad([Lo[j][0],Yf,Lo[j][1]],[Lo[k][0],Yf,Lo[k][1]],[Lo[k][0],Yb,Lo[k][1]],[Lo[j][0],Yb,Lo[j][1]]); }
           fill2D(C,Lo,[Li],(u,v)=>[u,Yb,v]);
-          pegDefs.push({kind:h.kind,r0:h.r0,r1:h.r1,len:Yt-ft-0.2,h:KC.f+KC.boss}); });
+          pegDefs.push({kind:h.kind,c:h.c,r0:h.r0,r1:h.r1,len:Yt-ft-0.2,h:KC.f+KC.boss}); });
         // tabiques transversales en celosía, de la cara de adentro del piso hasta 2 mm antes del anillo del marco
         const zAt=(L,x)=>{ let zm=0; for(let q=0,m=L.length;q<m;q++){ const a=L[q], c=L[(q+1)%m]; if((a[0]-x)*(c[0]-x)>0||a[0]===c[0]) continue; const z=Math.abs(a[1]+(c[1]-a[1])*(x-a[0])/(c[0]-a[0])); if(z>zm) zm=z; } return zm; };
         const xr2=Math.min(...CI.map(r=>Math.max(...r.loop.map(p=>p[0])))), nf=Math.max(1,Math.round(2*xr2/KC.gap)), kz=Math.tan(55*Math.PI/180), Ya=Yf-0.4, Yb2=H-KC.ringH-2;
@@ -2613,8 +2613,8 @@
         notes.push(`Núcleo en casco: la base es un marco de ${cm(TB)} cm con la ranura y un anillo de ${KC.ringH} mm; el núcleo se imprime aparte, de pie sobre el piso de la maceta, con piel de ${String(KC.w).replace('.',',')} mm y tabiques en celosía, sin soportes. Encájalo en el anillo del marco (justo, ${String(KC.clr).replace('.',',')} mm de holgura) y sella la junta por dentro con un cordón de plastilina; mete las ${holes.length} espigas de drenaje y alambre por los agujeros del piso hasta los bujes.`);
       } else if(split>1&&s.moldCore!=='macizo'){
         const cwall=DOWEL.d+DOWEL.r+1.8, drR=P.dr+0.15, wrR=P.wr+0.25+0.15, bound=ringC(int[int.length-1][0]-w), Dtot=(YB)-Yr, mouths=[];
-        P.drains.forEach(d=>{ pegHoles.push({c:d,r:drR}); pegDefs.push({kind:'drenaje',r0:P.dr,r1:P.dr,len:Yt-ft-0.2,h:PEG_H}); });
-        if(split===4) P.wires.forEach(w2=>{ pegHoles.push({c:w2,r:wrR}); pegDefs.push({kind:'alambre',r0:P.wr,r1:P.wr+0.25,len:Yt-ft-0.2,h:PEG_H}); });
+        P.drains.forEach(d=>{ pegHoles.push({c:d,r:drR}); pegDefs.push({kind:'drenaje',c:d,r0:P.dr,r1:P.dr,len:Yt-ft-0.2,h:PEG_H}); });
+        if(split===4) P.wires.forEach(w2=>{ pegHoles.push({c:w2,r:wrR}); pegDefs.push({kind:'alambre',c:w2,r0:P.wr,r1:P.wr+0.25,len:Yt-ft-0.2,h:PEG_H}); });
         // siempre cuatro huecos (uno por cuadrante), también en mitades: así el puente de cada techo queda angosto. En mitades la
         // franja junto a z = 0 es solo de 3 mm (ahí no hay corte: los alambres siguen siendo postes y entran 0,5 mm en el macizo).
         // Techo: cada anillo es el contorno metido d hacia adentro (intersección de los semiplanos de sus lados, robusto en
@@ -2869,7 +2869,7 @@
     if(s.rim==='uchien') notes.push('El labio interno no se puede moldear (el núcleo no saldría): el núcleo se hace recto y el labio se forma a mano o se omite.');
     if(dC>s.flare+0.05) notes.push(`El núcleo lleva ${MOLD.DRAFT}° de salida para poder desmoldar: la cavidad es ${cm(dC-s.flare)} cm más estrecha abajo.`);
     if(s.panel) notes.push('El panel decorativo no se moldea: pégalo o tállalo después.');
-    return {parts,notes,seal,skin:SK?{t:SK,vol:skinVol,glove:GL,mortar:gMort,level:gLevel}:null,plate:plateKind,click:!!s.moldClick,baseSplit:s.moldBase==='cuartos'?4:s.moldBase==='mitades'?2:1,hw:{pins:nPins,used:pinHoles/2,pegs:pegsOut.length,bolt:s.moldBolt||0,boltLen:Math.ceil((2*MOLD.FS+9)/5)*5,at:pinAt,dowels:nDowK,dowSizes:[...new Set(dowR)].map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',','))}};
+    return {parts,notes,seal,skin:SK?{t:SK,vol:skinVol,glove:GL,mortar:gMort,level:gLevel}:null,plate:plateKind,click:!!s.moldClick,baseSplit:s.moldBase==='cuartos'?4:s.moldBase==='mitades'?2:1,hw:{pins:nPins,used:pinHoles/2,pegs:pegsOut.length,pegList:pegsOut.filter(q=>q.c).map(q=>({c:q.c,r0:q.r0,r1:q.r1,len:q.len,h:q.h,kind:q.kind})),bolt:s.moldBolt||0,boltLen:Math.ceil((2*MOLD.FS+9)/5)*5,at:pinAt,dowels:nDowK,dowSizes:[...new Set(dowR)].map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',','))}};
   }
   // Coordenadas de impresión (Z arriba, sin espejar): gajos con el canto inferior en la cama; base con núcleo con su cara
   // de abajo en la cama; placa de patas con la cara exterior en la cama; pasadores y cuñas tal cual (ya planos).
@@ -5556,7 +5556,7 @@
   // ANIMACIÓN DEL GUANTE: Parte A con la madre boca abajo (y = H − Y): carcasa, perfiles y tapa, la silicona que sube y el
   // guante que sale. Parte B derecha (y = Y): la tapa en la mesa, el guante boca arriba, la carcasa, el mortero hasta su
   // nivel, la base con el núcleo que baja y lo sube hasta el borde, el desmolde y la maceta terminada.
-  const GL_STEPS=['Parte A · 1. La MADRE es tu maceta completa, con patas y logotipo, boca abajo sobre su placa. Ponla en la mesa y pásale desmoldante.','2. Cierra las dos mitades de la CARCASA alrededor de la madre, sobre el reborde de la placa: dejan alrededor el espacio del guante.','3. Desliza los PERFILES DE CIERRE y pon la TAPA encima: sus bolsillos quedan sobre las patas. Sella las juntas con plastilina.','4. Vierte TODA la silicona por el embudo de la tapa, en hilo fino, hasta que salga por los respiraderos: llena paredes, fondo y patas de una vez.','5. Cura 12–24 h. Quita la tapa, abre la carcasa y saca el GUANTE de silicona de la madre. La madre ya no se usa.','Parte B · 6. Voltea todo: la TAPA va en la mesa con los bolsillos arriba y el guante encima, BOCA ARRIBA; sus patas entran en los bolsillos.','7. Cierra la carcasa alrededor del guante y pon los perfiles: el guante queda sostenido por todos lados.','8. Vierte el mortero fluido dentro del guante, hasta unos {L} cm del borde.','9. Baja la BASE con el NÚCLEO: el mortero sube por las paredes hasta el borde y lo que sobra sale por los respiraderos de la placa.','10. Al día siguiente levanta la base con el núcleo y abre la carcasa.','11. Saca el guante y pélalo: sale la maceta con sus patas y el logotipo.','12. La maceta terminada. El guante y la carcasa sirven para decenas de coladas.'];
+  const GL_STEPS=['Parte A · 1. La MADRE es tu maceta completa (patas y logotipo), boca abajo sobre su placa. Ponla en la mesa y pásale desmoldante.','2. Cierra las dos mitades de la CARCASA alrededor de la madre, sobre el reborde de la placa: dejan alrededor la franja del guante.','3. Pon los {J}, desliza los PERFILES DE CIERRE por las juntas y pon la TAPA encima, con los bolsillos sobre las patas. Sella las juntas con plastilina.','4. Vierte TODA la silicona por el embudo de la tapa, en hilo fino, hasta que salga por los respiraderos: llena la franja de paredes, fondo y patas.','5. Cura 12–24 h. Quita la tapa, los perfiles y los {j}, abre la carcasa y saca el GUANTE. La madre ya no se usa.','Parte B · 6. La TAPA va en la mesa con los bolsillos arriba y el GUANTE encima, boca arriba: sus patas entran en los bolsillos. Su hueco es la maceta.','7. Cierra la CARCASA alrededor del guante, con los {J} y los PERFILES DE CIERRE: el guante queda sostenido por todos lados.','8. Arma la BASE: {N}','9. Vierte el MORTERO fluido dentro del guante, hasta unos {L} cm del borde.','10. Baja la BASE con el NÚCLEO: el mortero sube por la franja hasta el borde y lo que sobra sale por los respiraderos de la placa.','11. Al día siguiente levanta la base con el núcleo, quita los perfiles y los {j} y abre la carcasa.','12. Saca el guante y pélalo: sale la maceta de cemento con sus patas y el logotipo.','13. La maceta terminada. Guante, carcasa, tapa, base y núcleo sirven para decenas de coladas.'];
   function gloveScene(THREE,s,b,MD){
     const H=s.H, grp=new THREE.Group(), gA=new THREE.Group(), gB=new THREE.Group(); grp.add(gA,gB);
     const mesh=(T,color,flip,mat={})=>{ const pos=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ pos[i]=T[i]; pos[i+1]=flip?H-T[i+1]:T[i+1]; pos[i+2]=flip?-T[i+2]:T[i+2]; }
@@ -5565,33 +5565,61 @@
     const P=k=>MD.parts.filter(pt=>pt.key===k||(k==='ext'&&/^ext\d/.test(pt.key))), grpOf=(par,list,color,flip,mat)=>{ const G=new THREE.Group(); list.forEach(pt=>G.add(mesh(pt.T,color??pt.color,flip,mat))); par.add(G); return G; };
     const fill=new THREE.Plane(new THREE.Vector3(0,-1,0),0), skinMat={transparent:true,opacity:0.8,flatShading:false,clippingPlanes:[fill]};
     const madre=grpOf(gA,P('madre'),0xb98c5a,true), tapaA=grpOf(gA,P('tapa'),0x9c8fbe,true), skinA=grpOf(gA,P('skin'),0xe58fa0,true,skinMat);
-    const tapaB=grpOf(gB,P('tapa'),0x9c8fbe,false), skinB=grpOf(gB,P('skin'),0xe58fa0,false,{transparent:true,opacity:0.8,flatShading:false}), base=grpOf(gB,P('base'),0x5f7a68,false), nucleo=grpOf(gB,P('nucleo'),0xd8be8a,false);
+    const tapaB=grpOf(gB,P('tapa'),0x9c8fbe,false), skinB=grpOf(gB,P('skin'),0xe58fa0,false,{transparent:true,opacity:0.8,flatShading:false});
+    // base, núcleo y espigas viajan juntos (bn); el núcleo y las espigas se encajan en el paso 8
+    const bn=new THREE.Group(); gB.add(bn); const base=grpOf(bn,P('base'),0x5f7a68,false), nucleo=grpOf(bn,P('nucleo'),0xd8be8a,false), pegs=new THREE.Group(); bn.add(pegs);
+    const Yt=H-b.core, pegMat=new THREE.MeshStandardMaterial({color:0xd9a441,roughness:0.5});
+    (MD.hw.pegList||[]).forEach(q=>{ const post=new THREE.Mesh(new THREE.CylinderGeometry(q.r1,q.r0,q.len,20),pegMat); post.position.set(q.c[0],Yt-q.len/2,q.c[1]); pegs.add(post);
+      const hh=Math.max(1,(q.h||12)-0.5), ins=new THREE.Mesh(new THREE.CylinderGeometry(q.r1,q.r1,hh,20),pegMat); ins.position.set(q.c[0],Yt+hh/2,q.c[1]); pegs.add(ins); });
     const ex=(par,flip)=>P('ext').map(pt=>{ const G=grpOf(par,[pt],pt.color,flip); const e=pt.explode||[0,0,0]; G.userData.v=new THREE.Vector3(e[0],0,flip?-e[2]:e[2]).multiplyScalar(1.3); return G; });
     const extA=ex(gA,true), extB=ex(gB,false), clipA=grpOf(gA,P('cierre'),0xd9773a,true), clipB=grpOf(gB,P('cierre'),0xd9773a,false);
+    // pernos con tuerca mariposa (o pasadores) en las pestañas: entran por su eje
+    const bd=MD.hw.bolt||4, FS=MOLD.FS, bl=2*FS+bd*1.6+6, bMat=new THREE.MeshStandardMaterial({color:0xb8bcc2,roughness:0.35,metalness:0.6});
+    const bolts=(par,flip)=>{ const G=new THREE.Group(); par.add(G); (MD.hw.at||[]).forEach(h=>{ const ax=new THREE.Vector3(h.a[0],0,flip?-h.a[1]:h.a[1]).normalize(), c=new THREE.Vector3(h.p[0],flip?H-h.p[1]:h.p[1],flip?-h.p[2]:h.p[2]), B=new THREE.Group();
+        const add=(geo,off)=>{ const m=new THREE.Mesh(geo,bMat); m.position.y=off; B.add(m); };
+        add(new THREE.CylinderGeometry(bd/2,bd/2,bl,16),bl/2-FS-2); add(new THREE.CylinderGeometry(bd*0.9,bd*0.9,bd*0.7,6),-FS-2-bd*0.35);
+        if(MD.hw.bolt){ add(new THREE.CylinderGeometry(bd*0.95,bd*0.95,bd*0.8,6),FS+1.5+bd*0.4); const w=new THREE.Mesh(new THREE.BoxGeometry(bd*4.2,bd*0.8,1.2),bMat); w.position.y=FS+1.5+bd*0.4; B.add(w); }
+        B.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),ax); B.position.copy(c); B.userData={c,ax}; G.add(B); }); return G; };
+    const boltA=bolts(gA,true), boltB=bolts(gB,false), boltAt=(G,o)=>G.children.forEach(B=>B.position.copy(B.userData.c).addScaledVector(B.userData.ax,-o));
     const mort=potGroup(THREE,s,b,{tree:false,cut:false}); mort.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.clippingPlanes=[fill]; } }); gB.add(mort);
     const bA=new THREE.Box3(); [madre,tapaA,...extA].forEach(o=>bA.expandByObject(o)); gA.position.y=-bA.min.y;
     const bB=new THREE.Box3(); [tapaB,base,...extB].forEach(o=>bB.expandByObject(o)); gB.position.y=-bB.min.y;
-    const lB=gB.position.y, yTopA=bA.max.y-bA.min.y, ft=s.feet, fG=ft-MD.skin.t, yTap=fG+lB, yLev=H-MD.skin.level+lB, yRim=H+lB;
-    const pb=new THREE.Box3().setFromObject(mort), Hp=pb.max.y-pb.min.y, span=Math.max(bA.max.x-bA.min.x,bB.max.x-bB.min.x), potX=Math.max(bA.max.x,bB.max.x)+Math.max(s.L,s.W)/2+40;
-    const e=x=>x<=0?0:x>=1?1:x*x*(3-2*x), N=GL_STEPS.length, up=Math.max(60,H*1.3), txt=GL_STEPS.map(x=>x.replace('{L}',String(Math.round(MD.skin.level)/10).replace('.',',')));
+    const lB=gB.position.y, yTopA=bA.max.y-bA.min.y, yTopB=bB.max.y-bB.min.y, ft=s.feet, fG=ft-MD.skin.t, yTap=fG+lB, yLev=H-MD.skin.level+lB, yRim=H+lB;
+    const pb=new THREE.Box3().setFromObject(mort), Hp=pb.max.y-pb.min.y, potX=Math.max(bA.max.x,bB.max.x)+Math.max(s.L,s.W)/2+40, spanX=bB.max.x-bB.min.x, sideX=-(spanX+40);
+    const e=x=>x<=0?0:x>=1?1:x*x*(3-2*x), N=GL_STEPS.length, up=Math.max(60,H*1.3), hov=up*0.75, big=Math.max(s.L,s.W,s.H), lh=Math.max(14,big*0.1);
+    const J=MD.hw.bolt?'PERNOS con mariposa':'PASADORES con su cuña', jj=MD.hw.bolt?'pernos':'pasadores', hasN=P('nucleo').length>0, hasP=pegs.children.length>0;
+    const nTxt=hasN?`encaja el NÚCLEO en el anillo del marco${hasP?' y mete las ESPIGAS de drenaje y alambre por el piso del núcleo':''}. El núcleo forma el hueco de la tierra.`:`el NÚCLEO va pegado a ella${hasP?'; mete las ESPIGAS de drenaje en sus agujeros':''}. Forma el hueco de la tierra.`;
+    const txt=GL_STEPS.map(x=>x.replace('{L}',String(Math.round(MD.skin.level)/10).replace('.',',')).replace('{J}',J).replace('{j}',jj).replace('{N}',nTxt));
+    // rótulos: el nombre de cada pieza en el paso en que aparece
+    const LB=[[madre,'Madre',[0]],[extA,'Carcasa (2 mitades)',[1]],[tapaA,'Tapa',[2]],[clipA,'Perfiles de cierre',[2]],[boltA,MD.hw.bolt?'Pernos':'Pasadores',[2]],[skinA,'Guante de silicona',[4]],
+      [skinB,'Guante (boca arriba)',[5]],[tapaB,'Tapa',[5]],[extB,'Carcasa',[6]],[base,hasN?'Base (marco)':'Base con núcleo',[7]],[nucleo,'Núcleo',[7]],[pegs,'Espigas',[7]],[mort,'Mortero',[8]]]
+      .filter(([o])=>Array.isArray(o)?o.length:(o.children.length||o===mort)).map(([o,tx,ks])=>{ const sp=label3(THREE,tx,lh); sp.visible=false; grp.add(sp); return {o:Array.isArray(o)?o[0]:o===mort?o:(o.children[0]||o),sp,ks}; });
+    const bx=new THREE.Box3();
     const see=(list,on,op)=>list.forEach(G=>G.traverse(o=>{ if(o.material){ o.material.transparent=on; o.material.opacity=on?op:1; o.material.depthWrite=!on; } }));
     const set=U=>{ const k=Math.floor(U)%N, pr=U-Math.floor(U), q=e(pr/0.8);
       gA.visible=k<=4; gB.visible=k>=5;
       madre.position.y=k===0?(1-e(pr/0.6))*up:0;
       extA.forEach(G=>{ const o=k===0?1:k===1?1-q:k===4?q:0; G.position.copy(G.userData.v).multiplyScalar(o); });
-      clipA.visible=k>=2; clipA.position.y=k<2?up:k===2?up*(1-q):k===4?up*q:0; tapaA.visible=k>=2; tapaA.position.y=k===2?up*(1-q):k===4?up*1.4*q:0;
+      boltA.visible=k===2||k===3||(k===4&&pr<0.4); boltAt(boltA,k===2?30*(1-e(pr/0.4)):k===4?30*e(pr/0.3):0);
+      clipA.visible=k>=2; clipA.position.y=k<2?up:k===2?up*(1-e((pr-0.25)/0.45)):k===4?up*q:0; tapaA.visible=k>=2; tapaA.position.y=k===2?up*(1-e((pr-0.45)/0.45)):k===4?up*1.4*q:0;
       skinA.visible=k>=3; if(k===3) fill.constant=yTopA*q; else fill.constant=1e6; skinA.position.y=k===4?up*0.9*e((pr-0.3)/0.5):0;
       see([...extA,tapaA],k===3,0.28);
-      skinB.position.y=k===5?(1-q)*up:k===10?up*1.1*q:0; skinB.visible=!(k===11);
-      extB.forEach(G=>{ const o=k===5?1:k===6?1-q:k>=9?1:0; G.position.copy(G.userData.v).multiplyScalar(k===9?q:o); });
-      clipB.visible=k>=6&&k<=9; clipB.position.y=k===6?up*(1-q):k===9?up*q:0;
-      base.visible=nucleo.visible=k>=8&&k<=9; base.position.y=nucleo.position.y=k===8?(1-q)*up:k===9?q*up:0;
-      mort.visible=k>=7; mort.traverse(o=>{ if(o.material) o.material.clippingPlanes=k===7||k===8?[fill]:[]; });
-      if(k===7) fill.constant=yTap+(yLev-yTap)*q; else if(k===8) fill.constant=yLev+(yRim-yLev)*q;
-      const f=k===11?e(pr/0.6):0; mort.position.set(f*potX,-lB*f,0);
-      see(extB,k===7||k===8,0.28); skinB.traverse(o=>{ if(o.material){ o.material.opacity=k>=7&&k<=9?0.35:0.8; o.material.depthWrite=false; } });
+      skinB.position.y=k===5?(1-q)*up:k===11?up*1.1*q:0; skinB.visible=k!==12;
+      extB.forEach(G=>{ const o=k===5?1:k===6?1-q:k===10?q:k>=11?1:0; G.position.copy(G.userData.v).multiplyScalar(o); });
+      boltB.visible=(k===6&&pr>0.3)||(k>=7&&k<=9)||(k===10&&pr<0.4); boltAt(boltB,k===6?30*(1-e((pr-0.3)/0.4)):k===10?30*e(pr/0.3):0);
+      clipB.visible=k>=6&&k<=10; clipB.position.y=k===6?up*(1-e((pr-0.4)/0.5)):k===10?up*q:0;
+      // la base se arma al costado del molde (el núcleo y las espigas suben a su sitio) y después va encima y baja
+      bn.visible=k>=7&&k<=10; if(k===7||k===8) bn.position.set(sideX,hov,0); else if(k===9) bn.position.set(sideX*(1-e(pr/0.45)),hov*(1-e((pr-0.45)/0.45)),0); else bn.position.set(0,k===10?hov*q:0,0);
+      nucleo.position.y=k===7?-50*(1-e(pr/0.45)):0; pegs.visible=!(k===7&&pr<0.45); pegs.position.y=k===7?-40*(1-e((pr-0.45)/0.4)):0;
+      mort.visible=k>=8; mort.traverse(o=>{ if(o.material) o.material.clippingPlanes=k===8||k===9?[fill]:[]; });
+      if(k===8) fill.constant=yTap+(yLev-yTap)*q; else if(k===9) fill.constant=yLev+(yRim-yLev)*q;
+      const f=k===12?e(pr/0.6):0; mort.position.set(f*potX,-lB*f,0);
+      see(extB,k===8||k===9,0.28); skinB.traverse(o=>{ if(o.material){ o.material.opacity=k>=8&&k<=10?0.35:0.8; o.material.depthWrite=false; } });
+      const act=LB.filter(l=>l.ks.includes(k)); LB.forEach(l=>l.sp.visible=false);
+      const bs=act.map(l=>{ bx.makeEmpty(); bx.expandByObject(l.o); return bx.isEmpty()?null:bx.clone(); }), top=Math.max(...bs.filter(Boolean).map(q=>q.max.y),0);
+      act.forEach((l,i)=>{ const q=bs[i]; if(!q) return; const c=q.getCenter(new THREE.Vector3()); l.sp.position.set(c.x,top+lh*0.4+i*lh*1.35,c.z); l.sp.visible=true; });   // en fila hacia arriba: no se tapan
       $('skTxt').textContent=txt[k]; };
-    set(0); const box=new THREE.Box3(); [madre,tapaA,...extA].forEach(o=>box.expandByObject(o)); [tapaB,base,...extB].forEach(o=>box.expandByObject(o)); box.expandByPoint(new THREE.Vector3(0,yTopA+up*0.4,0));
+    set(0); const box=new THREE.Box3(); [madre,tapaA,...extA].forEach(o=>box.expandByObject(o)); [tapaB,base,...extB].forEach(o=>box.expandByObject(o)); box.expandByPoint(new THREE.Vector3(0,Math.max(yTopA+up*0.4,yTopB+hov),0)); box.expandByPoint(new THREE.Vector3(sideX+bB.min.x,0,0));
     return {grp,set,N,box,focus:{c:new THREE.Vector3(potX,Hp/2,0),r:pb.getSize(new THREE.Vector3()).length()/2+12}}; }
   function skinScene(THREE,s,b){
     const MD=buildMold(THREE,s,b); if(MD.skin&&MD.skin.glove) return gloveScene(THREE,s,b,MD); const H=s.H, grp=new THREE.Group(), all=new THREE.Group(); grp.add(all);
@@ -5641,8 +5669,8 @@
       const fit=()=>{ const w=cv.clientWidth, h=cv.clientHeight; if(w&&h&&(st.w!==w||st.h!==h)){ st.w=w; st.h=h; r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } };
       Object.assign(st,{r,sc,cam,ctl,table,fit,last:performance.now()}); st.loading=false;
       const loop=now=>{ requestAnimationFrame(loop); const dt=Math.min(0.1,(now-st.last)/1000); st.last=now; if(!cv.isConnected||!cv.getClientRects().length) return; fit();
-        if(st.scene){ if(st.play) st.U=(st.U+dt/5)%st.N; st.scene.set(st.U); const k=Math.floor(st.U)%st.N; if(k!==st.kPrev){ if(k===11||st.kPrev===11) st.fly=1.5; st.kPrev=k; }
-          if(st.fly>0&&st.home){ const W=k===11?st.focusView:st.home; ctl.target.lerp(W.t,0.09); cam.position.lerp(W.p,0.09); st.fly-=dt; } }
+        if(st.scene){ if(st.play) st.U=(st.U+dt/5)%st.N; st.scene.set(st.U); const k=Math.floor(st.U)%st.N; if(k!==st.kPrev){ if(k===st.N-1||st.kPrev===st.N-1) st.fly=1.5; st.kPrev=k; }
+          if(st.fly>0&&st.home){ const W=k===st.N-1?st.focusView:st.home; ctl.target.lerp(W.t,0.09); cam.position.lerp(W.p,0.09); st.fly-=dt; } }
         ctl.update(); r.render(sc,cam); };
       requestAnimationFrame(loop); }
     const key=JSON.stringify([s,PAN]); if(st.key===key) return; st.key=key;
