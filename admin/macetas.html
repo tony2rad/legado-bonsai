@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#1B241F">
 <title>Producción de macetas — Plantillas de Macetas Bonsái</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@600;800&display=swap">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
   :root{
@@ -297,7 +297,7 @@
     </div>
     <div class="grid2" id="printerBox" hidden>
       <label class="f" style="grid-column:1/-1"><span>Diseño</span><select id="pObj"><option value="maceta" selected>Maceta</option><option value="mesa">Mesa de exhibición (shoku)</option></select></label>
-      <label class="f" style="grid-column:1/-1" id="pSealF"><span>Logotipo de Legado</span><select id="pSeal"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin logotipo</option></select></label>
+      <label class="f" style="grid-column:1/-1" id="pSealF"><span>Logotipo de Legado</span><select id="pSeal"><option value="R" selected>Logotipo para relieve (recomendado)</option><option value="C">Logotipo vertical (original)</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin logotipo</option></select></label>
       <label class="check" style="grid-column:1/-1" id="sealPartF"><input type="checkbox" id="sealPart" checked><span>Logotipo como pieza aparte: se imprime plano, al 100 % y con capa de 0,12 mm, y encaja en un rebaje del molde (así no se pierde el detalle)</span></label>
       <label class="f" style="grid-column:1/-1" id="pInF"><span>Logotipo en el interior</span><select id="pIn"><option value="hundido" selected>Hundido 1 mm en el piso</option><option value="relieve">En relieve 1 mm sobre el piso</option><option value="none">Sin logotipo interior</option></select></label>
       <label class="f" style="grid-column:1/-1"><span>Impresora</span><select id="printer"><option value="a2l" selected>Bambu Lab A2L · 33 × 32 × 32,5 cm</option><option value="a1">Bambu Lab A1 / P1S / X1C · 25,6 cm</option><option value="mini">Bambu Lab A1 mini · 18 cm</option><option value="otra">Otra (cama cuadrada)</option></select></label>
@@ -438,7 +438,7 @@
       <p class="mold-lead">Kit de vaciado 100 % impreso: la maceta se cuela boca abajo. Base con el núcleo de la cavidad, molde exterior en gajos que se traban en la base y se unen por sus pestañas con pernos de ferretería (o pasadores impresos), y placa de patas calada con el sello de Legado en el fondo.</p>
       <div class="grid2">
         <label class="f"><span>Molde exterior</span><select id="moldParts"><option value="auto" selected>Automático · el que ocupe menos camas</option><option value="2">2 mitades</option><option value="4">4 cuartos</option></select><small class="hint" id="moldPartsHint"></small></label>
-        <label class="f"><span>Sello en la base</span><select id="sealKind"><option value="C" selected>Logotipo vertical</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin sello</option></select></label>
+        <label class="f"><span>Sello en la base</span><select id="sealKind"><option value="R" selected>Logotipo para relieve (recomendado)</option><option value="C">Logotipo vertical (original)</option><option value="A">Sello circular</option><option value="B">Emblema</option><option value="D">Firma lineal</option><option value="E">Texto LEGADO BONSÁI</option><option value="M">Montaña Pasochoa</option><option value="G">Logotipo con montaña</option><option value="none">Sin sello</option></select></label>
         <label class="f"><span>Relieve del sello</span><select id="sealMode"><option value="down" selected>Rehundido (grabado en el mortero: no se parte)</option><option value="up">En relieve (letras de mortero: frágiles)</option></select></label>
         <label class="f"><span>Pared del molde <b>cm</b></span><input id="moldWall" type="number" step="0.1" min="0.3" max="1" value="0.4"></label>
         <label class="f"><span>Núcleo</span><select id="moldCore"><option value="casco" selected>Casco aparte con celosía (como el yeso)</option><option value="hueco">Hueco por debajo (una pieza con la base)</option><option value="macizo">Macizo</option></select></label>
@@ -2130,8 +2130,11 @@
   // mínimos sale entera a unos 2,5 mm; si no cabe, va el emblema (ver place()). G: el logotipo ocupa la mitad del ancho.
   const SEALS={C:{name:'Logotipo vertical',art:'vertical',ratio:0.227,min:36,max:50},A:{name:'Sello circular',art:'vertical',ring:true,ratio:0.267,min:60,max:70},
     B:{name:'Emblema',art:'emblema',ratio:0.267,min:25,max:60},D:{name:'Firma lineal',art:'horizontal',ratio:0.427,min:55,max:90},E:{name:'Texto LEGADO BONSÁI',art:'wordmark',ratio:0.427,min:36,max:90},
-    M:{name:'Montaña Pasochoa',art:'montana',ratio:0.4,min:35,max:80},G:{name:'Logotipo con montaña',art:'logomontana',ratio:0.4,min:72,max:90}};
-  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]},wordmark:{file:'legado-wordmark-negro.svg',vb:[73.2,518,295,91]},montana:{gen:'M'},logomontana:{gen:'G'}};
+    M:{name:'Montaña Pasochoa',art:'montana',ratio:0.4,min:35,max:80},G:{name:'Logotipo con montaña',art:'logomontana',ratio:0.4,min:72,max:90},
+    // LOGOTIPO PARA RELIEVE (propuesta A, elegida por el usuario): el emblema original y debajo LEGADO / BONSÁI compuestos en
+    // Shippori Mincho B1 (la letra del sitio) gruesa y espaciada, con BONSÁI de unos 2,6 mm de alto desde 34 mm de ancho
+    R:{name:'Logotipo para relieve',art:'relieve',ratio:0.24,min:34,max:50}};
+  const ART={vertical:{file:'legado-logo-vertical-negro.svg',vb:[73.2,332.6,295,276]},emblema:{file:'legado-emblema-negro.svg',vb:[105.99,336.62,233.86,153.75]},horizontal:{file:'legado-logo-horizontal-negro.svg',vb:[-4,-4,452,104]},wordmark:{file:'legado-wordmark-negro.svg',vb:[73.2,518,295,91]},montana:{gen:'M'},logomontana:{gen:'G'},relieve:{gen:'R'}};
   const SEAL_ART={};
   async function loadSealArt(key){
     if(SEAL_ART[key]) return SEAL_ART[key];
@@ -2141,7 +2144,7 @@
     new SVGLoader().parse(txt).paths.forEach(p=>SVGLoader.createShapes(p).forEach(sh=>{ const e=sh.extractPoints(8); loops.push(e.shape.map(v=>[v.x,v.y])); e.holes.forEach(h=>loops.push(h.map(v=>[v.x,v.y]))); }));
     return SEAL_ART[key]={loops,vb:ART[key].vb};
   }
-  async function prepareSeal(s){ if(s.sprig&&s.sprig.motif!=='none'){ try{ await loadSprigArt(s.sprig.motif,s.sprig.text); }catch(e){} } const ks=[s.seal,s.printable&&s.pIn!=='none'?s.inSeal:null].filter(k=>k&&k!=='none'&&SEALS[k]); if(!ks.length) return; try{ for(const k of ks) await loadSealArt(SEALS[k].art); await loadSealArt('emblema'); }catch(e){} }
+  async function prepareSeal(s){ if(s.sprig&&s.sprig.motif!=='none'){ try{ await loadSprigArt(s.sprig.motif,s.sprig.text); }catch(e){} } if(s.plasterMode) try{ await loadDigitArt(); }catch(e){} const ks=[s.seal,s.printable&&s.pIn!=='none'?s.inSeal:null].filter(k=>k&&k!=='none'&&SEALS[k]); if(!ks.length) return; try{ for(const k of ks) await loadSealArt(SEALS[k].art); await loadSealArt('emblema'); }catch(e){} }
   // Sitio y contornos del sello en la cara inferior (mm, maceta derecha). Lo usan la placa del molde, la maceta del
   // visor y su STL, así los tres coinciden. Se guarda en caché por medidas: la búsqueda del sitio no es instantánea.
   const SEAL_CACHE=new Map();
@@ -2216,7 +2219,9 @@
     regs.forEach(r=>{ if(r.d%2) return; const [x0,y0,x1,y1]=bb(r.L), w=x1-x0, hh=y1-y0, A=area(r.L)-r.kids.reduce((t,k)=>t+area(k),0), P=per(r.L)+r.kids.reduce((t,k)=>t+per(k),0), st=2*A/Math.max(P,1e-9);
       if(Math.max(w,hh)<1.2){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nDrop++; return; }
       if(st>=SEAL_MIN) return;
-      if(hh<2.4&&w<2.4*3){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nSmall++; small.push([x0,y0,x1,y1]); return; }
+      // tildes (la de BONSÁI): pieza chica justo encima o debajo de una letra de 2,4 mm o más, con la que se solapa a lo ancho: se engruesa como una letra
+      const dia=regs.some(o=>{ if(o===r||o.d%2) return false; const [a0,b0,a1,b1]=bb(o.L); return b1-b0>=2.4&&a0<x1&&a1>x0&&Math.min(Math.abs(y0-b1),Math.abs(b0-y1))<1.6; });
+      if(hh<2.4&&w<2.4*3&&!dia){ drop.add(r.L); r.kids.forEach(k=>drop.add(k)); nSmall++; small.push([x0,y0,x1,y1]); return; }
       const rad=(SEAL_MIN-st)/2+0.02, h=0.04, pad=rad+3*h, gx0=x0-pad, gy0=y0-pad, nx=Math.ceil((w+2*pad)/h)+1, ny=Math.ceil((hh+2*pad)/h)+1;
       const M=new Uint8Array(nx*ny), D=new Uint8Array(nx*ny), O=new Uint8Array(nx*ny), Fb=new Uint8Array(nx*ny);
       // las demás partes del logotipo que caen cerca: la letra crece solo hasta 0,3 mm de ellas (más lo que ellas mismas crezcan),
@@ -4218,7 +4223,30 @@
   // trazos (sin la masa) a 40 mm de ancho de referencia y se sacan los contornos del lienzo (rasterLoops); G pone encima el
   // logotipo vertical como en el sello.
   // trazos a la escala del tamaño mínimo de cada variante
-  async function selloVectorArt(k){ const W=1400, mt=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/ilustraciones/montana-principal.svg'; }), mount=pasochoaCapas(mt,k==='M'?40:75,{noMass:true}); if(k==='M') return mount;
+  // letra de la marca en relieve: Shippori Mincho B1 (Google Fonts, cargada en el <head>); si no hay conexión, el navegador usa
+  // una serif de reserva. Las letras se dibujan con relleno + un trazo de 3 % del cuerpo, que engruesa los filetes finos del mincho
+  // para que se marquen en la pieza (luego thickenRegions asegura 0,7 mm de trazo medio).
+  const RELF='"Shippori Mincho B1", "Times New Roman", serif';
+  async function relFonts(){ try{ await Promise.all([document.fonts.load(`800 100px ${RELF}`),document.fonts.load(`600 100px ${RELF}`)]); }catch(e){} }
+  function inkCrop(cv,pad){ const w=cv.width, h=cv.height, d=cv.getContext('2d').getImageData(0,0,w,h).data; let x0=w,y0=h,x1=-1,y1=-1;
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=4*(y*w+x); if(d[i]+d[i+1]+d[i+2]<384){ if(x<x0) x0=x; if(x>x1) x1=x; if(y<y0) y0=y; if(y>y1) y1=y; } }
+    if(x1<0) return cv; const o=document.createElement('canvas'); o.width=x1-x0+1+2*pad; o.height=y1-y0+1+2*pad; const g=o.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,o.width,o.height); g.drawImage(cv,x0-pad,y0-pad,o.width,o.height,0,0,o.width,o.height); return o; }
+  function trackText(g,txt,cx,base,track,sw){ const ch=[...txt], ws=ch.map(c=>g.measureText(c).width), tot=ws.reduce((a,b2)=>a+b2,0)+track*(ch.length-1); let x=cx-tot/2;
+    const at=[]; ch.forEach((c,i)=>{ at.push(x+ws[i]/2); g.fillText(c,x,base); if(sw){ g.lineWidth=sw; g.lineJoin='round'; g.strokeText(c,x,base); } x+=ws[i]+track; }); return at; }
+  async function relieveArt(){ await relFonts(); const W=1400, em=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/logo/legado-emblema-negro.svg'; });
+    const eh=W*em.naturalHeight/em.naturalWidth, fL=0.14*W, fB=0.11*W, cv=document.createElement('canvas'); cv.width=W+40; cv.height=Math.round(eh+0.5*W); const g=cv.getContext('2d');
+    g.fillStyle='#fff'; g.fillRect(0,0,cv.width,cv.height); g.drawImage(em,20,0,W,eh); g.fillStyle=g.strokeStyle='#000'; g.textBaseline='alphabetic';
+    g.font=`800 ${fL}px ${RELF}`; const aL=g.measureText('LEGADO').actualBoundingBoxAscent||fL*0.7, bL=eh+0.065*W+aL; trackText(g,'LEGADO',cv.width/2,bL,0.16*fL,0.03*fL);
+    g.font=`600 ${fB}px ${RELF}`; const aB=g.measureText('BONSAI').actualBoundingBoxAscent||fB*0.7, bB=bL+0.075*W+aB, xs=trackText(g,'BONSAI',cv.width/2,bB,0.3*fB,0.035*fB);
+    // tilde de la Á como un trazo firme (la del tipo mide ~1 mm y el filtro de motas de 1,2 mm la quitaba)
+    { const cx=xs[4], top=bB-aB; g.lineCap='round'; g.lineWidth=0.09*fB; g.beginPath(); g.moveTo(cx-0.06*fB,top-0.09*fB); g.lineTo(cx+0.12*fB,top-0.34*fB); g.stroke(); }
+    return inkCrop(cv,6); }
+  // cifras del número del molde en la misma letra (antes Potta One, de pincel): una por lienzo, recortada a su tinta
+  async function loadDigitArt(){ if(SEAL_ART.digits) return SEAL_ART.digits; await relFonts(); const g0={};
+    for(const c of '0123456789'){ const cv=document.createElement('canvas'); cv.width=420; cv.height=420; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,420,420); g.fillStyle=g.strokeStyle='#000';
+      g.font=`800 300px ${RELF}`; g.textAlign='center'; g.fillText(c,210,320); g.lineWidth=9; g.lineJoin='round'; g.strokeText(c,210,320); const o=inkCrop(cv,2); g0[c]={loops:rasterLoops(o),w:o.width,h:o.height}; }
+    return SEAL_ART.digits={g:g0}; }
+  async function selloVectorArt(k){ if(k==='R') return relieveArt(); const W=1400, mt=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/ilustraciones/montana-principal.svg'; }), mount=pasochoaCapas(mt,k==='M'?40:75,{noMass:true}); if(k==='M') return mount;
     const lg=await new Promise((ok,err)=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=err; im.src='../assets/img/logo/legado-logo-vertical-negro.svg'; }), lw=W*0.5, lh=lw*lg.naturalHeight/lg.naturalWidth, gap=W*0.05;
     const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.round(lh+gap+mount.height); const c=cv.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height); c.drawImage(lg,(W-lw)/2,0,lw,lh); c.drawImage(mount,0,lh+gap); return cv; }
   // contornos (marching squares + Douglas–Peucker a 0,6 px) de lo oscuro de un lienzo, en píxeles con y hacia abajo
@@ -4527,7 +4555,9 @@
     const depth=Ls.map((_,i)=>{ let dd=0,p=par[i]; while(p>=0){ dd++; p=par[p]; } return dd; });
     return Ls.map((L,i)=>({L,d:depth[i],kids:Ls.filter((_,j)=>par[j]===i)})); }
   // contornos de la cifra c centrada en (cx, cy) de la caja (y hacia abajo = hacia abajo de la cifra al leerla en la maceta)
-  function digitRegions(c,cx,cy){ const G=(window.LEGADO_NUMEROS||{})[c]; if(!G) return []; const sc=NUM.h/790, gx=(G.bb[0]+G.bb[2])/2;
+  function digitRegions(c,cx,cy){ const D=SEAL_ART.digits&&SEAL_ART.digits.g[c];
+    if(D){ const sc=NUM.h/(D.h-4); return nestLoops(D.loops.map(L=>L.map(([x,y])=>[cx+(x-D.w/2)*sc,cy+(y-D.h/2)*sc]))); }
+    const G=(window.LEGADO_NUMEROS||{})[c]; if(!G) return []; const sc=NUM.h/790, gx=(G.bb[0]+G.bb[2])/2;
     return nestLoops(pathLoops(G.d,sc,cx-gx*sc,cy+NUM.h/2)); }
   // hueco (o ficha, con d < 0) de ancho w y alto h con chaflán en las dos esquinas de arriba (y menor)
   const slotPoly=(cx,cy,d)=>{ const w=NUM.w/2+d, h=NUM.th/2+d, c=NUM.ch; return [[cx-w+c,cy-h],[cx+w-c,cy-h],[cx+w,cy-h+c],[cx+w,cy+h],[cx-w,cy+h],[cx-w,cy-h+c]]; };
