@@ -302,7 +302,7 @@
       <label class="f" style="grid-column:1/-1" id="pInF"><span>Logotipo en el interior</span><select id="pIn"><option value="hundido" selected>Hundido 1 mm en el piso</option><option value="relieve">En relieve 1 mm sobre el piso</option><option value="none">Sin logotipo interior</option></select></label>
       <label class="f" style="grid-column:1/-1"><span>Impresora</span><select id="printer"><option value="a2l" selected>Bambu Lab A2L · 33 × 32 × 32,5 cm</option><option value="a1">Bambu Lab A1 / P1S / X1C · 25,6 cm</option><option value="mini">Bambu Lab A1 mini · 18 cm</option><option value="otra">Otra (cama cuadrada)</option></select></label>
       <label class="f"><span>Cama de otra impresora <b>cm</b></span><input id="bedXY" type="number" step="1" min="10" max="60" value="22"></label>
-      <label class="f" style="grid-column:1/-1"><span>Filamento del 3MF</span><select id="pFil"><option value="PLA" selected>PLA (Bambu PLA Basic)</option><option value="PETG">PETG (Bambu PETG HF): más tenaz, aguanta agua, sol y cemento</option></select><small class="hint">El 3MF sale con el perfil de ese filamento: temperaturas, cama y ventilador ya puestos.</small></label>
+      <label class="f" style="grid-column:1/-1"><span>Filamento del 3MF</span><select id="pFil"><option value="PETG" selected>PETG (Bambu PETG HF): más tenaz, aguanta agua, sol, cemento y el calor del yeso</option><option value="PLA">PLA (Bambu PLA Basic)</option></select><small class="hint">El 3MF sale con el perfil de ese filamento: temperaturas, cama y ventilador ya puestos.</small></label>
     </div>
     <details class="gloss" id="tableBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Mesa de exhibición</summary>
@@ -375,7 +375,7 @@
         <label class="f"><span>Ya tengo · módulos de pared</span><input id="cjHaveW" type="number" step="1" min="0" max="60" value="0"></label>
         <label class="f"><span>Ya tengo · losetas de piso</span><input id="cjHaveF" type="number" step="1" min="0" max="60" value="0"></label>
       </div>
-      <label class="f" style="margin-top:8px"><span>Filamento del 3MF</span><select id="cjFil"><option value="PLA" selected>PLA (Bambu PLA Basic)</option><option value="PETG">PETG (Bambu PETG HF)</option></select></label>
+      <label class="f" style="margin-top:8px"><span>Filamento del 3MF</span><select id="cjFil"><option value="PETG" selected>PETG (Bambu PETG HF)</option><option value="PLA">PLA (Bambu PLA Basic)</option></select></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnCaja3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnCajaFit" type="button" title="Toma la medida de la caja más grande del molde de yeso de la maceta que tienes elegida">Tomar la medida de mi molde de yeso</button></div>
       <div class="mold-out" id="cajaOut" style="margin-top:8px"></div>
     </details>
@@ -470,7 +470,7 @@
       <summary>Material y tiempo de impresión</summary>
       <p class="mold-lead">Estimado para tu impresora, con el perfil estándar de Bambu y boquilla de 0,4 mm, antes de laminar (±25 %). Bambu Studio da la cifra exacta al laminar.</p>
       <div class="grid2">
-        <label class="f"><span>Filamento</span><select id="cMat"><option value="PLA" selected>PLA</option><option value="PETG">PETG</option></select></label>
+        <label class="f"><span>Filamento</span><select id="cMat"><option value="PETG" selected>PETG</option><option value="PLA">PLA</option></select></label>
         <label class="f"><span>Precio <b>USD/kg</b></span><input id="cPrice" type="number" step="0.5" min="0" value="25"></label>
         <label class="f"><span>Relleno <b>%</b></span><input id="cInfill" type="number" step="5" min="0" max="100" value="15"></label>
         <label class="f"><span>Perímetros</span><input id="cWalls" type="number" step="1" min="1" max="8" value="3"></label>
@@ -4683,7 +4683,7 @@
       'Una sola armada y dos coladas. La carcasa (dos mitades) rodea la madre: la maceta agrandada, boca abajo, impresa con su placa. Colada 1 = cuerpo del molde de yeso; colada 2 = fondo, encima, en la misma carcasa. Las dos piezas de yeso encajan exactas porque se cuelan una contra la otra.',
       `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer). Pared de yeso de ${PM.TH} mm.`,'',
       'PIEZAS QUE SE IMPRIMEN (una vez; sirven para muchos moldes de yeso)',...PM.parts.map(p=>'  - '+p.name),
-      '  La carcasa en PETG (el yeso se calienta a 40–50 °C al fraguar); la madre y el aro pueden ir en PLA. Relleno: madre con 3 perímetros y CÚBICO ADAPTATIVO al 10 % (no lightning: en una pieza alta sus ramitas sueltas se despegan y la boquilla las tumba; el cúbico es una red continua amarrada a las paredes en cada capa); carcasa con 2 perímetros y 15 %; aro al 100 %. El 3MF ya trae esos ajustes. Si una pieza vino en trozos, junta los trozos con las espigas y pégalos una sola vez.','',
+      '  La carcasa en PETG (el yeso se calienta a 40–50 °C al fraguar); la madre y el aro pueden ir en PLA. Relleno: madre con 3 perímetros y CÚBICO ADAPTATIVO al 10 % (no lightning: en una pieza alta sus ramitas sueltas se despegan y la boquilla las tumba; el cúbico es una red continua amarrada a las paredes en cada capa); carcasa con 2 perímetros y 15 %; aro al 100 %. El 3MF ya trae esos ajustes.','  En PETG: elige PETG en «Filamento del 3MF» (el 3MF sale con 240 °C y la cama a 70 °C); seca el filamento 6–8 h a 65 °C si lleva días abierto (el PETG húmedo hace hilos y gotas que la boquilla arrastra y pueden tumbar el relleno); en placa lisa usa pegamento en barra como separador, porque el PETG se pega demasiado. Si una pieza vino en trozos, junta los trozos con las espigas y pégalos una sola vez.','',
       'MATERIALES',`  - Yeso cerámico: colada 1 ≈ ${f1(P.vB)} L de yeso líquido y colada 2 ≈ ${f1(P.vF)} L (en total ≈ ${f1((P.vB+P.vF)*0.9)} kg de yeso con ${f1((P.vB+P.vF)*0.63)} L de agua; 100 de yeso por 63–70 de agua).`,
       `  - ${P.clips} ganchos de presión (pinzas tipo binder de 25 mm): ${P.ncl} en cada una de las 4 pestañas.`,'  - Jabón de moldes (o vaselina), cinta doble faz, una regla para enrasar y un poco de plastilina.','',
       'ARMAR (unos 5 minutos)','  1. Pasa jabón de moldes por la madre, por la placa y por dentro de la carcasa.',
@@ -5403,6 +5403,10 @@
   // amarrada a ellas en cada capa. Medido en Bambu (madre de la rectangular 20 × 15 × 5,5): lightning 5 % 266 g y 5 h 50;
   // cúbico adaptativo 10 % 3 perímetros 484 g y 7 h 34; cúbico 10 % 542 g y 8 h 19; rejilla 10 % 541 g y 8 h 10; giroide
   // 10 % 532–557 g y 17 h (lento por las curvas). Las planas y bajas siguen con lightning.
+  // En PETG (el filamento del usuario; perfil «Bambu PETG HF», más lento por su caudal máximo de 18 mm³/s), la misma madre:
+  // lightning 5 % 259 g y 6 h 23; cúbico adaptativo 10 % 3 perímetros 472 g y 8 h 17; rejilla 10 % 552 g y 9 h 20;
+  // crosshatch 10 % 550 g y 13 h 13; giroide 10 % 542 g y 17 h 27. El cúbico adaptativo sigue siendo el mejor: red continua
+  // apoyada capa sobre capa, y el más liviano y rápido de los rellenos firmes.
   // Todo lo que solo da PERFIL (cajas de yeso, base, placa, madre, caja de vertido) va con relleno «lightning» al 5 %: el laminador
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
@@ -5486,7 +5490,9 @@
   $('printer').addEventListener('change',()=>{ const w={a2l:150,a1:110,mini:70}[$('printer').value]; if(w) $('cW').value=w; });
   ['cMat','cPrice','cInfill','cWalls','cLayer','cRec','cKwh','cW','cPattern'].forEach(id=>$(id).addEventListener('input',()=>{ $('calcOut').textContent=''; update3D(false); }));
   // un solo filamento para el 3MF y la calculadora
-  ['pFil','cjFil','cMat'].forEach(id=>$(id).addEventListener('input',()=>{ const v=$(id).value; ['pFil','cjFil','cMat'].forEach(j=>{ if($(j).value!==v) $(j).value=v; }); $('calcOut').textContent=''; update3D(false); }));
+  // filamento: PETG por defecto (el usuario imprime en PETG); se recuerda el último elegido (el parámetro pFil del enlace manda)
+  { let f=null; try{ f=localStorage.getItem('legadoFilamento'); }catch(e){} if(f==='PLA'||f==='PETG') ['pFil','cjFil','cMat'].forEach(j=>{ $(j).value=f; }); }
+  ['pFil','cjFil','cMat'].forEach(id=>$(id).addEventListener('input',()=>{ const v=$(id).value; try{ localStorage.setItem('legadoFilamento',v); }catch(e){} ['pFil','cjFil','cMat'].forEach(j=>{ if($(j).value!==v) $(j).value=v; }); $('calcOut').textContent=''; update3D(false); }));
   // ---------- Mesa de exhibición: exportar (Impresión 3D: STL; Molde 3D: kit de silicona) ----------
   // Impresa boca abajo: (x, Y, z) → (x, z, Ht − Y), una rotación (no espeja).
   function tablePrintTris(THREE,s){ const TS=tableSolids(THREE,s), T=[]; TS.solids.forEach(S=>{ for(let i=0;i<S.length;i+=3) T.push(S[i],S[i+2],TS.Ht-S[i+1]); }); return T; }
