@@ -5164,7 +5164,9 @@
   // + la propia maceta 2,2 g/cm³) × 2 por el golpe al apoyar; momento por unidad de ancho M = P·Ls/(4·Ll) (luz corta Ls entre
   // paredes, repartido en el largo Ll); espesor t = √(6M/σ) con σ admisible 1,2 MPa (mortero con fibra: rotura ≈ 4 MPa,
   // seguridad 3); + 1,5 mm por el relieve del sello; entre 1,2 y 3,5 cm. El usuario coló una base de 3 cm (regla antigua
-  // 0,45·alto) y pidió una medida calculada.
+  // 0,45·alto) y pidió una medida calculada. Después pidió fondo y paredes delgados como de cerámica (asegura la resistencia con
+  // mortero fino, fibra y superplastificante: rotura a flexión ≈ 6–8 MPa): σ admisible 2,5 MPa, + 2,5 mm por el logotipo
+  // rehundido del Molde 3D, entre la pared (mín. 0,7 cm) y 2,5 cm (antes 1,2 MPa y 1,2–3,5 cm).
   // ---------- Ficha de la maceta terminada (panel izquierdo, todas las secciones) ----------
   // El usuario se confundía entre la maceta y el molde: Largo/Ancho/Alto son SIEMPRE la maceta terminada; aquí se lista lo
   // que sale (boca, alto, pared, fondo, hondo útil, sustrato, material) y aparte el tamaño del hueco del molde.
@@ -5276,8 +5278,8 @@
   function renderFicha(s,b){ const el=$('ficha'); if(!el) return; try{ el.innerHTML=fichaRows(s,b).map(([k,v])=>k==='§'?`<dt class="sec">${esc(v)}</dt>`:`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join(''); }catch(e){ el.textContent=''; } }
   function cementBase(H,feet,L,W,t){ if(L==null||W==null) return Math.round(Math.min(2.5,Math.max(0.8,(H-feet)*0.45))*10)/10;
     t=t||2; const Li=Math.max(2,L-2*t), Wi=Math.max(2,W-2*t), hs=Math.max(1,H-feet-2), soil=Li*Wi*hs/1000*1.8, pot=Math.max(0,L*W*(H-feet)-Li*Wi*hs)/1000*2.2, P=(soil+2+pot)*9.81*2;
-    const Ls=Math.min(Li,Wi)*10, Ll=Math.max(Li,Wi)*10, M=P*Ls/(4*Ll), mm=Math.sqrt(6*M/1.2)+1.5; return Math.round(Math.min(3.5,Math.max(1.2,mm/10))*10)/10; }
-  function baseHint(){ const h=$('baseHint'); if(!h) return; const v=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); h.textContent=`calculado por resistencia: ${String(v).replace('.',',')} cm (losa apoyada en las paredes, carga ×2 al apoyar, mortero con fibra a 1,2 MPa)`; }
+    const Ls=Math.min(Li,Wi)*10, Ll=Math.max(Li,Wi)*10, M=P*Ls/(4*Ll), mm=Math.sqrt(6*M/2.5)+2.5; return Math.round(Math.min(2.5,Math.max(0.7,t,mm/10))*10)/10; }
+  function baseHint(){ const h=$('baseHint'); if(!h) return; const v=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); h.textContent=`calculado por resistencia: ${String(v).replace('.',',')} cm (losa apoyada en las paredes, carga ×2 al apoyar, mortero fino con fibra a 2,5 MPa; nunca más delgado que la pared)`; }
   // estilo de pata que acompaña a cada modelo: formales → escalonada; informales → nube; inclinados y pequeños → cuña;
   // cascadas y raíces expuestas → voluta; bandejas, literati y ovaladas bajas → puente
   const FOOT_BY={chokkan:'escalon',moyogi:'nube',shakan:'cuna',kengai:'voluta',hankengai:'voluta',bunjin:'puente',mame:'cuna',shohin:'cuna',fukinagashi:'cuna',yose:'puente',ishitsuki:'puente',sokan:'nube',neagari:'voluta',kusamono:'puente',rokkaku:'nube',hakkaku:'voluta',rinka:'nube',panelbaja:'nube',panelcamp:'escalon',ovallabio:'puente',cuadpanel:'escalon',chinaremaches:'voluta'};
