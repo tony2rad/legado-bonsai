@@ -669,6 +669,7 @@
     s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
     s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; const sty=$('skinType').value; s.skinCups=sty==='copas'; s.skinGlove=sty==='guante'; if(s.skinCups) s.skin=12; if(s.skinGlove||s.skinCups){ s.moldClick=false; s.sealPart=false; s.sealMode='up'; } }
+    if(s.mode==='mold'&&!s.skinMode) s.sealPart=false;   // Molde 3D: el logotipo es parte de la placa o de la plantilla, no un inserto (pedido del usuario)
     if(s.mode==='pskin'){ s.mode='plaster'; s.pskinMode=true; }
     // MEDIA LUNA: se dibuja e imprime como un óvalo canónico que lunaGroup() curva (cuernos, borde de roca); fuera de
     // Impresión 3D no hay plantillas ni moldes para ella y se usa su óvalo de base, con aviso
@@ -2139,7 +2140,7 @@
   //    la maceta se alisa con espátula apoyada en el marco. Si una pata cruza el borde del marco se ensancha el marco.
   //  · Pasadores y cuñas impresos solo con s.moldBolt = 0; las espigas de los trozos siempre van en la pieza «kit».
   // Drenajes y agujeros del alambre se forman con postes del propio núcleo.
-  const MOLD={FS:6,CLR:0.3,ROOF:55,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:1.5,
+  const MOLD={FS:6,CLR:0.3,ROOF:55,SKIRT:3,SKIRT_H:6,TB:10,DRAFT:1.5,FL:24,HOLE:4.8,SEAL_DEPTH:1.5,SEAL_CEM:2.5,
     PIN:{w:7.6,t:4.8,head:16,headL:5,grip:12,slotL:9,slotW:3.4,tip:4},WEDGE:{L:36,h0:3,h1:8.5,t:3}};
   // Sello de la marca en la cara inferior: logotipos originales de assets/img/logo, tamaño proporcional al ancho de la
   // maceta (ratio) entre un mínimo legible en cemento y un máximo. Si no cabe, se cae al emblema; si tampoco, no va.
@@ -2167,7 +2168,9 @@
   // visor y su STL, así los tres coinciden. Se guarda en caché por medidas: la búsqueda del sitio no es instantánea.
   const SEAL_CACHE=new Map();
   // profundidad del sello: MOLD.SEAL_DEPTH (2 mm), pero con patas bajas el relieve deja 1 mm libre bajo las patas
-  const sealDepth=s=>s.feet>0?Math.max(0.6,Math.min(MOLD.SEAL_DEPTH,s.feet-1)):MOLD.SEAL_DEPTH;
+  // en el Molde 3D de cemento el logotipo va más hondo (SEAL_CEM = 2,5 mm): en el mortero, con su grano y su color parejo,
+  // 1,5 mm casi no se veía (pedido del usuario); el yeso, la impresión 3D y la silicona siguen con SEAL_DEPTH
+  const sealDepth=s=>{ const D=s.mode==='mold'&&!s.skinMode&&!s.printable&&!s.plasterMode?MOLD.SEAL_CEM:MOLD.SEAL_DEPTH; return s.feet>0?Math.max(0.6,Math.min(D,s.feet-1)):D; };
   function computeSeal(s,notes,inner){
     if((s.mat!=='cement'&&!s.printable&&!s.plasterMode)||!s.seal||s.seal==='none') return null;
     const key=JSON.stringify([!!s.plasterMode,s.plasterMode?s.pCast:0,SEAL_MIN,!!inner,inner?s.pBase:0,!!s.printable,s.type,s.L,s.W,s.H,s.t,s.flare,s.feet,s.foot,s.base,s.rim,s.lip,s.body,s.corner,s.c,s.lobes,s.seal,!!s.sealCenter]);
@@ -4945,7 +4948,7 @@
       '  2. Pon la base con el núcleo sobre una mesa nivelada.',
       '  3. Acerca los gajos del molde exterior: el nervio de abajo de cada gajo entra en la ranura del canto de la base.',
       `  4. Une los gajos por sus pestañas: ${hw.bolt?'un perno por cada par de agujeros, arandela a cada lado y tuerca mariposa apretada a mano (la punta de la gota deja pasar el perno aunque la impresión cierre un poco el agujero)':'pasa un pasador por cada par de agujeros y clava su cuña hasta que apriete'}.`,
-      '  5. Mezcla el mortero (1 cemento : 2 arena fina tamizada, fibra, agua 0,45) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa con una regla apoyada en el canto de los gajos: ese es el nivel de la base.',
+      `  5. Mezcla el mortero fluido para paredes delgadas (1 cemento blanco : 1 arena sílice fina de malla 30–50, microfibra de polipropileno, agua 0,35 con superplastificante al 1 % del cemento: fluye sola y llena paredes de ${String(s.t/10).replace('.',',')} cm) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa con una regla apoyada en el canto de los gajos: ese es el nivel de la base.`,
       ...(MD.plate==='patas'?[`  6. Plantilla de patas: con el fondo ya enrasado (paso 5; el mortero que sobra vuelve al balde), asiéntala sobre el canto de los gajos${MD.click?' (la lengüeta entra en la ranura y los pestillos hacen clic)':''}. Las camisas y el medallón apoyan en el mortero sin hundirse; el medallón deja el logotipo marcado. Antes de 30 min, llena cada camisa por arriba con el mismo mortero en dos capas, pinchando cada capa con un palito y dando golpecitos al marco para que suba el aire; enrasa con una regla apoyada en el marco. Todo se llena desde arriba: las patas salen completas.`]:s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde${MD.click?', la lengüeta entra en la ranura del canto de los gajos (centra y sella la junta) y los cuatro pestillos hacen clic en la ranura exterior; para soltarla, separa los pestillos con el pulgar':''}. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.${MD.plate==='calada'?' Es calada: alisa el mortero de las ventanas con la espátula apoyada en el marco.':' La placa entera deja la base plana y a nivel; el aire y el poco mortero que sobra salen por los respiraderos.'}`:s.feet>0?(MD.plate==='calada'?'Es calada: llena las copas de las patas con mortero firme y alisa el mortero de las ventanas con una espátula apoyada en el marco y en las copas; esa cara es el fondo de la maceta y el medallón deja el sello.':'La placa entera deja la base plana y a nivel: llena por arriba los huecos de las patas con mortero firme, apretando con una espátula, y enrásalos; el aire y el poco mortero que sobra salen por los respiraderos (corta las puntitas al desmoldar).'):'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
       `  7. Cubre con plástico. Desmolda a las 24–48 h: ${MD.plate==='patas'?'levanta la plantilla recta hacia arriba (golpecitos en el marco si se traba)':'quita la placa'}, ${hw.bolt?'afloja las mariposas y saca los pernos':'saca cuñas y pasadores'}, abre los gajos y levanta la maceta del núcleo.`,
       '  8. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad.']));
@@ -4974,7 +4977,7 @@
   let lastFix=[];
   function propGuard(s,clay,skipT){
     const short=Math.min(s.L,s.W), hb=s.H-s.feet, R={}, msgs=[], fix=[], hints={}, c1=v=>Math.round(v)/10;
-    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[Math.max(8,Math.min(12,Math.max(s.L,s.H)*0.035)),Math.min(40,Math.max(20,s.L*0.13))];   // cemento con fibra: desde 8 mm en macetas chicas
+    R.t=clay?[Math.max(4,s.L*0.02),Math.min(15,Math.max(8,s.L*0.055))]:[Math.max(5,Math.min(8,Math.max(s.L,s.H)*0.025)),Math.min(40,Math.max(20,s.L*0.13))];   // cemento fino con fibra, paredes como de cerámica: desde 5 mm
     if(s.rim!=='kittate'){ const hi=clay?Math.max(s.t*0.6,Math.min(s.t*1.5,short*0.07)):Math.max(5,Math.min(s.t,short*0.08)); R.lip=[clay?Math.min(s.t*0.5,hi):3,hi]; }
     if(s.feet>0) R.feet=[Math.max(3,s.H*0.07),Math.max(5,s.H*0.3)];
     if(!$('flare').disabled) R.flare=[0,Math.max(2,Math.min(hb*0.3,short*0.12))];
@@ -4993,7 +4996,7 @@
       if(document.activeElement!==$('cemT')) $('cemT').value=$('t').value; if(document.activeElement!==$('cemB')) $('cemB').value=$('base').value;
       $('cemTNote').innerHTML=`El grosor de la maceta lo da la <b>distancia entre los dos perfiles</b> (el de cemento menos el de arena), no el grosor del plástico. Ahora: pared de ${cm(s.t)} cm y fondo de ${cm(s.base)} cm; cámbialos aquí y los dos perfiles se recalculan. Con mortero con fibra, 0,8–1 cm sirve hasta unos 25 cm de largo.`;
       if(mano) handAnim(s,b); }
-    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('silBox').hidden=!s.skinMode||s.obj==='mesa'; if(!$('silBox').hidden) silPanel(s,b); $('v2DrainF').hidden=!s.v2Mode; $('skLeadC').hidden=!s.skinCups; $('skLeadG').hidden=!s.skinGlove; $('skLeadM').hidden=!!(s.skinGlove||s.skinCups); $('skinTF').hidden=!!s.skinCups; ['sealMode','moldClick','moldPlate','sealPart'].forEach(id=>{ const el=$(id); if(el){ el.disabled=!!(s.skinMode&&(s.skinGlove||s.skinCups)); el.title=el.disabled?'No aplica al guante: sin placa de patas; el logotipo sale en relieve desde la silicona':''; } }); if(s.skinMode&&s.obj!=='mesa') prepareSeal(s).then(()=>skinAnim(s,b)).catch(()=>{}); else if($('skAnim').classList.contains('big')) $('skBig').click(); $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
+    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('silBox').hidden=!s.skinMode||s.obj==='mesa'; if(!$('silBox').hidden) silPanel(s,b); $('v2DrainF').hidden=!s.v2Mode; $('skLeadC').hidden=!s.skinCups; $('skLeadG').hidden=!s.skinGlove; $('skLeadM').hidden=!!(s.skinGlove||s.skinCups); $('skinTF').hidden=!!s.skinCups; ['sealMode','moldClick','moldPlate','sealPart'].forEach(id=>{ const el=$(id); if(el){ el.disabled=!!(s.skinMode&&(s.skinGlove||s.skinCups)); el.title=el.disabled?'No aplica al guante: sin placa de patas; el logotipo sale en relieve desde la silicona':''; } }); if(s.skinMode&&s.obj!=='mesa') prepareSeal(s).then(()=>skinAnim(s,b)).catch(()=>{}); else if($('skAnim').classList.contains('big')) $('skBig').click(); $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'||(s.mode==='mold'&&!s.skinMode); $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable||!!s.plasterMode;
@@ -5006,7 +5009,7 @@
     if(clay&&Math.min(b.Lb,b.Wb)<Math.min(b.L,b.W)*0.55) warns.push('La inclinación deja el fondo con menos del 55 % de la boca: la maceta queda inestable. Reduce la inclinación.');
     if(clay&&b.wall<12) warns.push('La pared útil queda por debajo de 1,2 cm. Sube el alto total o baja las patas.');
     if(!clay&&b.core<10) warns.push('La cavidad queda con menos de 1 cm de profundidad. Sube el alto total o reduce fondo y patas.');
-    if(!clay&&s.t<8) warns.push('En cemento, una pared de menos de 0,8 cm se rompe al desmoldar o voltear la pieza aunque lleve fibra.');
+    if(!clay&&s.t<5) warns.push('En cemento, una pared de menos de 0,5 cm se rompe al desmoldar o voltear la pieza aunque lleve fibra.');
     if(!clay&&s.type==='rect'&&s.corner==='sumiiri') warns.push('El seguidor no puede entrar en una esquina entrante: el plato-guía se corta redondeado y el detalle sumiiri se talla a mano.');
     if(!clay){
       const rl=s.L/2+s.lipX, rw=s.W/2+s.lipX, rc=SHP(s)?rl/Math.cos(Math.PI/SHP(s)):s.type==='rect'?Math.hypot(rl,rw)-s.c*0.3:Math.max(rl,rw);
@@ -5153,7 +5156,9 @@
   }
   // pared de cemento por defecto (cm), con mortero con fibra: el usuario veía muy gruesas las de antes (1,5 · 1,8 · 2 cm)
   // (por la mayor de largo y alto: las cascadas altas llevan más pared)
-  function cementWall(p){ const m=Math.max(p.L,p.H||0); return m<=15?0.8:m<=25?1:m<=35?1.2:1.5; }
+  // pared de cemento como una maceta de cerámica (el usuario asegura la resistencia: mortero fino con fibra y superplastificante):
+  // 0,6 cm hasta 15 cm, 0,7 hasta 25, 0,8 hasta 35 y 1 cm más (antes 0,8 · 1 · 1,2 · 1,5)
+  function cementWall(p){ const m=Math.max(p.L,p.H||0); return m<=15?0.6:m<=25?0.7:m<=35?0.8:1; }
   // Fondo de cemento por RESISTENCIA DE MATERIALES (cm; L, W, H, feet, t en cm). El fondo trabaja como losa apoyada en las
   // paredes cuando la maceta se levanta llena o se asienta sobre tres puntos: carga P = (sustrato húmedo 1,8 g/cm³ + árbol 2 kg
   // + la propia maceta 2,2 g/cm³) × 2 por el golpe al apoyar; momento por unidad de ancho M = P·Ls/(4·Ll) (luz corta Ls entre
@@ -5340,7 +5345,7 @@
   }
   // Pared de cemento elegida por el usuario: se recuerda (también al recargar) y al volver a cemento no se pisa con la del
   // modelo (antes subía a 1,8 cm al cambiar de arcilla a cemento).
-  const WALL_KEY='legadoParedCemento'; let wallMem=null, clayMem=null; try{ const v=parseFloat(localStorage.getItem(WALL_KEY)); if(v>0) wallMem=v; }catch(e){}
+  const WALL_KEY='legadoParedCemento2'; /* v2: las paredes delgadas nuevas no heredan la pared gruesa guardada antes */ let wallMem=null, clayMem=null; try{ const v=parseFloat(localStorage.getItem(WALL_KEY)); if(v>0) wallMem=v; }catch(e){}
   const keepWall=()=>{ if($('matClay').checked) return; const v=+$('t').value; if(v>0){ wallMem=v; try{ localStorage.setItem(WALL_KEY,String(v)); }catch(e){} } };
   function switchMaterial(){
     const clay=$('matClay').checked, prev=+$('t').value;
@@ -5351,7 +5356,7 @@
       const Lprev=+$('L').value; applyPreset(current.id);
       if($('prop').checked&&Math.abs(Lprev-current.L)>0.01){ $('L').value=Lprev; scaleFromL(); render(); snapBaseline(); } // conserva el tamaño escalado
     }
-    else { if(!clay){ if(+$('t').value<0.8||+$('t').value>4) $('t').value=cementWall({L:+$('L').value,H:+$('H').value}); $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); baseHint(); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); snapBaseline(); }
+    else { if(!clay){ if(+$('t').value<0.5||+$('t').value>4) $('t').value=cementWall({L:+$('L').value,H:+$('H').value}); $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,+$('t').value); baseHint(); } else { if(+$('t').value>1.5) $('t').value=0.7; } render(); snapBaseline(); }
     if(clay&&clayMem&&Math.abs(+$('t').value-clayMem)>0.01){ $('t').value=clayMem; render(); snapBaseline(); }
     if(!clay&&wallMem&&Math.abs(+$('t').value-wallMem)>0.01){ $('t').value=wallMem; $('base').value=cementBase(+$('H').value,+$('feet').value,+$('L').value,+$('W').value,wallMem); baseHint(); render(); snapBaseline(); }
   }
