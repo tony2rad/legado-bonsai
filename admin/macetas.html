@@ -3836,8 +3836,10 @@
           return R; };
         const P3=(r,z,a)=>[r*Math.cos(a),r*Math.sin(a),z];
         // carcasa: media cáscara barrida por ángulo; sección (r, z) con la ranura en V abajo y un reborde en bisel arriba
-        const half=sg=>{ const A=adder(), ri0=Math.max(...inL.map(L=>Math.max(...L.map(([x,y])=>Math.hypot(x,y))))), dl=1/ri0;
-          const a0=sg>0?-Math.PI/2+dl:Math.PI/2+dl, a1=sg>0?Math.PI/2-dl:3*Math.PI/2-dl, ang=Array.from({length:m+1},(_,i)=>a0+(a1-a0)*i/m), dirs=ang.map(a=>[Math.cos(a),Math.sin(a)]);
+        // SECTORES (mitades o, si una mitad no cabe en la cama, cuartos; pedido del usuario: los trozos no tenían por dónde unirse):
+        // cada sector lleva en sus dos juntas la misma pestaña para ganchos de presión que las mitades
+        const sector=(s0,s1)=>{ const A=adder(), ri0=Math.max(...inL.map(L=>Math.max(...L.map(([x,y])=>Math.hypot(x,y))))), dl=1/ri0;
+          const a0=s0+dl, a1=s1-dl, ang=Array.from({length:m+1},(_,i)=>a0+(a1-a0)*i/m), dirs=ang.map(a=>[Math.cos(a),Math.sin(a)]);
           const RI=radT(dirs), RO=RI.map(r=>r.map(v=>v+CT));
           const sec=i=>{ const P=[]; for(let j=0;j<J;j++) P.push([RI[j][i],Z[j]]); P.push([RO[J-1][i]+3,Z[J-1]],[RO[J-1][i],Z[J-1]-4.5]); for(let j=J-2;j>=0;j--) P.push([RO[j][i],Z[j]]);
             const rm=(RI[0][i]+RO[0][i])/2; P.push([rm+0.9,Z[0]],[rm,Z[0]+1.0],[rm-0.9,Z[0]]); return P; };
@@ -3845,14 +3847,19 @@
           for(let i=0;i<m;i++) for(let e=0;e<nv;e++){ const f=(e+1)%nv; A.quad(P3(S[i][e][0],S[i][e][1],ang[i]),P3(S[i][f][0],S[i][f][1],ang[i]),P3(S[i+1][f][0],S[i+1][f][1],ang[i+1]),P3(S[i+1][e][0],S[i+1][e][1],ang[i+1])); }
           [0,m].forEach(i=>fill2D(A,S[i],[],(u,v)=>P3(u,v,ang[i])));
           // pestañas de unión en las dos juntas (plano x = 0), del lado de esta mitad: un gancho de presión cada 5 cm
-          [0,m].forEach(i=>{ const sy=Math.sin(ang[i])>0?1:-1, rm=(RI[0][i]+RO[0][i])/2, P=[];
+          [0,m].forEach(i=>{ const d=[Math.cos(ang[i]),Math.sin(ang[i])], tn=i===0?[-d[1],d[0]]:[d[1],-d[0]], rm=(RI[0][i]+RO[0][i])/2, P=[];
             for(let j=0;j<J;j++) P.push([RI[j][i],Z[j]]); for(let j=J-1;j>=0;j--) P.push([RO[j][i]+FW,Z[j]]); P.push([rm+0.9,Z[0]],[rm,Z[0]+1.0],[rm-0.9,Z[0]]);
-            prism(A,P,[],sg>0?0:-FT,sg>0?FT:0,(u,v,w)=>[w,sy*u,v]); });
+            prism(A,P,[],0,FT,(u,v,w)=>[u*d[0]+w*tn[0],u*d[1]+w*tn[1],v]); });
           return A.T; };
-        const cA=half(1), cB=half(-1);
+        const fitXY=T=>{ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; for(let i=0;i<T.length;i+=3){ x0=Math.min(x0,T[i]); x1=Math.max(x1,T[i]); y0=Math.min(y0,T[i+1]); y1=Math.max(y1,T[i+1]); } const dx=x1-x0, dy=y1-y0, bx=(s.bedX||330)-1, by=(s.bedY||320)-1; return (dx<=bx&&dy<=by)||(dx<=by&&dy<=bx); };
+        let CS=[[-Math.PI/2,Math.PI/2],[Math.PI/2,3*Math.PI/2]].map(([a,b2])=>({T:sector(a,b2),mid:(a+b2)/2}));
+        if(!CS.every(c=>fitXY(c.T))) CS=[[-Math.PI/2,0],[0,Math.PI/2],[Math.PI/2,Math.PI],[Math.PI,3*Math.PI/2]].map(([a,b2])=>({T:sector(a,b2),mid:(a+b2)/2}));
+        const NPc=CS.length;
         // placa con el lomo en V (bajo el eje de la pared de la carcasa) y la madre encima
         const MF=144, angF=Array.from({length:MF},(_,i)=>2*Math.PI*i/MF), dirF=angF.map(a=>[Math.cos(a),Math.sin(a)]), RF=radT(dirF), MD=adder();
-        prism(MD,angF.map((a,i)=>[(RF[0][i]+CT+4)*Math.cos(a),(RF[0][i]+CT+4)*Math.sin(a)]),[],0,PT,id);   // la placa sobresale 4 mm de la carcasa (antes 8): menos piel en la pieza más grande
+        const PO=angF.map((a,i)=>[(RF[0][i]+CT+4)*Math.cos(a),(RF[0][i]+CT+4)*Math.sin(a)]);
+        prism(MD,PO,[],0,PT,id);   // la placa sobresale 4 mm de la carcasa (antes 8): menos piel en la pieza más grande
+        const iPl=MD.T.length;
         { const sc=[[-0.8,-0.3],[0.8,-0.3],[0,0.8]], R=angF.map((a,i)=>sc.map(([dr,dz])=>P3(RF[0][i]+CT/2+dr,PT+dz,a)));
           for(let i=0;i<MF;i++){ const i2=(i+1)%MF; for(let q=0;q<3;q++){ const q2=(q+1)%3; MD.quad(R[i][q],R[i][q2],R[i2][q2],R[i2][q]); } } }
         { const R=[{L:potL[0],z:PT-0.3},...potL.slice(0,nPot).map((L,j)=>({L,z:Z[j]}))];
@@ -3870,13 +3877,44 @@
         prism(YF,sil,[],Zb,ZL1+0.2,id); prism(YF,angF.map((a,i)=>[RIF[J-1][i]*Math.cos(a),RIF[J-1][i]*Math.sin(a)]),[],ZL1,Ztop,id);
         const vB=vol(YB.T)/1e6, vF=vol(YF.T)/1e6;
         const shift=(T,dz)=>{ const o=T.slice(); for(let i=2;i<o.length;i+=3) o[i]-=dz; return o; };
-        parts.push({key:'madreY',name:'Madre con su placa (maceta boca abajo; la placa en la cama)',file:'yeso-contramolde-madre',T:MD.T,map:id,color:0xb98c5a},
-          {key:'carcasaY',name:'Carcasa, mitad 1 de 2 (de pie)',file:'yeso-contramolde-carcasa-1',T:shift(cA,PT),map:id,color:0x7fa6c8},
-          {key:'carcasaY',name:'Carcasa, mitad 2 de 2 (de pie)',file:'yeso-contramolde-carcasa-2',T:shift(cB,PT),map:id,color:0x7fa6c8},
+        // MADRE PARTIDA (el usuario: el corte partía el logotipo y los trozos no tenían por dónde unirse): si no cabe, se corta a lo
+        // largo con los cortes FUERA del logotipo (2 trozos con el corte corrido o 3 con el logotipo entero en el del centro) y la
+        // placa lleva COLAS DE MILANO en el anillo de yeso, a cada lado de la maceta: el trozo de la izquierda tiene la cola, el de
+        // la derecha su hueco (0,15 mm de holgura); se encajan bajando un trozo sobre el otro y las caras del cuerpo se pegan.
+        const madreParts=(()=>{ const whole={key:'madreY',name:'Madre con su placa (maceta boca abajo; la placa en la cama)',file:'yeso-contramolde-madre',T:MD.T,map:id,color:0xb98c5a};
+          let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; PO.forEach(([x,y])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); });
+          const bx=(s.bedX||330)-1, by=(s.bedY||320)-1, BMX=Math.max(bx,by), BMN=Math.min(bx,by), oth=y1-y0, fitE=e=>oth<=BMN?e<=BMX:e<=BMN;
+          if(fitE(x1-x0)||oth>x1-x0) return {list:[whole]};
+          const sc=seal?seal.c[0]*k:0, hs=seal?seal.w*k/2+8:0, ok=cs=>{ const B2=[x0,...cs,x1]; return cs.every(c=>c>x0+40&&c<x1-40)&&B2.every((v,i)=>i===0||(v>B2[i-1]&&fitE(v-B2[i-1]))); };
+          const cand=[]; if(seal){ cand.push([sc+hs],[sc-hs]); for(let a=hs;a<=(x1-x0)/2;a+=4) cand.push([sc-a,sc+a]); }
+          for(let nn=2;nn<=6;nn++) cand.push(Array.from({length:nn-1},(_,i)=>x0+(x1-x0)*(i+1)/nn));
+          let cuts=cand.find(ok); if(!cuts) return {list:[whole]};
+          const logoOk=!seal||cuts.every(c=>Math.abs(c-sc)>=hs-0.1);
+          cuts=cuts.map(c=>{ for(let q=0;q<20;q++){ let hit=false; for(let i=0;i<MD.T.length;i+=3) if(Math.abs(MD.T[i]-c)<0.06){ hit=true; break; } if(!hit) return c; c+=0.37; } return c; });
+          const crossY=(Pq,c)=>{ const ys=[]; for(let i=0;i<Pq.length;i++){ const a=Pq[i], b2=Pq[(i+1)%Pq.length]; if((a[0]-c)*(b2[0]-c)<0) ys.push(a[1]+(b2[1]-a[1])*(c-a[0])/(b2[0]-a[0])); } return ys.sort((p,q)=>p-q); };
+          const DT={wb:8,wt:13,d:7,cl:0.15}, dovs=cuts.map(c=>{ const pY=crossY(PO,c), bY=crossY(potL[0],c); if(pY.length<2) return []; const sg=bY.length>=2?[[pY[0],bY[0]],[bY[bY.length-1],pY[pY.length-1]]]:[[pY[0],pY[pY.length-1]]]; return sg.filter(([a,b2])=>b2-a>=DT.wt+10).map(([a,b2])=>(a+b2)/2); });
+          const clipH=(Pq,nx,ny,cc)=>{ const o=[], nq=Pq.length, f=p=>nx*p[0]+ny*p[1]-cc; for(let i=0;i<nq;i++){ const a=Pq[i], b2=Pq[(i+1)%nq], fa=f(a), fb=f(b2); if(fa>=0) o.push(a); if((fa>=0)!==(fb>=0)){ const u=fa/(fa-fb); o.push([a[0]+(b2[0]-a[0])*u,a[1]+(b2[1]-a[1])*u]); } } return o; };
+          const side=(Pq,p1,p2,ref)=>{ let nx=-(p2[1]-p1[1]), ny=p2[0]-p1[0]; if(nx*ref[0]+ny*ref[1]<nx*p1[0]+ny*p1[1]){ nx=-nx; ny=-ny; } return clipH(Pq,nx,ny,nx*p1[0]+ny*p1[1]); };
+          const ds=DT.d+DT.cl, sock=(c,v)=>({l:[[c,v-DT.wb/2-DT.cl],[c+ds,v-DT.wt/2-DT.cl]],r:[[c,v+DT.wb/2+DT.cl],[c+ds,v+DT.wt/2+DT.cl]]});
+          const rest=solidsOf(MD.T.slice(iPl)), nP=cuts.length+1, B2=[-1e9,...cuts,1e9], list=[]; let nd=0;
+          for(let q=0;q<nP;q++){ const A=adder(); let base=PO; if(q>0) base=clipH(base,1,0,B2[q]); if(q<nP-1) base=clipH(base,-1,0,-B2[q+1]);
+            if(q>0&&dovs[q-1].length){ const c=B2[q]; prism(A,clipH(base,1,0,c+ds-0.2),[],0,PT,id); const strip=clipH(base,-1,0,-(c+ds)); let prev=null;
+              dovs[q-1].slice().sort((a,b2)=>a-b2).forEach(v=>{ const S2=sock(c,v); let g=strip; if(prev) g=side(g,prev.r[0],prev.r[1],[c+ds/2,1e5]); g=side(g,S2.l[0],S2.l[1],[c+ds/2,-1e5]); if(g.length>=3) prism(A,g,[],0,PT,id); prev=S2; });
+              let g=side(strip,prev.r[0],prev.r[1],[c+ds/2,1e5]); if(g.length>=3) prism(A,g,[],0,PT,id); }
+            else prism(A,base,[],0,PT,id);
+            if(q<nP-1) dovs[q].forEach(v=>{ const c=B2[q+1]; prism(A,[[c-0.2,v-DT.wb/2],[c+DT.d,v-DT.wt/2],[c+DT.d,v+DT.wt/2],[c-0.2,v+DT.wb/2]],[],0,PT-0.4,id); nd++; });
+            rest.forEach(S0=>{ let S1=S0; if(q>0) S1=Float64Array.from(clipSolid(THREE,S1,0,B2[q],1,[],1)); if(S1.length&&q<nP-1) S1=Float64Array.from(clipSolid(THREE,S1,0,B2[q+1],-1,[],1)); for(let i=0;i<S1.length;i++) A.T.push(S1[i]); });
+            const hasLogo=seal&&logoOk&&sc>B2[q]&&sc<B2[q+1];
+            list.push({key:'madreY',name:`Madre con su placa · trozo ${q+1} de ${nP}${hasLogo?' (con el logotipo)':''}`,file:`yeso-contramolde-madre-trozo-${q+1}de${nP}`,T:A.T,map:id,color:0xb98c5a,piece:q}); }
+          return {list,n:nP,nd,logoOk}; })();
+        if(madreParts.n) notes.push(`Madre en ${madreParts.n} trozos${seal&&madreParts.logoOk?` con los cortes fuera del logotipo${madreParts.n===3?' (va entero en el trozo del centro)':''}`:''}, unidos por ${madreParts.nd} cola${madreParts.nd>1?'s':''} de milano en la placa (a cada lado de la maceta, con 0,15 mm de holgura): encaja cada cola bajando un trozo sobre el otro en una mesa plana y pega las caras del cuerpo con cianoacrilato o epoxi. Lija y sella la junta antes de colar.`);
+        if(NPc===4) notes.push('La carcasa va en 4 cuartos para caber en la cama: cada junta lleva sus dos pestañas para ganchos de presión, como las juntas de las mitades.');
+        parts.push(...madreParts.list,
+          ...CS.map((c,i)=>({key:'carcasaY',name:`Carcasa, ${NPc===2?'mitad':'cuarto'} ${i+1} de ${NPc} (de pie)`,file:`yeso-contramolde-carcasa-${i+1}`,T:shift(c.T,PT),map:id,color:0x7fa6c8})),
           {key:'aroZocalo',name:'Aro del zócalo (se quita entre las dos coladas)',file:'yeso-contramolde-aro-zocalo',T:shift(AR.T,Zb),map:id,color:0xd9a441},...keep);
         const nc=Math.max(2,Math.ceil((Ztop-PT)/50)), c1=x=>(Math.round(x)/10).toFixed(1).replace('.',','), f1=x=>x.toFixed(1).replace('.',',');
-        PS={madre:MD.T,cA,cB,aro:AR.T,yBody:YB.T,yBase:YF.T,PT,Zb,ZL1,Ztop,vB,vF,clips:2*2*nc,ncl:nc,H:Ztop};
-        notes.push(`Contramolde de yeso: una sola armada y dos coladas. La madre (la maceta agrandada, boca abajo, con patas y logotipo arriba) va impresa con su placa; la carcasa en 2 mitades la rodea a ${TH} mm (el grosor del yeso), calza en el lomo en V de la placa y se cierra con ${PS.clips} ganchos de presión (${nc} por pestaña). Colada 1, cuerpo: ≈ ${f1(vB)} L de yeso hasta el escalón del aro del zócalo (${PB} mm sobre la base de la madre). Quita el aro, pasa jabón de moldes y colada 2, fondo: ≈ ${f1(vF)} L hasta el borde de la carcasa. Alto total ${c1(Ztop)} cm.`);
+        PS={madre:MD.T,cs:CS,aro:AR.T,yBody:YB.T,yBase:YF.T,PT,Zb,ZL1,Ztop,vB,vF,clips:NPc*2*nc,ncl:nc,H:Ztop};
+        notes.push(`Contramolde de yeso: una sola armada y dos coladas. La madre (la maceta agrandada, boca abajo, con patas y logotipo arriba) va impresa con su placa; la carcasa en 2 mitades la rodea a ${TH} mm (el grosor del yeso), calza en el lomo en V de la placa y se cierra con ${PS.clips} ganchos de presión (${nc} por pestaña${NPc===4?'; va en 4 cuartos':''}). Colada 1, cuerpo: ≈ ${f1(vB)} L de yeso hasta el escalón del aro del zócalo (${PB} mm sobre la base de la madre). Quita el aro, pasa jabón de moldes y colada 2, fondo: ≈ ${f1(vF)} L hasta el borde de la carcasa. Alto total ${c1(Ztop)} cm.`);
         notes.push('Imprime la carcasa en PETG: el yeso se calienta a 40–50 °C al fraguar y la pared de 3 mm de PLA se puede deformar. La madre y el aro pueden ir en PLA.');
         notes.push(`La reserva de ${PL.spare} mm va en la madre, sobre el borde: el cuerpo de yeso la incluye y el borde de la maceta se recorta en cuero por la marca.`);
         if(s.pNumDWas&&s.pNumDWas!=='none') notes.push('Número del molde: en el contramolde no hay fichas; si quieres numerarlo, márcalo a lápiz en el yeso.'); } }
@@ -4040,7 +4078,7 @@
     const dowR=[]; for(let round=0;round<2;round++) for(let i=0;i<parts.length;i++){ const pt=parts[i], Tp=plasterPrintTris(pt), Tq=new Array(Tp.length), bb=bbox(Tp), rot=(bb.mx[1]-bb.mn[1])>(bb.mx[0]-bb.mn[0]);
       if(pt.knock&&!rot&&round===0&&pt.piece==null&&pt.cutAt==null&&!cascoFits(Tp,s)) pt.cutAt=freeCut(Tp);   // piso de caja: corte sin vértices cerca
       for(let q=0;q<Tp.length;q+=3){ if(rot){ Tq[q]=Tp[q+1]; Tq[q+1]=Tp[q+2]; Tq[q+2]=-Tp[q]; } else { Tq[q]=Tp[q]; Tq[q+1]=Tp[q+2]; Tq[q+2]=Tp[q+1]; } }
-      const sc=seal?[seal.c[0]*k,-seal.c[1]*k]:null, sw=seal?seal.w*k:0, sh=seal?(seal.h||seal.w)*k:0, sl=pt.key==='cajaC'&&seal?(rot?{c:[sc[1],-sc[0]],w:sh,h:sw}:{c:sc,w:sw,h:sh}):null;
+      const sc=seal?[seal.c[0]*k,-seal.c[1]*k]:null, sw=seal?seal.w*k:0, sh=seal?(seal.h||seal.w)*k:0, sl=(pt.key==='cajaC'||pt.key==='madreY')&&seal?(rot?{c:[sc[1],-sc[0]],w:sh,h:sw}:{c:sc,w:sw,h:sh}):null;   // la madre del contramolde tampoco se corta por el logotipo
       const sp=splitToFit(THREE,{T:Tq,print:'ground',key:sl?'feet':'base',name:pt.name,file:pt.file,axisOnly:true,...(pt.cutAt!=null&&!rot?{cutAt:pt.cutAt,axis:0,forceN:!!pt.clipFl}:{})},s,sl); if(!sp) continue;
       const pcs=sp.parts.map(pc=>Object.assign({},pt,{T:pc.T,name:pc.name,file:pc.file,piece:pc.piece,cutAt:null,map:rot?(a,b2,c)=>[-c,a,b2]:(x,y,z)=>[x,z,y]})); parts.splice(i,1,...pcs); i+=pcs.length-1; dowR.push(...sp.dowels);
       if(pt.knock) notes.push(`${pt.name}: no cabe en la ${s.bedName}; va en ${sp.parts.length} trozos con espigas de unión: júntalos y pégalos una sola vez (el piso no se desarma; las paredes sí).`);
@@ -4208,11 +4246,11 @@
     const toV=T=>{ const A=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ A[i]=T[i]; A[i+1]=T[i+2]; A[i+2]=-T[i+1]; } return A; };
     const mk=(T,color,extra)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(toV(T),3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.75,side:THREE.DoubleSide,flatShading:true},extra||{}))); };
     if(!P||P.empty){ G.userData={setExplode(){},box:new THREE.Box3(new THREE.Vector3(-120,0,-120),new THREE.Vector3(120,80,120)),plasterMsg:PM.notes.join(' ')}; return G; }
-    const tr=o=>({transparent:true,opacity:o,depthWrite:false}), madre=mk(P.madre,0xb98c5a), cA=mk(P.cA,0x7fa6c8,tr(0.42)), cB=mk(P.cB,0x7fa6c8,tr(0.42)), aro=mk(P.aro,0xd9a441), yb=mk(P.yBody,0xf3efe6,tr(0.75)), yf=mk(P.yBase,0xe9e2d2,tr(0.75));
-    G.add(madre,cA,cB,aro,yb,yf);
+    const tr=o=>({transparent:true,opacity:o,depthWrite:false}), madre=mk(P.madre,0xb98c5a), cs=P.cs.map(c=>mk(c.T,0x7fa6c8,tr(0.42))), aro=mk(P.aro,0xd9a441), yb=mk(P.yBody,0xf3efe6,tr(0.75)), yf=mk(P.yBase,0xe9e2d2,tr(0.75));
+    G.add(madre,...cs,aro,yb,yf);
     const e=x=>x<=0?0:x>=1?1:x*x*(3-2*x); let T0=opt.explode??0, U=1;
     const place=()=>{ const op=Math.max(T0,e((U-0.78)/0.12)), lift=Math.max(T0,e((U-0.9)/0.1));
-      cA.position.set(op*80,0,0); cB.position.set(-op*80,0,0);
+      cs.forEach((m,i)=>{ const a=P.cs[i].mid; m.position.set(Math.cos(a)*op*80,0,-Math.sin(a)*op*80); });
       yb.visible=U>0.04; yb.material.opacity=0.75*Math.min(1,(U-0.04)/0.2); aro.visible=U<0.46; aro.position.y=e((U-0.34)/0.12)*(P.H*0.6);
       yf.visible=U>0.5; yf.material.opacity=0.75*Math.min(1,(U-0.5)/0.2);
       yb.position.y=lift*(P.H*0.35); yf.position.y=lift*(P.H*0.9); };
