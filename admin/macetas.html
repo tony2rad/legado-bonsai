@@ -424,11 +424,12 @@
     </details>
     <details class="gloss" id="skinBox" open hidden style="border:1px solid var(--line);border-radius:8px;padding:8px 10px">
       <summary>Molde de silicona (contramolde)</summary>
-      <p class="mold-lead" id="skLeadG"><b>Guante:</b> se imprime la maceta completa como <b>madre</b> (con patas y logotipo), una <b>carcasa</b> en dos mitades y una <b>tapa</b> que la cierra por arriba, siempre a la distancia del guante. Se vierte <b>toda la silicona de una vez</b> por el embudo de la tapa hasta que sale por los respiraderos: queda un guante de una pieza que copia paredes, fondo, patas y logotipo. Para colar, el guante va boca arriba dentro de la misma carcasa, sobre la tapa; se echa el mortero y se baja la base con el núcleo. Sin placa de patas ni inserto del logotipo: el fondo, las patas y el logotipo los da la silicona.</p>
+      <p class="mold-lead" id="skLeadC"><b>Dos copas de silicona:</b> imprimes UNA vez las matrices (la madre, una carcasa con fondo plano, una caja interior y un tapón interior) y con ellas haces tantos juegos de silicona como quieras. Cada copa se hace igual: viertes la silicona en la caja abierta y hundes la madre o el tapón desde arriba, como un émbolo; no hacen falta agujeros. La <b>copa exterior</b> copia la maceta por fuera con patas y logotipo y se para sola; la <b>copa interior</b> tiene un reborde que calza en el borde de la exterior y espigas que forman los drenajes. Para colar: mortero en la copa exterior, hundes la interior, arena dentro como peso. Sin pernos ni piezas impresas.</p>
+      <p class="mold-lead" id="skLeadG" hidden><b>Guante:</b> se imprime la maceta completa como <b>madre</b> (con patas y logotipo), una <b>carcasa</b> en dos mitades y una <b>tapa</b> que la cierra por arriba, siempre a la distancia del guante. Se vierte <b>toda la silicona de una vez</b> por el embudo de la tapa hasta que sale por los respiraderos: queda un guante de una pieza que copia paredes, fondo, patas y logotipo. Para colar, el guante va boca arriba dentro de la misma carcasa, sobre la tapa; se echa el mortero y se baja la base con el núcleo. Sin placa de patas ni inserto del logotipo: el fondo, las patas y el logotipo los da la silicona.</p>
       <p class="mold-lead" id="skLeadM" hidden><b>Manga:</b> se imprime la maceta como <b>madre</b> sobre una placa de vertido y una <b>carcasa</b> en dos piezas que la rodea a la distancia de la piel. Entre las dos se cuela silicona: sale una piel abierta arriba y abajo que copia labio, cuerpo y paneles. Para colar cemento, la piel va dentro de la carcasa, sobre la base con núcleo y bajo la placa de patas rígida, que forma el fondo y las patas. Es la que menos silicona gasta, pero lleva más piezas.</p>
       <div class="grid2">
-        <label class="f" style="grid-column:1/-1"><span>Tipo de molde de silicona</span><select id="skinType"><option value="guante" selected>Guante · se vierte TODA la silicona de una vez (paredes, fondo, patas y logotipo)</option><option value="manga">Manga · solo las paredes (menos silicona; fondo y patas con placa rígida)</option></select></label>
-        <label class="f" style="grid-column:1/-1"><span>Grosor de la piel <b>mm</b></span><select id="skinT"><option value="8" selected>8 · guante (lo sostiene la carcasa) o silicona de platino</option><option value="10">10 · silicona de condensación (estaño)</option><option value="12">12 · macetas grandes o con labio ancho</option></select></label>
+        <label class="f" style="grid-column:1/-1"><span>Tipo de molde de silicona</span><select id="skinType"><option value="copas" selected>Dos copas de silicona · se paran solas, sin piezas impresas al colar (recomendado)</option><option value="guante">Guante · se vierte TODA la silicona de una vez (paredes, fondo, patas y logotipo)</option><option value="manga">Manga · solo las paredes (menos silicona; fondo y patas con placa rígida)</option></select></label>
+        <label class="f" style="grid-column:1/-1" id="skinTF"><span>Grosor de la piel <b>mm</b></span><select id="skinT"><option value="8" selected>8 · guante (lo sostiene la carcasa) o silicona de platino</option><option value="10">10 · silicona de condensación (estaño)</option><option value="12">12 · macetas grandes o con labio ancho</option></select></label>
       </div>
       <figure id="skAnim"><canvas id="skAnimCv" aria-label="Animación: para qué sirve cada pieza del contramolde"></canvas>
         <figcaption class="ca-bar"><button class="btn ghost" id="skPrev" type="button" aria-label="Paso anterior">◀</button><button class="btn ghost" id="skPlay" type="button" aria-label="Pausa">⏸</button><button class="btn ghost" id="skNext" type="button" aria-label="Paso siguiente">▶</button><button class="btn ghost" id="skBig" type="button" aria-label="Ver en grande">⛶</button><span id="skTxt"></span></figcaption></figure>
@@ -667,7 +668,7 @@
     if(mat==='clay'&&s.type==='round') s.flare=0;
     s.c=Math.min(25,Math.max(8,Math.min(s.L,s.W)*0.12)); // corner size
     if(s.corner==='mokko') s.c=Math.min(40,Math.max(12,Math.min(s.L,s.W)*0.18));
-    s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; s.skinGlove=$('skinType').value!=='manga'; if(s.skinGlove){ s.moldClick=false; s.sealPart=false; s.sealMode='up'; } }
+    s.mode=(document.querySelector('input[name=mode]:checked')||{}).value||'clay'; s.printable=s.mode==='print'; if(s.mode==='skin'){ s.mode='mold'; s.skinMode=true; s.skin=+$('skinT').value||10; s.moldParts=2; s.moldAuto=false; const sty=$('skinType').value; s.skinCups=sty==='copas'; s.skinGlove=sty==='guante'; if(s.skinCups) s.skin=12; if(s.skinGlove||s.skinCups){ s.moldClick=false; s.sealPart=false; s.sealMode='up'; } }
     if(s.mode==='pskin'){ s.mode='plaster'; s.pskinMode=true; }
     // MEDIA LUNA: se dibuja e imprime como un óvalo canónico que lunaGroup() curva (cuernos, borde de roca); fuera de
     // Impresión 3D no hay plantillas ni moldes para ella y se usa su óvalo de base, con aviso
@@ -1968,7 +1969,7 @@
     // el molde tarda hasta ~2 s en piezas grandes: se recalcula cuando dejas de escribir, no en cada tecla
     if(mesaOn){ const G=mesaView(THREE,s,b); swap(G); const c=G.userData.box.getCenter(new THREE.Vector3()), z=G.userData.box.getSize(new THREE.Vector3()); floor.position.set(c.x,0,c.z); floor.scale.setScalar(Math.max(z.x,z.z)*0.62); }
     else if(moldOn||plasterOn){ $('v3msg').textContent='Calculando el molde…'; V3.moldT=setTimeout(async()=>{ if(!$('dlg3d').open||!last3) return; await prepareSeal(last3.s); if(!$('dlg3d').open||!last3) return;
-      if(last3.s.moldAuto&&last3.s.mode==='mold'&&!AUTO_PARTS.has(autoKey(last3.s))){ $('v3msg').textContent='Probando el molde en 2 mitades y en 4 cuartos para ocupar menos camas de la '+last3.s.bedName+'…'; await resolveAutoParts(last3.s,last3.b); render(); return; } if(last3.s.selloMode) await prepareSello(last3.s); const G=last3.s.selloMode?selloGroup(THREE,last3.s):last3.s.v2Mode?v2Group(THREE,last3.s,last3.b):last3.s.pskinMode?pskinGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.cajaMode?boxKitGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.plasterMode?plasterGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}):moldGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}); swap(G);
+      if(last3.s.moldAuto&&last3.s.mode==='mold'&&!AUTO_PARTS.has(autoKey(last3.s))){ $('v3msg').textContent='Probando el molde en 2 mitades y en 4 cuartos para ocupar menos camas de la '+last3.s.bedName+'…'; await resolveAutoParts(last3.s,last3.b); render(); return; } if(last3.s.selloMode) await prepareSello(last3.s); const G=last3.s.selloMode?selloGroup(THREE,last3.s):last3.s.v2Mode?v2Group(THREE,last3.s,last3.b):last3.s.pskinMode?pskinGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.cajaMode?boxKitGroup(THREE,last3.s,last3.b,{explode:+$('v3exp').value,proc:+$('v3proc').value}):last3.s.plasterMode?plasterGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}):last3.s.skinCups?cupsGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}):moldGroup(THREE,last3.s,last3.b,{tree:$('v3tree').checked,explode:+$('v3exp').value}); swap(G);
       const c=G.userData.box.getCenter(new THREE.Vector3()), z=G.userData.box.getSize(new THREE.Vector3()); floor.position.set(c.x,0,c.z); floor.scale.setScalar(Math.max(z.x,z.z)*0.62);
       if(!V3.moldFramed){ V3.moldFramed=true; frameMold('iso'); }
       $('v3msg').textContent=G.userData.plasterMsg?G.userData.plasterMsg:G.userData.skin&&G.userData.skin.glove?`A la izquierda la madre (la maceta completa, con patas y logotipo) sobre su placa: la carcasa y la tapa la encierran y se vierte toda la silicona de una vez (≈ ${Math.round(G.userData.skin.vol/1000*1.1)} ml para un guante de ${G.userData.skin.t} mm). Al centro el molde para colar, aquí boca abajo: el guante (translúcido) dentro de la carcasa, entre la base con el núcleo y la tapa; mueve «Armado ↔ Desarmado» para ver las piezas. A la derecha la maceta terminada.`:G.userData.skin?`A la izquierda la madre con su placa de vertido: sobre ella se arma la carcasa y se cuela la silicona (≈ ${Math.round(G.userData.skin.vol/1000*1.1)} ml de silicona de condensación para una piel de ${G.userData.skin.t} mm). Al centro el molde armado para colar cemento: la piel (translúcida) va dentro de la carcasa, sobre la base con núcleo; mueve «Armado ↔ Desarmado» para ver las piezas. A la derecha la maceta terminada.`:'A la izquierda el molde (mueve «Armado ↔ Desarmado» para ver cómo encajan las piezas; desarmado, la placa de patas se voltea para mostrar el sello) y a la derecha la maceta terminada que sale de él. La maceta translúcida marca el hueco que llena el cemento.'; },reframe?30:300); }
@@ -2432,7 +2433,10 @@
     // es la maceta completa (patas y logotipo). La silicona se vierte de una vez y sale un guante de una pieza. Sin la V
     // del canto: la placa de la madre y la de la base son un tapón que entra en la boca de la carcasa con un reborde de
     // FTF mm que apoya en su canto (la base se baja desde arriba sobre el mortero ya vertido).
-    const GL=!!(SK&&s.skinGlove), FTF=4, fG=GL?ft-SK:ft;
+    // DOS COPAS (s.skinCups, por defecto; el usuario: el guante necesitaba sus piezas impresas en cada colada y no se podía
+    // multiplicar): la carcasa del guante baja hasta un FONDO PLANO SK mm bajo las patas (fG = −SK) y la madre se hunde
+    // desde arriba en la silicona ya vertida; la caja interior y el tapón interior hacen la copa interior. Ver el bloque CUP.
+    const CUP=!!(SK&&s.skinCups), GL=!!(SK&&(s.skinGlove||CUP)), FTF=4, fG=CUP?-SK:GL?ft-SK:ft, TIc=8; let cupIn=0;
     const RC=new Map(), ringC=(x,dil)=>{ const k=x.toFixed(3)+(dil?'s':''); if(!RC.has(k)){ const dl=R-x; RC.set(k,ringPts(dil?sS:s,Math.max(4,s.L-2*dl),Math.max(4,s.W-2*dl),n)); } return RC.get(k); };
     // --- primitivas: triángulos sueltos, polígonos planos con huecos, prismas y círculos
     const adder=()=>{ const T=[]; const tri=(a,b2,c)=>T.push(a[0],a[1],a[2],b2[0],b2[1],b2[2],c[0],c[1],c[2]); return {T,tri,quad:(a,b2,c,d)=>{ tri(a,b2,c); tri(a,c,d); }}; };
@@ -2475,12 +2479,12 @@
     // Nervio y ranura en V con las dos caras a 55° sobre la horizontal: ningún voladizo pasa de 35° desde la vertical
     // (la regla de impresión es no bajar de 45°; se deja margen), así se imprimen sin soportes. En esquinas cortadas o
     // redondeadas el anillo reducido queda hasta √2 veces más adentro: la V es poco honda para que allí siga sobre 50°.
-    const ext2=GL?[[xr+CLR,-TB],[xr+CLR,0],...extS,[extS[extS.length-1][0],Hb+SK]]:[[xr+CLR,-TB],[xr+CLR,-8.9],[xr+CLR-2,-5],[xr+CLR,-1.1],[xr+CLR,0],...extS];
+    const ext2=GL?[[xr+CLR,-TB],[xr+CLR,0],...extS,[extS[extS.length-1][0],H-fG]]:[[xr+CLR,-TB],[xr+CLR,-8.9],[xr+CLR-2,-5],[xr+CLR,-1.1],[xr+CLR,0],...extS];
     const dense=[];
     for(let i=0;i<ext2.length-1;i++){ const [x1,y1]=ext2[i],[x2,y2]=ext2[i+1], k=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)/0.5)); for(let j=0;j<k;j++) dense.push([x1+(x2-x1)*j/k,y1+(y2-y1)*j/k]); }
     dense.push(ext2[ext2.length-1]);
     const xOut=y=>{ let m=-1e9; for(const [x,yy] of dense) if(Math.abs(yy-y)<=Tw&&x>m) m=x; return m+Tw; };
-    const st=Math.max(1.5,Math.min(3,Hb/10)), ys=[-TB,-TB/2,0]; for(let y=st;y<Hb-0.5;y+=st) ys.push(y); ys.push(Hb); if(GL) ys.push(Hb+SK);
+    const st=Math.max(1.5,Math.min(3,Hb/10)), ys=[-TB,-TB/2,0]; for(let y=st;y<Hb-0.5;y+=st) ys.push(y); ys.push(Hb); if(GL) ys.push(H-fG);
     // ranura horizontal exterior para los pestillos de la placa: a 9 mm bajo la cara inferior, 0,8 mm de hondo, flancos de 2,4 mm
     const yg=Hb-9, gf=2.4; if(s.moldClick&&yg-gf>st+0.5){ const ys2=ys.filter(y=>y<yg-gf-0.3||y>yg+gf+0.3); ys.length=0; ys.push(...ys2,yg-gf,yg,yg+gf); ys.sort((a,b2)=>a-b2); }
     // la cara exterior de los gajos no puede ensancharse hacia arriba más de 35° desde la vertical (se imprimen de pie):
@@ -2558,10 +2562,13 @@
       // inferior y 6 mm más para llenar al ras) colgando de una placa igual a la de la base, con la misma ranura, así la
       // carcasa se arma encima con sus pasadores y la silicona se cuela en el hueco. Se imprime con la placa en la cama.
       const A=adder(), plateM=baseProf.map(([x,y])=>({loop:ringC(x,SK),Y:H-y})), body=[...ext.map(([x,y])=>({loop:ringC(x),Y:H-y})),...(GL?[]:[{loop:ringC(ext[ext.length-1][0]),Y:ft-6}])];
-      bandA(A,plateM); fill2D(A,plateM[plateM.length-1].loop,[],(u,v)=>[u,YB,v]);
-      fill2D(A,plateM[0].loop,[body[0].loop],(u,v)=>[u,H,v]);
+      // copas: 4 respiraderos por la placa, sobre la franja de silicona, para lo que sobra al hundir la madre
+      const MV=[]; if(CUP){ const mid=ringC(ext[0][0]+SK/2,SK), rv=Math.max(1.5,Math.min(2.5,SK/2-1)); [[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{ const r=radii(mid,[d])[0]; MV.push(circle([d[0]*r,d[1]*r],rv,20)); }); }   // en el centro de cada lado: en las esquinas el anillo dilatado queda casi encima de la maceta
+      bandA(A,plateM); fill2D(A,plateM[plateM.length-1].loop,MV,(u,v)=>[u,YB,v]);
+      fill2D(A,plateM[0].loop,[body[0].loop,...MV],(u,v)=>[u,H,v]);
+      MV.forEach(L=>{ for(let j=0,m=L.length;j<m;j++){ const k=(j+1)%m; A.quad([L[j][0],H,L[j][1]],[L[k][0],H,L[k][1]],[L[k][0],YB,L[k][1]],[L[j][0],YB,L[j][1]]); } });
       bandA(A,body); fill2D(A,body[body.length-1].loop,[],(u,v)=>[u,body[body.length-1].Y,v]);
-      parts.push({key:'madre',name:GL?'Madre: la maceta completa sobre su placa':'Madre con placa de vertido',file:'contramolde-madre',T:A.T,print:'base',color:0xb98c5a,explode:[0,0,0],noMold:true});
+      parts.push({key:'madre',name:CUP?'Madre: la maceta completa con su placa (se hunde en la silicona)':GL?'Madre: la maceta completa sobre su placa':'Madre con placa de vertido',file:'contramolde-madre',T:A.T,print:'base',color:0xb98c5a,explode:[0,0,0],noMold:true});
       // --- piel de silicona (no se imprime: se cuela): entre la maceta y la carcasa, del borde a la cara inferior
       if(!GL){ const A2=adder(), inS=ext.map(([x,y])=>({loop:ringC(x),Y:H-y})), outS=extS.map(([x,y])=>({loop:ringC(x,SK),Y:H-y}));
       bandA(A2,inS); bandA(A2,outS); fill2D(A2,outS[0].loop,[inS[0].loop],(u,v)=>[u,H,v]); fill2D(A2,outS[outS.length-1].loop,[inS[inS.length-1].loop],(u,v)=>[u,ft,v]);
@@ -2571,7 +2578,7 @@
       notes.push(`Piel de silicona de ${SK} mm: hacen falta ≈ ${Math.round(skinVol/1000*1.1)} ml de silicona de condensación (hueco de ${Math.round(skinVol/1000)} ml + 10 %). La madre solo sirve para hacer la piel: lija suave sus líneas de capa antes de colar, la silicona las copia.`); }
     }
     // --- base con núcleo (una pieza): placa con ranura en el canto, núcleo de la cavidad y postes de drenaje y alambre
-    {
+    if(!CUP){
       // respiraderos del mortero (guante): 4 agujeros por la placa sobre el borde de la maceta, en las diagonales; por ahí
       // sale el mortero que sobra al bajar la base sobre el guante lleno
       const VH=[]; let rvB=0; if(GL){ const xa=ext[0][0], xi=int[0][0], rv=Math.min(3,(xa-xi)/2-1.2); if(rv>=1.5){ rvB=rv; const mid=ringC((xa+xi)/2), a=Math.atan2(s.W,s.L);
@@ -2726,21 +2733,21 @@
       for(let q=0;q<FT.T.length;q++) MA.T.push(FT.T[q]);
       // 2) bolsillos de la tapa: la huella de cada pata agrandada el grosor del guante (trazo redondo de 2·SK en un lienzo)
       let pockets=[];
-      if(fh.length){ const kp=4; let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9; fh.forEach(P=>P.forEach(([x,z])=>{ x0=Math.min(x0,x); z0=Math.min(z0,z); x1=Math.max(x1,x); z1=Math.max(z1,z); }));
+      if(fh.length&&!CUP){ const kp=4; let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9; fh.forEach(P=>P.forEach(([x,z])=>{ x0=Math.min(x0,x); z0=Math.min(z0,z); x1=Math.max(x1,x); z1=Math.max(z1,z); }));
         const pad=SK+3, ox=x0-pad, oz=z0-pad, cv=document.createElement('canvas'); cv.width=Math.ceil((x1-x0+2*pad)*kp); cv.height=Math.ceil((z1-z0+2*pad)*kp);
         const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,cv.width,cv.height); g.fillStyle=g.strokeStyle='#000'; g.lineJoin='round'; g.lineWidth=2*SK*kp;
         fh.forEach(P=>{ g.beginPath(); P.forEach(([x,z],i)=>{ const X=(x-ox)*kp, Z=(z-oz)*kp; if(i) g.lineTo(X,Z); else g.moveTo(X,Z); }); g.closePath(); g.fill(); g.stroke(); });
         pockets=nestLoops(rasterLoops(cv).map(L=>L.map(([X,Z])=>[ox+X/kp,oz+Z/kp]))).filter(r=>r.d===0).map(r=>r.L).filter(L=>L.length>=3&&area(L)>4); }
-      const HbG=Hb+SK; let xs=-1e9; ys.forEach((y,k)=>{ if(y>=HbG-MOLD.SKIRT_H-1e-6) xs=Math.max(xs,xo[k]); });
+      const HbG=H-fG; let xs=-1e9; ys.forEach((y,k)=>{ if(y>=HbG-MOLD.SKIRT_H-1e-6) xs=Math.max(xs,xo[k]); });
       const lo=ringC(xs+CLR+MOLD.SKIRT,SK), li=ringC(xs+CLR,SK), FL0=3, Yp=pockets.length?ft-dMax-SK:fG, y0T=Yp-FL0;
       const dSeg=(p,L)=>{ let m=1e9; for(let i=0;i<L.length;i++){ const a=L[i], c=L[(i+1)%L.length], ex=c[0]-a[0], ez=c[1]-a[1], l2=ex*ex+ez*ez||1, u=Math.max(0,Math.min(1,((p[0]-a[0])*ex+(p[1]-a[1])*ez)/l2)); m=Math.min(m,Math.hypot(p[0]-a[0]-u*ex,p[1]-a[1]-u*ez)); } return m; };
       const freeOf=(p,r)=>pockets.every(L=>!pip(L,p)&&dSeg(p,L)>r);
       // embudo: sobre el hueco del costado, en un extremo del eje largo (la silicona cae por el costado y llena desde abajo)
       const bot=ringC(ext[ext.length-1][0]), gin=ringC(extS[extS.length-1][0],SK); let fun=null;
-      for(const d of (s.L>=s.W?[[1,0],[-1,0],[0,1],[0,-1]]:[[0,1],[0,-1],[1,0],[-1,0]])){ const rb=radii(bot,[d])[0], rg=radii(gin,[d])[0], rf=Math.max(2,Math.min(5,(rg-rb)/2-0.6)), c=[d[0]*(rb+rg)/2,d[1]*(rb+rg)/2]; if(freeOf(c,rf+1.5)){ fun={c,r:rf}; break; } }
+      if(!CUP) for(const d of (s.L>=s.W?[[1,0],[-1,0],[0,1],[0,-1]]:[[0,1],[0,-1],[1,0],[-1,0]])){ const rb=radii(bot,[d])[0], rg=radii(gin,[d])[0], rf=Math.max(2,Math.min(5,(rg-rb)/2-0.6)), c=[d[0]*(rb+rg)/2,d[1]*(rb+rg)/2]; if(freeOf(c,rf+1.5)){ fun={c,r:rf}; break; } }
       // respiraderos: uno en cada bolsillo (lo más alto mientras se vierte) y 2–3 en el fondo, a lo largo del eje largo
       const bin=offLoop(bot,-8), vts=[], lng=s.L>=s.W, Lh=(lng?s.L:s.W)/2;
-      [[0,0],[-0.45*Lh,0],[0.45*Lh,0]].map(([a,b2])=>lng?[a,b2]:[b2,a]).forEach(tg=>{ let best=null, bd=1e9; for(let dx=-40;dx<=40;dx+=4) for(let dz=-40;dz<=40;dz+=4){ const p=[tg[0]+dx,tg[1]+dz], d=Math.hypot(dx,dz); if(d<bd&&pip(bin,p)&&freeOf(p,5)&&vts.every(v=>Math.hypot(p[0]-v[0],p[1]-v[1])>25)){ bd=d; best=p; } } if(best) vts.push(best); });
+      if(!CUP) [[0,0],[-0.45*Lh,0],[0.45*Lh,0]].map(([a,b2])=>lng?[a,b2]:[b2,a]).forEach(tg=>{ let best=null, bd=1e9; for(let dx=-40;dx<=40;dx+=4) for(let dz=-40;dz<=40;dz+=4){ const p=[tg[0]+dx,tg[1]+dz], d=Math.hypot(dx,dz); if(d<bd&&pip(bin,p)&&freeOf(p,5)&&vts.every(v=>Math.hypot(p[0]-v[0],p[1]-v[1])>25)){ bd=d; best=p; } } if(best) vts.push(best); });
       const vh=vts.map(v=>circle(v,1.5,16)), pv=fc.filter(c=>pockets.some(L=>pip(L,c)&&dSeg(c,L)>2.5)).map(c=>circle(c,1.5,16)), fh2=fun?[circle(fun.c,fun.r,28)]:[];
       const A=adder();
       if(pockets.length){ prism(A,lo,[...vh,...fh2,...pv],y0T,Yp,XZ); prism(A,lo,[...pockets,...vh,...fh2],Yp-0.2,fG,XZ); }
@@ -2750,7 +2757,7 @@
       cuts.forEach((a0,k)=>{ const a1=k+1<NP?cuts[k+1]:cuts[0]+2*Math.PI, r0=radii(li,[[Math.cos(a0),Math.sin(a0)]])[0], r1=radii(li,[[Math.cos(a1),Math.sin(a1)]])[0], b0=a0+Math.asin(Math.min(0.9,gap/r0)), b1=a1-Math.asin(Math.min(0.9,gap/r1)), m=64;
         const dd=Array.from({length:m+1},(_,i)=>{ const a=b0+(b1-b0)*i/m; return [Math.cos(a),Math.sin(a)]; }), Ro2=radii(lo,dd), Ri2=radii(li,dd);
         prism(A,dd.map((d,i)=>[d[0]*Ro2[i],d[1]*Ro2[i]]).concat(dd.map((d,i)=>[d[0]*Ri2[i],d[1]*Ri2[i]]).reverse()),[],fG-0.5,fG+MOLD.SKIRT_H,XZ); });
-      parts.push({key:'tapa',name:pockets.length?'Tapa con bolsillos de las patas':'Tapa',file:'contramolde-tapa',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
+      parts.push({key:'tapa',name:CUP?'Fondo plano de la caja exterior':pockets.length?'Tapa con bolsillos de las patas':'Tapa',file:CUP?'copas-fondo-plano':'contramolde-tapa',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
       // 3) el guante (no se imprime): para el visor y la cantidad = hueco de la carcasa y la tapa − la madre
       const outR=[...extS.map(([x,y])=>({loop:ringC(x,SK),Y:H-y})),{loop:gin,Y:fG}], inR=ext.map(([x,y])=>({loop:ringC(x),Y:H-y}));
       const C1=adder(); loftRings(C1,outR); const C2=adder(); loftRings(C2,inR);
@@ -2758,16 +2765,45 @@
       skinVol=Math.max(0,Vc-Vm);
       const S=adder(); bandA(S,outR); bandA(S,inR); fill2D(S,outR[0].loop,[inR[0].loop],(u,v)=>[u,H,v]); fill2D(S,outR[outR.length-1].loop,[],(u,v)=>[u,fG,v]); fill2D(S,inR[inR.length-1].loop,[],(u,v)=>[u,ft,v]);
       pockets.forEach(L=>prism(S,L,[],Yp,fG,XZ));
-      parts.push({key:'skin',name:'Guante de silicona (se cuela, no se imprime)',file:'guante-silicona',T:S.T,print:'flat',color:0xcfe3ea,explode:[0,0,0],noPrint:true});
+      parts.push({key:'skin',name:CUP?'Copa exterior de silicona (se cuela, no se imprime)':'Guante de silicona (se cuela, no se imprime)',file:CUP?'copa-exterior':'guante-silicona',T:S.T,print:'flat',color:0xcfe3ea,explode:[0,0,0],noPrint:true});
       // 4) mortero: la maceta = madre − hueco del núcleo; se vierte en el guante (5 % más) y la base con el núcleo lo sube.
       //    Nivel = desde el borde, donde el volumen del guante por dentro iguala lo vertido
       const C3=adder(); loftRings(C3,int.map(([x,y])=>({loop:ringC(x),Y:H-y}))); gMort=Math.max(0,Vm-vol(C3.T));
       { let acc=VF, Yl=H; const pour=gMort*1.05; for(let i=inR.length-1;i>0;i--){ const a=inR[i], c=inR[i-1], A1=area(a.loop), A2=area(c.loop), dv=(A1+A2)/2*(c.Y-a.Y); if(acc+dv>=pour){ Yl=a.Y+(pour-acc)/((A1+A2)/2||1); break; } acc+=dv; } gLevel=Math.max(0,H-Yl); }
-      notes.push(`Guante de silicona de ${SK} mm, de una pieza (paredes, fondo, patas y logotipo): ≈ ${Math.round(skinVol/1000*1.1)} ml de silicona (hueco de ${Math.round(skinVol/1000)} ml + 10 %), vertida de una vez por el embudo de la tapa${fun?` (Ø ${String(Math.round(fun.r*20)/10).replace('.',',')} mm, en un extremo)`:''} hasta que salga por ${vh.length+pv.length} respiraderos de Ø 3 mm. La madre solo sirve para hacer el guante: lija suave sus líneas de capa antes de colar, la silicona las copia.`);
+      if(!CUP){ notes.push(`Guante de silicona de ${SK} mm, de una pieza (paredes, fondo, patas y logotipo): ≈ ${Math.round(skinVol/1000*1.1)} ml de silicona (hueco de ${Math.round(skinVol/1000)} ml + 10 %), vertida de una vez por el embudo de la tapa${fun?` (Ø ${String(Math.round(fun.r*20)/10).replace('.',',')} mm, en un extremo)`:''} hasta que salga por ${vh.length+pv.length} respiraderos de Ø 3 mm. La madre solo sirve para hacer el guante: lija suave sus líneas de capa antes de colar, la silicona las copia.`);
       notes.push(`Tapa: ${pockets.length?`${pockets.length} bolsillo${pockets.length>1?'s':''} para las patas, `:''}faldón que calza por fuera de la carcasa. Al hacer el guante va arriba; al colar la maceta va en la mesa y sostiene el fondo del guante. Mortero por colada: ≈ ${String(Math.round(gMort/1e5)/10).replace('.',',')} L (vierte ${String(Math.round(gMort*1.05/1e5)/10).replace('.',',')} L, hasta unos ${String(Math.round(gLevel/10*10)/10).replace('.',',')} cm del borde, y baja la base con el núcleo).`);
       gFun=fun?{c:fun.c,r:fun.r,Y:y0T}:null;
       if(!fun) notes.push('No cupo el embudo sobre el costado: abre uno con broca de 6 mm en la tapa, junto al borde, fuera de los bolsillos.');
-      if(seal) notes.push('El logotipo va en relieve en la madre: el guante lo copia y la maceta sale con el logotipo en relieve (de la silicona sale sin partirse).');
+      if(seal) notes.push('El logotipo va en relieve en la madre: el guante lo copia y la maceta sale con el logotipo en relieve (de la silicona sale sin partirse).'); }
+      if(CUP){
+        // COPA INTERIOR: la CAJA INTERIOR impresa es el hueco de la maceta (int) con, sobre el borde, un pocillo de FTH mm para el
+        // REBORDE y una ranura de LH mm para su LABIO, que baja por fuera de la copa exterior (centra la copa interior); en el piso,
+        // huecos ciegos del largo del fondo de la maceta en cada drenaje y alambre: salen ESPIGAS de silicona que forman los
+        // orificios y apoyan en el fondo de la copa exterior (fijan el grosor del fondo). El TAPÓN INTERIOR es el hueco metido
+        // TIc mm con una placa que apoya en la caja (4 respiraderos sobre el reborde). Entre los dos se cuela la copa interior.
+        const FTH=6, LH=6, LT=3, WB=3, C0=ringC(int[0][0]), Lin=ringC(xr+0.3,SK), Fo=ringC(xr+0.3+LT,SK), Ob=ringC(xr+0.3+LT+WB,SK), Ytp=H+FTH, Yfl=H-Hc, Y0b=ft-3;
+        const cavR=int.map(([x,y])=>({loop:ringC(x),Y:H-y})), pins=[...P.drains.map(c=>({c,r:P.dr})),...P.wires.map(c=>({c,r:Math.max(1.6,P.wr)}))], pinL=pins.map(q=>circle(q.c,q.r,32));
+        const tubes=(A,Ls,y0,y1,cap)=>Ls.forEach(L=>{ for(let j=0,m=L.length;j<m;j++){ const k=(j+1)%m; A.quad([L[j][0],y0,L[j][1]],[L[k][0],y0,L[k][1]],[L[k][0],y1,L[k][1]],[L[j][0],y1,L[j][1]]); } if(cap!=null) fill2D(A,L,[],(u,v)=>[u,cap,v]); });
+        const well=A=>{ bandA(A,[{loop:Fo,Y:Ytp},{loop:Fo,Y:H-LH}]); fill2D(A,Fo,[Lin],(u,v)=>[u,H-LH,v]); bandA(A,[{loop:Lin,Y:H-LH},{loop:Lin,Y:H}]); fill2D(A,Lin,[C0],(u,v)=>[u,H,v]);
+          bandA(A,cavR); fill2D(A,cavR[cavR.length-1].loop,pinL,(u,v)=>[u,Yfl,v]); tubes(A,pinL,Yfl,ft,ft); };
+        const B=adder(); bandA(B,[{loop:Ob,Y:Y0b},{loop:Ob,Y:Ytp}]); fill2D(B,Ob,[],(u,v)=>[u,Y0b,v]); fill2D(B,Ob,[Fo],(u,v)=>[u,Ytp,v]); well(B);
+        parts.push({key:'cajaIn',name:'Caja interior (matriz de la copa interior)',file:'copas-caja-interior',T:B.T,print:'ground',color:0x7fa6c8,explode:[0,0,0]});
+        const xAt=yy=>{ for(let i=0;i<int.length-1;i++){ const [x1,y1]=int[i],[x2,y2]=int[i+1]; if(yy>=y1-1e-9&&yy<=y2+1e-9){ const u=(yy-y1)/((y2-y1)||1); return x1+(x2-x1)*u; } } return int[int.length-1][0]; };
+        const yb=Math.max(2,Hc-TIc), plR=[{loop:ringC(int[0][0]-TIc),Y:Ytp},...int.filter(([x,y])=>y<yb-0.1).map(([x,y])=>({loop:ringC(x-TIc),Y:H-y})),{loop:ringC(xAt(yb)-TIc),Y:H-yb}];
+        const vMid=ringC((int[0][0]-TIc+xr)/2), vh2=[[1,0],[-1,0],[0,1],[0,-1]].map(d=>{ const r=radii(vMid,[d])[0]; return circle([d[0]*r,d[1]*r],2.5,20); });
+        const Tp=adder(); bandA(Tp,plR); fill2D(Tp,plR[plR.length-1].loop,[],(u,v)=>[u,plR[plR.length-1].Y,v]); fill2D(Tp,Ob,[plR[0].loop,...vh2],(u,v)=>[u,Ytp,v]);
+        bandA(Tp,[{loop:Ob,Y:Ytp},{loop:Ob,Y:Ytp+4}]); fill2D(Tp,Ob,vh2,(u,v)=>[u,Ytp+4,v]); tubes(Tp,vh2,Ytp,Ytp+4,null);
+        parts.push({key:'tapIn',name:'Tapón interior (matriz de la copa interior; placa en la cama)',file:'copas-tapon-interior',T:Tp.T,print:'base',color:0xc8a86e,explode:[0,0,0]});
+        const S2=adder(); well(S2); fill2D(S2,Fo,[plR[0].loop],(u,v)=>[u,Ytp,v]); bandA(S2,plR); fill2D(S2,plR[plR.length-1].loop,[],(u,v)=>[u,plR[plR.length-1].Y,v]);
+        cupIn=Math.abs(stlOrient(S2.T).volume);
+        parts.push({key:'skinIn',name:'Copa interior de silicona (se cuela, no se imprime)',file:'copa-interior',T:S2.T,print:'flat',color:0xcfe3ea,explode:[0,0,0],noPrint:true,noMold:true});
+        const f0=x=>String(Math.round(x/1000*1.1));
+        notes.push(`Dos copas de silicona: copa exterior de ${SK} mm (≈ ${f0(skinVol)} ml) y copa interior de ${TIc} mm con reborde, labio y ${pins.length} espiga${pins.length>1?'s':''} de drenaje y alambre (≈ ${f0(cupIn)} ml); el juego completo ≈ ${f0(skinVol+cupIn)} ml de silicona (con 10 % de más). Las matrices se imprimen una sola vez y sirven para todos los juegos que quieras.`);
+        notes.push(`Copa exterior: arma la carcasa sobre el fondo plano, vierte ≈ ${f0(skinVol)} ml y hunde la madre despacio, patas primero, hasta que su reborde apoye en el canto; lo que sobra sale por los 4 respiraderos de la placa. Copa interior: vierte ≈ ${f0(cupIn)} ml en la caja interior (primero en los huequitos del fondo, con un palito) y hunde el tapón interior hasta que su placa apoye.`);
+        notes.push(`Para colar: copa exterior boca arriba en la mesa, ≈ ${String(Math.round(gMort*1.05/1e5)/10).replace('.',',')} L de mortero fluido hasta unos ${String(Math.round(gLevel)/10).replace('.',',')} cm del borde, hunde la copa interior hasta que su labio calce en el borde de la exterior y llénala de arena como peso.`);
+        if(s.H-s.feet>110) notes.push('Maceta alta: la copa exterior de 12 mm puede abombarse con el peso del mortero; rodéala con una banda o una caja de cartón ajustada al colar.');
+        if(seal) notes.push('El logotipo va en relieve en la madre: la copa exterior lo copia y la maceta sale con el logotipo en relieve.');
+      }
     } else if(ft>0||seal){
       const A=adder(); let xs=-1e9; ys.forEach((y,k)=>{ if(y>=Hb-MOLD.SKIRT_H-1e-6) xs=Math.max(xs,xo[k]); });
       const lo=ringC(xs+CLR+MOLD.SKIRT,SK), li=ringC(xs+CLR,SK), y0=ft>0?0:ft-MOLD.SEAL_DEPTH-3, sq=([x,z])=>[[x-f/2,z-f/2],[x+f/2,z-f/2],[x+f/2,z+f/2],[x-f/2,z+f/2]], FR=ft>0&&footRibbons(s), fh=FR?FR.map(r=>r.o.concat(r.i.slice().reverse())):feet.map(sq), dp=sealDepth(s);
@@ -2860,7 +2896,7 @@
 
     // --- piezas que no caben en la cama de la impresora: se parten en trozos con espigas de unión
     const dowR=[...dowR0];
-    for(let i=0;i<parts.length;i++){ const pt=parts[i]; if(pt.key!=='base'&&pt.key!=='feet'&&pt.key!=='madre'&&pt.key!=='tapa') continue; const sp=splitToFit(THREE,pt,s,seal); if(!sp) continue; parts.splice(i,1,...sp.parts); i+=sp.parts.length-1; dowR.push(...sp.dowels); notes.push(sp.note); }
+    for(let i=0;i<parts.length;i++){ const pt=parts[i]; if(pt.key!=='base'&&pt.key!=='feet'&&pt.key!=='madre'&&pt.key!=='tapa'&&pt.key!=='cajaIn'&&pt.key!=='tapIn') continue; const sp=splitToFit(THREE,pt,s,seal); if(!sp) continue; parts.splice(i,1,...sp.parts); i+=sp.parts.length-1; dowR.push(...sp.dowels); notes.push(sp.note); }
     // espigas: una por agujero doble más una de repuesto de cada medida
     const dowK=[...dowR,...new Set(dowR)].sort((a,b)=>b-a), nDowK=dowK.length;
 
@@ -2891,7 +2927,7 @@
     if(s.rim==='uchien') notes.push('El labio interno no se puede moldear (el núcleo no saldría): el núcleo se hace recto y el labio se forma a mano o se omite.');
     if(dC>s.flare+0.05) notes.push(`El núcleo lleva ${MOLD.DRAFT}° de salida para poder desmoldar: la cavidad es ${cm(dC-s.flare)} cm más estrecha abajo.`);
     if(s.panel) notes.push('El panel decorativo no se moldea: pégalo o tállalo después.');
-    return {parts,notes,seal,skin:SK?{t:SK,vol:skinVol,glove:GL,mortar:gMort,level:gLevel,funnel:gFun}:null,plate:plateKind,click:!!s.moldClick,baseSplit:s.moldBase==='cuartos'?4:s.moldBase==='mitades'?2:1,hw:{pins:nPins,used:pinHoles/2,pegs:pegsOut.length,pegList:pegsOut.filter(q=>q.c).map(q=>({c:q.c,r0:q.r0,r1:q.r1,len:q.len,h:q.h,kind:q.kind})),bolt:s.moldBolt||0,boltLen:Math.ceil((2*MOLD.FS+9)/5)*5,at:pinAt,dowels:nDowK,dowSizes:[...new Set(dowR)].map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',','))}};
+    return {parts,notes,seal,skin:SK?{t:SK,vol:skinVol+cupIn,glove:GL&&!CUP,cups:CUP,out:skinVol,inn:cupIn,tin:TIc,mortar:gMort,level:gLevel,funnel:gFun}:null,plate:plateKind,click:!!s.moldClick,baseSplit:s.moldBase==='cuartos'?4:s.moldBase==='mitades'?2:1,hw:{pins:nPins,used:pinHoles/2,pegs:pegsOut.length,pegList:pegsOut.filter(q=>q.c).map(q=>({c:q.c,r0:q.r0,r1:q.r1,len:q.len,h:q.h,kind:q.kind})),bolt:s.moldBolt||0,boltLen:Math.ceil((2*MOLD.FS+9)/5)*5,at:pinAt,dowels:nDowK,dowSizes:[...new Set(dowR)].map(r=>String(Math.round((2*r-0.4)*10)/100).replace('.',','))}};
   }
   // Coordenadas de impresión (Z arriba, sin espejar): gajos con el canto inferior en la cama; base con núcleo con su cara
   // de abajo en la cama; placa de patas con la cara exterior en la cama; pasadores y cuñas tal cual (ya planos).
@@ -2936,6 +2972,22 @@
   // (setExplode(t), t = 0 armado, 1 desarmado; la placa de patas se voltea al desarmar para que se vea el sello),
   // la maceta translúcida en su sitio y, al lado, la maceta terminada derecha (con árbol si está marcado) para ver
   // qué sale del molde. Rótulos numerados en el orden de armado.
+  // DOS COPAS en el visor: tres grupos en fila (matrices de la copa exterior, matrices de la copa interior y el juego de copas
+  // con la maceta); «Armado ↔ Desarmado» levanta la madre, el tapón y la copa interior y abre la carcasa
+  function cupsGroup(THREE,s,b,opt={}){ const MD=buildMold(THREE,s,b), G=new THREE.Group(), big=Math.max(s.L,s.W,s.H), lh=Math.max(13,big*0.085), up=s.H*1.3+60;
+    const mk=(T,color,op)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(T),3)); g.computeVertexNormals(); return new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true,transparent:op<1,opacity:op,depthWrite:op>=1})); };
+    const P=k=>MD.parts.filter(pt=>pt.key===k||(k==='ext'&&/^ext\d/.test(pt.key))), L=[0,1,2].map(()=>new THREE.Group()), mov=[], add=(i,m,v)=>{ L[i].add(m); if(v) mov.push({m,v}); return m; };
+    P('tapa').forEach(pt=>add(0,mk(pt.T,0x9c8fbe,1))); P('ext').forEach(pt=>{ const e=pt.explode||[0,0,0]; add(0,mk(pt.T,pt.color,1),new THREE.Vector3(e[0],0,e[2])); });
+    P('cierre').forEach(pt=>add(0,mk(pt.T,0xd9773a,1),new THREE.Vector3(0,up,0))); P('madre').forEach(pt=>add(0,mk(pt.T,0xb98c5a,1),new THREE.Vector3(0,up*1.15,0))); P('skin').forEach(pt=>add(0,mk(pt.T,0xe58fa0,0.85)));
+    P('cajaIn').forEach(pt=>add(1,mk(pt.T,0x7fa6c8,0.4))); P('tapIn').forEach(pt=>add(1,mk(pt.T,0xc8a86e,1),new THREE.Vector3(0,up,0))); P('skinIn').forEach(pt=>add(1,mk(pt.T,0xe58fa0,0.85)));
+    P('skin').forEach(pt=>add(2,mk(pt.T,0xe58fa0,0.45))); add(2,potGroup(THREE,s,b,{tree:false,cut:false})); P('skinIn').forEach(pt=>add(2,mk(pt.T,0xe58fa0,0.85),new THREE.Vector3(0,up,0)));
+    let x0=0; const bb=new THREE.Box3(); L.forEach(g=>{ G.add(g); bb.setFromObject(g); g.position.set(x0-bb.min.x,-bb.min.y,0); x0+=bb.max.x-bb.min.x+big*0.5; }); G.position.x=-x0/2;
+    const tx=['Matrices de la copa exterior: madre, carcasa y fondo','Matrices de la copa interior: caja y tapón','Juego de copas de silicona + la maceta'].map((x,i)=>{ const sp=label3(THREE,`${i+1} · ${x}`,lh,i===2); G.add(sp); return sp; });
+    const setExplode=t=>{ mov.forEach(o=>o.m.position.copy(o.v).multiplyScalar(t)); G.updateMatrixWorld(true); L.forEach((g,i)=>{ bb.setFromObject(g); tx[i].position.set((bb.min.x+bb.max.x)/2-G.position.x,bb.max.y+lh*0.5,0); }); };
+    setExplode(opt.explode==null?1:opt.explode);
+    const S=MD.skin, ml=x=>Math.round(x/1000*1.1);
+    G.userData={setExplode,box:new THREE.Box3().setFromObject(G),skin:S,plasterMsg:`Dos copas de silicona. 1: la madre se hunde en la silicona dentro de la carcasa con fondo plano y sale la copa exterior (≈ ${ml(S.out)} ml). 2: el tapón interior se hunde en la caja interior y sale la copa interior con su reborde y las espigas de drenaje (≈ ${ml(S.inn)} ml). 3: el juego de copas, que se usa sin piezas impresas. Mueve «Armado ↔ Desarmado» para ver las piezas.`};
+    return G; }
   function moldGroup(THREE,s,b,opt={}){
     const G=new THREE.Group(), M=new THREE.Group(), MD=buildMold(THREE,s,b), H=s.H, parts=[], big=Math.max(s.L,s.W,s.H), lh=Math.max(13,big*0.085);
     G.add(M);
@@ -4756,6 +4808,27 @@
       '  6. Cubre con plástico. Desmolda a las 24–48 h: levanta la base con el núcleo girándola un poco, abre la carcasa, saca el guante con la maceta y pélalo como un guante. Corta las puntitas de los respiraderos.',
       '  7. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad. El guante aguanta decenas de coladas: guárdalo dentro de la carcasa para que no se deforme.'];
   }
+  // LEEME de las dos copas: matrices una vez, cada juego de copas y cada colada
+  function cupsSteps(MD,s,hw){
+    const S=MD.skin, ml=x=>Math.round(x/1000*1.1), L1=v=>String(Math.round(v/1e5)/10).replace('.',','), lv=String(Math.round(S.level)/10).replace('.',','), clip=MD.parts.some(p=>p.key==='cierre');
+    return ['A. COPA EXTERIOR (cada juego)',
+      ...(hw.dowels?['  0. Junta los trozos de las piezas partidas: espigas en sus agujeros, pegamento en la cara de corte, y prénsalos sobre una mesa plana.']:[]),
+      '  1. Lija suave la madre (lija 400 al agua): la silicona copia todo. Desmoldante (vaselina fina o cera en pasta) en la madre, su placa, la carcasa por dentro y el fondo plano.',
+      `  2. Pon el FONDO PLANO en la mesa y cierra las dos mitades de la CARCASA sobre él, dentro de su faldón; ${hw.bolt?'pernos con arandelas y tuerca mariposa':'pasadores y cuñas'}${clip?' y los perfiles de cierre':''}. Sella las juntas por fuera con plastilina.`,
+      `  3. Mezcla ${ml(S.out)} ml de silicona con su catalizador, sin batir aire, y viértela en la caja.`,
+      `  4. Hunde la MADRE despacio, patas primero y un poco inclinada para que no atrape aire, hasta que su reborde apoye en el canto de la carcasa. La silicona sube por la franja de ${S.t} mm; lo que sobra sale por los 4 respiraderos de la placa.`,
+      '  5. Cura 12–24 h. Saca la madre, abre la carcasa y saca la COPA EXTERIOR: se para sola.','',
+      'B. COPA INTERIOR (cada juego)',
+      '  6. Desmoldante en la CAJA INTERIOR y en el TAPÓN INTERIOR. Caja en la mesa.',
+      `  7. Mezcla ${ml(S.inn)} ml de silicona. Llena primero los huequitos del fondo con un palito (forman las espigas de drenaje) y vierte el resto.`,
+      '  8. Hunde el TAPÓN INTERIOR hasta que su placa apoye en la caja; lo que sobra sale por sus respiraderos. Cura 12–24 h y saca la COPA INTERIOR estirándola: tiene reborde, labio y espigas.','',
+      'C. COLAR LA MACETA (cada vez, con cada juego)',
+      '  9. COPA EXTERIOR boca arriba en una mesa nivelada. La silicona no necesita desmoldante (un poco de agua jabonosa ayuda).',
+      `  10. Mezcla ≈ ${L1(S.mortar*1.05)} L de mortero FLUIDO (1 cemento blanco : 1 arena sílice fina en peso, agua 0,35 del cemento, superplastificante al 1 % y microfibra) y viértelo hasta unos ${lv} cm del borde. Golpea los costados para sacar el aire de las patas.`,
+      '  11. Hunde la COPA INTERIOR despacio hasta que su labio calce por fuera del borde de la exterior: sus espigas tocan el fondo y forman los drenajes. Llénala de arena como peso y golpea los costados 1 minuto.',
+      '  12. Cubre con plástico. A las 24 h saca la arena y la copa interior, y pela la copa exterior despacio.',
+      '  13. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad. Lava las copas y guárdalas encajadas para que no se deformen. Con varios juegos de copas haces varias macetas al día con las mismas matrices.'];
+  }
   async function exportMold(){
     if(!last3) return; if(last3.s.plasterMode) return exportPlaster(); await ensureAuto(t=>{ $('moldOut').textContent=t; });
     const out=$('moldOut'); let THREE=V3&&V3.THREE;
@@ -4772,19 +4845,19 @@
       rows.push({name:pt.name,key:pt.key,size,fits,ov:Math.max(0,overhangCheck(R.V,R.F,45).area-(pt.bridges||0)*1.05)}); });
     const hw=MD.hw, sealTxt=MD.seal?`${MD.seal.name} de ${mmc(MD.seal.w)} cm de ancho, ${s.sealMode==='up'?'en relieve: sobresale '+mmc(sealDepth(s))+' cm':'grabado: se hunde '+mmc(sealDepth(s))+' cm'}`:'sin sello';
     const kitLines=[
-      ...(MD.skin?[`Silicona de condensación (estaño), ≈ ${Math.round(MD.skin.vol/1000*1.1)} ml por ${MD.skin.glove?'guante':'piel'} (el hueco mide ${Math.round(MD.skin.vol/1000)} ml; se añade 10 %), con su catalizador. Vaselina fina o cera en pasta como desmoldante de la madre y de la carcasa.`,'La madre solo sirve para hacer la piel; al colar cemento no se usa.']:[]),
+      ...(MD.skin?[`Silicona de condensación (estaño), ≈ ${Math.round(MD.skin.vol/1000*1.1)} ml por ${MD.skin.cups?'juego de copas':MD.skin.glove?'guante':'piel'} (el hueco mide ${Math.round(MD.skin.vol/1000)} ml; se añade 10 %), con su catalizador. Vaselina fina o cera en pasta como desmoldante de la madre y de la carcasa.`,'La madre solo sirve para hacer la piel; al colar cemento no se usa.']:[]),
       hw.bolt?`${hw.used} pernos M${hw.bolt} × ${hw.boltLen} mm con tuerca mariposa y 2 arandelas cada uno (ferretería; los agujeros en gota de las pestañas son de Ø ${String(hw.bolt+0.6).replace('.',',')} mm). Compra 2 de repuesto.`:`${hw.pins} pasadores y ${hw.pins} cuñas impresos (${hw.used} para unir los gajos y 2 de repuesto). Los agujeros de Ø 9,6 mm también admiten pernos M8 × 20 mm si prefieres metal.`,
       hw.bolt?'No hacen falta varillas ni clavos: base y núcleo son una sola pieza y los gajos se traban en la ranura de la base.':'No hacen falta varillas, pernos ni clavos: base y núcleo son una sola pieza y los gajos se traban en la ranura de la base.',
       'Desmoldante: vaselina, aceite de cocina o cera en todas las caras que tocan el mortero.',
       ...(hw.pegs?[`${hw.pegs} espigas de drenaje y alambre impresas (en la misma pieza que las de unión): se meten desde arriba en los agujeros de las juntas de la base antes de colar; forman los agujeros de la maceta y traban los trozos.`]:[]),
       ...(hw.dowels?[`${hw.dowels} espigas de unión impresas (Ø ${hw.dowSizes.join(' y ')} × 1,6 cm, una de repuesto de cada medida) para juntar los trozos de las piezas partidas${MD.baseSplit>1?' (en la base partida no hace falta pegar)':', más cianoacrilato o epoxi'}.`]:[])];
     const L=[];
-    L.push(`${MD.skin?(MD.skin.glove?'CONTRAMOLDE GUANTE PARA SILICONA':'CONTRAMOLDE PARA MOLDE DE SILICONA'):'MOLDE DE VACIADO PARA IMPRESIÓN 3D'} — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
-      (MD.skin&&MD.skin.glove?`Madre + carcasa en dos piezas + tapa: entre ellas se vierte de una vez un guante de silicona de ${MD.skin.t} mm que copia la maceta entera (paredes, fondo, patas y logotipo). Después el guante va BOCA ARRIBA dentro de la misma carcasa, sobre la tapa; se vierte el mortero y se baja la base con el núcleo. Cada STL ya viene orientado para imprimir sin soportes.`:MD.skin?`Madre + placa de vertido + carcasa en dos piezas: entre la madre y la carcasa se cuela una piel de silicona de ${MD.skin.t} mm que copia el exterior de la maceta. Después la maceta se cuela BOCA ABAJO con la piel dentro de la carcasa, sobre la base con núcleo y bajo la placa de patas. Cada STL ya viene orientado para imprimir sin soportes.`:'La maceta se cuela BOCA ABAJO. Kit 100 % impreso. Cada STL ya viene orientado para imprimir sin soportes.'),'Bambu Studio no abre el ZIP: descomprímelo (clic derecho → Extraer todo) y arrastra los STL a Bambu Studio, o usa el botón «Abrir en Bambu Studio (3MF)», que trae todas las piezas en un solo archivo.','Los STL están en milímetros, la unidad que esperan los laminadores; las medidas de esta lista van en centímetros.',`Sello en el fondo: ${sealTxt}.`,'','PIEZAS');
+    L.push(`${MD.skin?(MD.skin.cups?'MATRICES PARA DOS COPAS DE SILICONA':MD.skin.glove?'CONTRAMOLDE GUANTE PARA SILICONA':'CONTRAMOLDE PARA MOLDE DE SILICONA'):'MOLDE DE VACIADO PARA IMPRESIÓN 3D'} — ${nm} ${dims}`,`Legado Bonsai · generado el ${new Date().toLocaleDateString('es-EC')}`,'',
+      (MD.skin&&MD.skin.cups?`Matrices de DOS COPAS DE SILICONA (se imprimen una vez): madre, carcasa en dos mitades con fondo plano, caja interior y tapón interior. Con ellas se cuelan las copas exterior (${MD.skin.t} mm) e interior (${MD.skin.tin} mm) de cada juego; para colar la maceta solo se usan las dos copas. Cada STL ya viene orientado para imprimir sin soportes.`:MD.skin&&MD.skin.glove?`Madre + carcasa en dos piezas + tapa: entre ellas se vierte de una vez un guante de silicona de ${MD.skin.t} mm que copia la maceta entera (paredes, fondo, patas y logotipo). Después el guante va BOCA ARRIBA dentro de la misma carcasa, sobre la tapa; se vierte el mortero y se baja la base con el núcleo. Cada STL ya viene orientado para imprimir sin soportes.`:MD.skin?`Madre + placa de vertido + carcasa en dos piezas: entre la madre y la carcasa se cuela una piel de silicona de ${MD.skin.t} mm que copia el exterior de la maceta. Después la maceta se cuela BOCA ABAJO con la piel dentro de la carcasa, sobre la base con núcleo y bajo la placa de patas. Cada STL ya viene orientado para imprimir sin soportes.`:'La maceta se cuela BOCA ABAJO. Kit 100 % impreso. Cada STL ya viene orientado para imprimir sin soportes.'),'Bambu Studio no abre el ZIP: descomprímelo (clic derecho → Extraer todo) y arrastra los STL a Bambu Studio, o usa el botón «Abrir en Bambu Studio (3MF)», que trae todas las piezas en un solo archivo.','Los STL están en milímetros, la unidad que esperan los laminadores; las medidas de esta lista van en centímetros.',`Sello en el fondo: ${sealTxt}.`,'','PIEZAS');
     rows.forEach((r,i)=>L.push(`  ${files[i].name}: ${r.name}, ${mmc(r.size[0])} × ${mmc(r.size[1])} × ${mmc(r.size[2])} cm · ${r.ov<100?'sin soportes':'voladizo de '+mmc(r.ov/10)+' cm²: activa soportes solo ahí'}${r.fits?'':'  ← no cabe en la '+s.bedName+' ('+mmc(s.bedX)+' × '+mmc(s.bedY)+' × '+mmc(s.bedZ)+' cm): córtala en el laminador (herramienta Cortar, con conectores)'}`));
     L.push('','KIT Y MATERIALES',...kitLines.map(h=>'  - '+h),'',
       'IMPRESIÓN',`  Pensado para la ${s.bedName} (${mmc(s.bedX)} × ${mmc(s.bedY)} × ${mmc(s.bedZ)} cm). PLA o PETG; ABS y ASA no, porque piden cámara cerrada y cama más caliente. Capa 0,2 mm. Ajustes por pieza (en Bambu Studio: clic derecho sobre la pieza → ajustes del objeto): gajos con 3 perímetros y 15 % de relleno; placa de patas con 2 perímetros y 8 %; base con núcleo con 2 perímetros y relleno «lightning» al 5 %, 3 capas arriba y abajo (su interior solo sostiene la superficie que da el perfil: el laminador pone los soportes verticales donde hacen falta, y pesa casi la mitad que con relleno normal); pasadores, cuñas y espigas con 100 %.`,'  Sin soportes: cada STL ya viene orientado (los gajos de pie sobre su cara inferior, la base con el núcleo hacia arriba, la placa con la cara exterior abajo) y ninguna cara cuelga a menos de 45° de la horizontal. El nervio, la ranura, los taludes bajo el labio y los agujeros en gota están a 55° o más, con margen. Deja «Soportes» desactivado en Bambu Studio; si una pieza dice «activa soportes», hazlo solo en esa zona.','  Lija las caras que tocan el mortero y séllalas con barniz o laca si quieres un acabado liso.','',
-      ...(MD.skin?(MD.skin.glove?gloveSteps(MD,s,hw):skinSteps(MD,s,hw)):[
+      ...(MD.skin?(MD.skin.cups?cupsSteps(MD,s,hw):MD.skin.glove?gloveSteps(MD,s,hw):skinSteps(MD,s,hw)):[
       'ARMADO Y VACIADO',
       ...(MD.baseSplit>1?[`  0. Arma la base: espigas de unión en los agujeros de las caras de corte y junta ${MD.baseSplit===4?'los cuatro cuartos':'las dos mitades'} sobre una mesa plana (sin pegar: los gajos la abrazan por la ranura). Mete desde arriba las espigas ${MD.baseSplit===4?'del drenaje y de los alambres':'del drenaje'} en los agujeros de las juntas: forman los agujeros de la maceta y traban los trozos.`]:[]),
       ...(hw.dowels&&MD.baseSplit<2?['  0. Junta los trozos de las piezas partidas: espigas en sus agujeros, pegamento en la cara de corte, y prénsalos sobre una mesa plana con la cara del mortero hacia abajo para que quede pareja. Lija la junta y rellena con masilla si se nota.']:[]),
@@ -4840,7 +4913,7 @@
       if(document.activeElement!==$('cemT')) $('cemT').value=$('t').value; if(document.activeElement!==$('cemB')) $('cemB').value=$('base').value;
       $('cemTNote').innerHTML=`El grosor de la maceta lo da la <b>distancia entre los dos perfiles</b> (el de cemento menos el de arena), no el grosor del plástico. Ahora: pared de ${cm(s.t)} cm y fondo de ${cm(s.base)} cm; cámbialos aquí y los dos perfiles se recalculan. Con mortero con fibra, 0,8–1 cm sirve hasta unos 25 cm de largo.`;
       if(mano) handAnim(s,b); }
-    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('silBox').hidden=!s.skinMode||s.obj==='mesa'; if(!$('silBox').hidden) silPanel(s,b); $('v2DrainF').hidden=!s.v2Mode; $('skLeadG').hidden=!s.skinGlove; $('skLeadM').hidden=!!s.skinGlove; ['sealMode','moldClick','moldPlate','sealPart'].forEach(id=>{ const el=$(id); if(el){ el.disabled=!!(s.skinMode&&s.skinGlove); el.title=el.disabled?'No aplica al guante: sin placa de patas; el logotipo sale en relieve desde la silicona':''; } }); if(s.skinMode&&s.obj!=='mesa') prepareSeal(s).then(()=>skinAnim(s,b)).catch(()=>{}); else if($('skAnim').classList.contains('big')) $('skBig').click(); $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
+    if($('cemAnim').classList.contains('big')&&!(s.mode==='cement'&&$('cemSys').value==='mano')) $('caBig').click(); $('baseF').hidden=clay||!!s.plasterMode; $('boardF').hidden=clay; syncStlUI(clay); $('moldBox').hidden=s.mode!=='mold'||s.obj==='mesa'; $('skinBox').hidden=!s.skinMode||s.obj==='mesa'; $('silBox').hidden=!s.skinMode||s.obj==='mesa'; if(!$('silBox').hidden) silPanel(s,b); $('v2DrainF').hidden=!s.v2Mode; $('skLeadC').hidden=!s.skinCups; $('skLeadG').hidden=!s.skinGlove; $('skLeadM').hidden=!!(s.skinGlove||s.skinCups); $('skinTF').hidden=!!s.skinCups; ['sealMode','moldClick','moldPlate','sealPart'].forEach(id=>{ const el=$(id); if(el){ el.disabled=!!(s.skinMode&&(s.skinGlove||s.skinCups)); el.title=el.disabled?'No aplica al guante: sin placa de patas; el logotipo sale en relieve desde la silicona':''; } }); if(s.skinMode&&s.obj!=='mesa') prepareSeal(s).then(()=>skinAnim(s,b)).catch(()=>{}); else if($('skAnim').classList.contains('big')) $('skBig').click(); $('moldParts').closest('label').hidden=!!s.skinMode; $('plasterBox').hidden=s.mode!=='plaster'; { const pk=!!s.pskinMode, v2=!!s.v2Mode; ['pSplit','pModel','pFloor','pWalls','pEscOwn','pNumD','pNum','pDeco','pCollar','pLipP'].forEach(id=>{ const l=$(id).closest('label'); if(l) l.hidden=pk||v2&&!['pNumD','pNum','pDeco'].includes(id); }); ['sprigBox','btnEscKit','btnNumKit','btnWallKit'].forEach(id=>{ if($(id)) $(id).hidden=pk||v2&&(id==='btnEscKit'||id==='btnWallKit'); }); $('pskinLead').hidden=!pk; $('v2Lead').hidden=!v2; $('v2Foto').hidden=!v2||!(v2Photo.st&&v2Photo.st.r); $('plasterLead').hidden=pk||v2; $('plasterSum').textContent=pk?'Contramolde de yeso':v2?'Molde de yeso v2: tapón y dos mitades':'Molde de yeso para barbotina'; } $('sprigBox').hidden=s.mode!=='plaster'; $('pObj').closest('label').hidden=s.mode==='plaster'; $('printBox').hidden=s.mode!=='print'||s.obj==='mesa'; $('tableBox').hidden=!((s.mode==='print'||s.mode==='mold')&&s.obj==='mesa'); $('btnTableStl').hidden=s.mode!=='print'; $('btnTableMold').hidden=s.mode!=='mold'; $('pInF').hidden=!(s.mode==='print'&&s.obj!=='mesa'); $('pSealF').hidden=!(s.mode==='print'||s.mode==='plaster'||s.mode==='mold'&&s.obj==='mesa'); $('printerBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; $('sealPartF').hidden=s.mode==='print'; $('calcBox').hidden=s.mode!=='print'&&s.mode!=='mold'&&s.mode!=='plaster'; if(s.mode==='print'||s.mode==='plaster'){ $('clayOpts').hidden=s.mode!=='plaster'; $('shrinkF').hidden=true; }
     $('moldPartsHint').textContent=s.moldAuto?(s.autoBeds?`elegido: ${autoTxt(s)} · ${s.autoInfo.n} cama${s.autoInfo.n>1?'s':''} de la ${s.bedName} (${s.autoBeds[2]} con 2 mitades, ${s.autoBeds[4]} con 4 cuartos)`:'se decide al ver el molde en 3D o al descargarlo'):'';
     $('tLabel').innerHTML=clay?'Grosor de la placa de arcilla <b>cm</b>':'Pared cemento <b>cm</b>';
     { const f1=x=>String(Math.round(x*10)/10).replace('.',','), ln=Math.round(s.pT/0.42); $('t').closest('label').hidden=s.printable||!!s.plasterMode;
@@ -5086,7 +5159,12 @@
       if(ht) row('Pared de cemento',ht.txt.replace('recomendado ','')+' cm',!ht.bad,'Pared cemento',cmT(s.t));
       row('Fondo',cmT(calc)+' (por resistencia)',Math.abs(s.base-calc)<0.6,'Fondo cemento',cmT(s.base));
       const hf=gh('feet'); if(hf) row('Patas',hf.txt.replace('recomendado ','')+' cm de alto',!hf.bad,'Altura patas',cmT(s.feet));
-      if(s.skinMode&&s.skinGlove){
+      if(s.skinMode&&s.skinCups){
+        info('Copas','exterior de 12 mm (se para sola) e interior de 8 mm con reborde, labio y espigas de drenaje');
+        row('Unión de la carcasa','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
+        info('Logotipo','en relieve: la copa exterior lo copia y de la silicona sale sin partirse');
+        info('Imprimir','las matrices UNA vez: madre, caja interior y tapón interior con 3 perímetros y lightning al 5 %; carcasa con 2 perímetros y 15 %; fondo plano con lightning al 5 %; perfiles al 40 %');
+      } else if(s.skinMode&&s.skinGlove){
         row('Núcleo','en casco (se imprime aparte, liviano)',s.moldCore==='casco','Núcleo',s.moldCore);
         row('Unión de las mitades','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
         row('Guante','8 mm (lo sostienen la carcasa y la tapa)',s.skin===8,'Grosor de la piel',s.skin+' mm');
@@ -5224,7 +5302,7 @@
   // página (el diálogo #dlg3d abierto sin ventana, clase .inline, colocado junto a las hojas) para ajustar el diseño
   // con los campos del panel lateral antes de exportar. Cada sección fija el material (Impresión 3D usa las paredes
   // delgadas de la arcilla; Molde 3D, el cemento).
-  const MODE_HINT={sello:'Sello de mano para marcar la arcilla con el logotipo de Legado Bonsái: variantes de grabado (logotipo, emblema, texto, sello circular y firma), impresas en 3D sin soportes.',yeso2:'Molde de yeso de tres piezas para barbotina: dos mitades que abrazan un tapón de borde inclinado, con cuello de llenado. Cajas con filos para pinzas de resorte.',pskin:'Molde de yeso armado como el contramolde: la madre con su placa y una carcasa en dos mitades con ganchos. Una sola armada: colada 1 el cuerpo, colada 2 el fondo encima; abres la carcasa y salen las dos piezas.',caja:'Solo el piso y las paredes de las cajas donde se cuela el yeso: se imprimen una vez para la medida que pongas y se arman con ganchos de presión.',clay:'Plantillas a escala 1:1 para macetas de arcilla por placas.',cement:'Plato-guía y perfiles de la máquina de barrido para colar en cemento.',print:'La maceta en plástico para tu impresora 3D: ajusta labio y patas mirándola en 3D y descárgala.',mold:'Molde de vaciado para cemento, impreso en 3D: ajústalo mirándolo en 3D y descarga el kit.',skin:'Macetas de cemento con molde de silicona: imprimes la madre (tu maceta), la carcasa, la tapa, la base y el núcleo; viertes la silicona una vez y sale un guante que copia la maceta entera. Después cada maceta es mortero dentro del guante. Abajo: materiales, receta y costo por maceta.',plaster:'Molde de yeso para colar barbotina: se imprimen cajas con el modelo dentro y en cada una se cuela una pieza del molde (cuerpo y fondo).'};
+  const MODE_HINT={sello:'Sello de mano para marcar la arcilla con el logotipo de Legado Bonsái: variantes de grabado (logotipo, emblema, texto, sello circular y firma), impresas en 3D sin soportes.',yeso2:'Molde de yeso de tres piezas para barbotina: dos mitades que abrazan un tapón de borde inclinado, con cuello de llenado. Cajas con filos para pinzas de resorte.',pskin:'Molde de yeso armado como el contramolde: la madre con su placa y una carcasa en dos mitades con ganchos. Una sola armada: colada 1 el cuerpo, colada 2 el fondo encima; abres la carcasa y salen las dos piezas.',caja:'Solo el piso y las paredes de las cajas donde se cuela el yeso: se imprimen una vez para la medida que pongas y se arman con ganchos de presión.',clay:'Plantillas a escala 1:1 para macetas de arcilla por placas.',cement:'Plato-guía y perfiles de la máquina de barrido para colar en cemento.',print:'La maceta en plástico para tu impresora 3D: ajusta labio y patas mirándola en 3D y descárgala.',mold:'Molde de vaciado para cemento, impreso en 3D: ajústalo mirándolo en 3D y descarga el kit.',skin:'Macetas de cemento con moldes de silicona: imprimes UNA vez las matrices (madre, carcasa con fondo plano, caja y tapón interior) y con ellas haces juegos de dos copas de silicona que se paran solas. Cada maceta es mortero entre las dos copas, sin piezas impresas. Abajo: materiales, receta y costo por maceta.',plaster:'Molde de yeso para colar barbotina: se imprimen cajas con el modelo dentro y en cada una se cuela una pieza del molde (cuerpo y fondo).'};
   let MODE='clay';
   function setMode(m){
     MODE=m; try{ localStorage.setItem('legadoSeccion',m); }catch(e){} const r=$('mode'+{clay:'Clay',cement:'Cement',print:'Print',mold:'Mold',skin:'Skin',plaster:'Plaster',caja:'Caja',pskin:'Pskin',yeso2:'Yeso2',sello:'Sello'}[m]); if(r) r.checked=true;
@@ -5276,7 +5354,7 @@
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,tapa:L5,base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},desague:{infill:100,walls:3},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},plantilla:{infill:15,walls:2},guiaCem:{infill:10,walls:3},perfilCem:{infill:40,walls:3},baseMano:{infill:15,walls:3},perfilMano:{infill:40,walls:3},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,tapa:L5,cajaIn:{infill:5,walls:3,pattern:'lightning'},tapIn:{infill:5,walls:3,pattern:'lightning'},base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},desague:{infill:100,walls:3},escKit:{infill:40,walls:5},madreY:{infill:5,walls:3,pattern:'lightning'},carcasaY:{infill:15,walls:3},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},plantilla:{infill:15,walls:2},guiaCem:{infill:10,walls:3},perfilCem:{infill:40,walls:3},baseMano:{infill:15,walls:3},perfilMano:{infill:40,walls:3},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
   function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
@@ -5297,7 +5375,7 @@
       const {s,b}=last3, t=totals(await printPieces(s,b),s,o), p=PRESETS.find(x=>x.id===ids[i]);
       rows.push({name:p?p.name:ids[i],style:p?p.style:'',dims:s.type==='round'?`Ø${n1(s.L/10)}×${n1(s.H/10)}`:`${n1(s.L/10)}×${n1(s.W/10)}×${n1(s.H/10)}`,t}); }
     sel.value=keep; sel.dispatchEvent(new Event('change'));
-    const mold=last3.s.mode==='mold'||!!last3.s.plasterMode, what=last3.s.plasterMode?'Molde de yeso (cajas)':mold?(last3.s.skinMode?(last3.s.skinGlove?'Contramolde guante (madre, carcasa, tapa, base y núcleo)':'Contramolde para silicona (madre, carcasa, base, placa y kit)'):'Molde de vaciado (kit completo)'):'Maceta impresa (con patas aparte)';
+    const mold=last3.s.mode==='mold'||!!last3.s.plasterMode, what=last3.s.plasterMode?'Molde de yeso (cajas)':mold?(last3.s.skinMode?(last3.s.skinCups?'Matrices de las dos copas de silicona (madre, carcasa, fondo, caja y tapón interior)':last3.s.skinGlove?'Contramolde guante (madre, carcasa, tapa, base y núcleo)':'Contramolde para silicona (madre, carcasa, base, placa y kit)'):'Molde de vaciado (kit completo)'):'Maceta impresa (con patas aparte)';
     const csv=['Modelo;Estilo;Medidas cm;Gramos;Metros;Horas;Camas;Filamento USD;kWh;Luz USD;Total USD;Cabe en la cama'].concat(rows.map(r=>[r.name,r.style,r.dims,Math.round(r.t.g),n1(r.t.m),n1(r.t.h),r.t.beds,r.t.cost.toFixed(2).replace('.',','),n1(r.t.kwh),r.t.luz.toFixed(2).replace('.',','),r.t.total.toFixed(2).replace('.',','),r.t.fit?'sí':'no'].join(';'))).join('\r\n');
     const sum=rows.reduce((t,r)=>({g:t.g+r.t.g,h:t.h+r.t.h,c:t.c+r.t.cost,k:t.k+r.t.kwh,l:t.l+r.t.luz}),{g:0,h:0,c:0,k:0,l:0});
     out.innerHTML=`<p class="mold-lead"><b>${what}</b> · ${esc(last3.s.bedName)} · ${o.mat} · relleno ${o.infill} % · ${o.walls} perímetros · capa ${String(o.layer).replace('.',',')} mm · luz ${o.W} W a ${String(o.kwh).replace('.',',')} USD/kWh</p><div class="calc-wrap"><table><tr><th>Modelo</th><th>cm</th><th>g</th><th>Tiempo</th><th>Filamento</th><th>kWh</th><th>Luz</th><th>Total</th></tr>`
@@ -5320,23 +5398,24 @@
     const ml=MD.skin.vol/1000*1.1, kgS=ml*dens/1000, cS=kgS*v('silPrice'), L=MD.skin.mortar/1e6*1.1, ce=0.88*L, ar=0.88*L, ag=0.31*L, sp=ce*10, fi=1.5*L, pg=ce*pig*10;
     const cM=ce*v('cemPrice')+ar*v('arePrice')+sp/1000*4+fi/1000*9+pg/1000*8, k2=x=>String(Math.round(x*100)/100).replace('.',','), g0=x=>String(Math.round(x));
     const okit=calcOpts(), kk=JSON.stringify([s,okit]); if(kk!==silKitKey){ silKitKey=kk; silKit=null; printPieces(s,b).then(P=>{ if(silKitKey!==kk) return; silKit=totals(P,s,okit); silPanel(s,b); }).catch(()=>{}); }
-    const kit=silKit, once=cS+(kit?kit.total:0), per=cM+once/life, row=(k,v2)=>`<dt>${esc(k)}</dt><dd>${esc(v2)}</dd>`, sec=x=>`<dt class="sec">${esc(x)}</dt>`;
-    el.innerHTML=[sec(`El guante de silicona (una vez, dura unas ${life} coladas)`),
-      row('Silicona',`${g0(ml)} ml ≈ ${k2(kgS)} kg (${MD.skin.glove?'guante':'manga'} de ${MD.skin.t} mm, con 10 % de más) · ${usd(cS)}`),
-      sec('Piezas impresas (una vez)'),
+    const kit=silKit, cups=!!MD.skin.cups, once=cS+(kit?kit.total:0), share=cups?cS/life+(kit?kit.total:0)/(life*sets):once/life, per=cM+share, row=(k,v2)=>`<dt>${esc(k)}</dt><dd>${esc(v2)}</dd>`, sec=x=>`<dt class="sec">${esc(x)}</dt>`;
+    el.innerHTML=[sec(cups?`Cada juego de copas de silicona (dura unas ${life} coladas)`:`El guante de silicona (una vez, dura unas ${life} coladas)`),
+      row('Silicona',cups?`${g0(ml)} ml ≈ ${k2(kgS)} kg (copa exterior ${g0(MD.skin.out/1000*1.1)} ml + copa interior ${g0(MD.skin.inn/1000*1.1)} ml, con 10 % de más) · ${usd(cS)}`:`${g0(ml)} ml ≈ ${k2(kgS)} kg (${MD.skin.glove?'guante':'manga'} de ${MD.skin.t} mm, con 10 % de más) · ${usd(cS)}`),
+      ...(cups?[row(`${sets} juego${sets>1?'s':''}`,`${usd(cS*sets)} de silicona`)]:[]),
+      sec(cups?'Matrices impresas (una sola vez para todos los juegos)':'Piezas impresas (una vez)'),
       row('Kit de PLA',kit?`≈ ${g0(kit.g)} g · ${hm(kit.h)} en ${kit.beds} cama${kit.beds>1?'s':''} · ${usd(kit.total)} con luz`:'calculando…'),
       sec('Cada maceta'),
       row('Mortero',`${n1(L)} L (con 10 % de más)`),
       row('Cemento blanco',`${k2(ce)} kg`),row('Arena sílice fina',`${k2(ar)} kg (malla 30–50, seca)`),row('Agua',`${k2(ag)} L (relación agua/cemento 0,35)`),
       row('Superplastificante',`${g0(sp)} ml (1 % del cemento)`),row('Microfibra de polipropileno',`${k2(fi)} g`),...(pig?[row('Pigmento',`${g0(pg)} g de óxido de hierro (${pig} %)`)]:[]),
-      row('Materiales',usd(cM)),row('Guante y kit repartidos',`${usd(once/life)} por maceta (${usd(once)} ÷ ${life})`),row('Costo por maceta',usd(per)),
+      row('Materiales',usd(cM)),row(cups?'Silicona y matrices repartidas':'Guante y kit repartidos',cups?`${usd(share)} por maceta`:`${usd(once/life)} por maceta (${usd(once)} ÷ ${life})`),row('Costo por maceta',usd(per)),
       sec('Ritmo de producción'),
       row('Por día',`${sets} maceta${sets>1?'s':''} (desmolde a las 24 h${sets>1?`; ${sets} juegos`:''})`),row('Por semana',`${sets*6} macetas (6 días)`),
-      row('Guante nuevo',`cada ${n1(life/sets/6)} semanas`),
+      row(cups?'Juego de copas nuevo':'Guante nuevo',`cada ${n1(life/6)} semanas por juego`),
       sec('Receta y curado'),
       row('Mezcla','agua + superplastificante, luego el cemento (y el pigmento), después la arena y al final la fibra; 3 min con taladro a baja velocidad. Consistencia de yogur espeso: fluye sola.'),
-      row('Colado','guante boca arriba en la carcasa; vierte hasta la marca, baja la base con el núcleo y golpea los costados 1–2 min para sacar el aire.'),
-      row('Desmolde','a las 24 h cubierta con plástico; pela el guante despacio.'),
+      row('Colado',cups?'copa exterior boca arriba en una mesa nivelada; vierte hasta la marca, hunde la copa interior hasta que calce, golpea los costados 1–2 min y llénala de arena.':'guante boca arriba en la carcasa; vierte hasta la marca, baja la base con el núcleo y golpea los costados 1–2 min para sacar el aire.'),
+      row('Desmolde',cups?'a las 24 h cubierta con plástico: saca la arena y la copa interior y pela la copa exterior despacio.':'a las 24 h cubierta con plástico; pela el guante despacio.'),
       row('Curado','7 días húmedo (tapada con plástico o rociada), luego 3 días en agua cambiándola cada día: baja la alcalinidad antes de plantar.'),
       row('Acabado','lija 220 al agua los bordes; sellador de concreto base agua si quieres que no manche.')].join(''); },400); }
   function estimateInto(s,b){
@@ -5758,8 +5837,48 @@
     set(0); const box=new THREE.Box3(); [madre,tapaA,...extA].forEach(o=>box.expandByObject(o)); [tapaB,base,...extB].forEach(o=>box.expandByObject(o)); box.expandByPoint(new THREE.Vector3(0,Math.max(yTopA+up*0.4,yTopB+hov),0)); box.expandByPoint(new THREE.Vector3(sideX+bB.min.x,0,0));
     set(3.5); grp.updateMatrixWorld(true); const cb=new THREE.Box3(); [madre,tapaA,...extA].forEach(o=>cb.expandByObject(o)); set(0);
     return {grp,set,N,box,focus:{c:new THREE.Vector3(potX,Hp/2,0),r:pb.getSize(new THREE.Vector3()).length()/2+12},views:{3:{c:cb.getCenter(new THREE.Vector3()),r:cb.getSize(new THREE.Vector3()).length()/2,dir:new THREE.Vector3(0.18,0.32,-1).normalize()}}}; }
+  const CU_STEPS=['Copa exterior · 1. Arma la CARCASA (2 mitades con pernos y perfiles de cierre) sobre el FONDO PLANO. Pasa desmoldante por dentro y por la MADRE.','2. Vierte la silicona medida (≈ {A} ml) dentro de la caja: queda en el fondo.','3. Hunde la MADRE despacio, patas primero (aquí en corte): la silicona sube por la franja de {T} mm hasta que el reborde de la madre apoya en el canto. Lo que sobra sale por los respiraderos de la placa.','4. Cura 12–24 h. Saca la madre y abre la carcasa: sale la COPA EXTERIOR, que se para sola.','Copa interior · 5. CAJA INTERIOR en la mesa: vierte la silicona (≈ {B} ml), primero en los huequitos del fondo con un palito.','6. Hunde el TAPÓN INTERIOR hasta que su placa apoye en la caja (aquí en corte): la silicona forma la copa, su reborde con el labio y las espigas de drenaje.','7. Cura y saca la COPA INTERIOR estirándola. Las matrices ya no se usan: guárdalas para hacer más juegos.','Colar · 8. COPA EXTERIOR boca arriba en la mesa: vierte el mortero fluido hasta unos {L} cm del borde.','9. Hunde la COPA INTERIOR hasta que su labio calce en el borde de la exterior: las espigas tocan el fondo y forman los drenajes. Llénala de arena como peso.','10. Al día siguiente saca la arena y la copa interior, y pela la copa exterior.','11. La maceta terminada. Con más juegos de copas haces más macetas por día, sin piezas impresas.'];
+  function cupsScene(THREE,s,b,MD){
+    const H=s.H, grp=new THREE.Group(), gA=new THREE.Group(), gB=new THREE.Group(), gC=new THREE.Group(); grp.add(gA,gB,gC);
+    const geo=T=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(T),3)); g.computeVertexNormals(); return g; };
+    const mat=(color,o={})=>new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true},o));
+    const P=k=>MD.parts.filter(pt=>pt.key===k||(k==='ext'&&/^ext\d/.test(pt.key))), grpOf=(par,list,color,o)=>{ const G=new THREE.Group(); list.forEach(pt=>G.add(new THREE.Mesh(geo(pt.T),mat(color??pt.color,o)))); par.add(G); return G; };
+    const fill=new THREE.Plane(new THREE.Vector3(0,-1,0),1e6), cut=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+    // versión en corte (como el guante): cara de afuera iluminada y, por dentro, color plano que hace de tapa del corte
+    const cutOf=(par,list,color,cap,planes,sil)=>{ const G=new THREE.Group(); list.forEach(pt=>{ const Ro=stlOrient(pt.T), g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(Ro.V),3)); g.setIndex(Ro.F.flat()); g.computeVertexNormals();
+      const po=k=>sil?{polygonOffset:true,polygonOffsetFactor:3*k,polygonOffsetUnits:3*k}:{};
+      G.add(new THREE.Mesh(g,mat(color,{side:THREE.FrontSide,clippingPlanes:planes,...po(1)})),new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:cap,side:THREE.BackSide,clippingPlanes:planes,...po(-1)}))); }); G.visible=false; par.add(G); return G; };
+    const tapa=grpOf(gA,P('tapa'),0x9c8fbe), madre=grpOf(gA,P('madre'),0xb98c5a), skinO=grpOf(gA,P('skin'),0xe58fa0,{transparent:true,opacity:0.85,clippingPlanes:[fill]}), clips=grpOf(gA,P('cierre'),0xd9773a);
+    const exts=P('ext').map(pt=>{ const G=grpOf(gA,[pt],pt.color); const e=pt.explode||[0,0,0]; G.userData.v=new THREE.Vector3(e[0],0,e[2]).multiplyScalar(1.3); return G; });
+    const cA=new THREE.Group(); gA.add(cA); const cAm=cutOf(cA,P('madre'),0xb98c5a,0x8a6238,[cut]); cutOf(cA,P('tapa'),0x9c8fbe,0x7d70a3,[cut]).visible=true; P('ext').forEach(pt=>{ cutOf(cA,[pt],pt.color,0x4d7f93,[cut]).visible=true; }); cutOf(cA,P('skin'),0xe58fa0,0xd2667f,[fill,cut],true).visible=true; cAm.visible=true; cA.visible=false;
+    const caja=grpOf(gB,P('cajaIn'),0x7fa6c8,{transparent:true,opacity:0.45,depthWrite:false}), tapIn=grpOf(gB,P('tapIn'),0xc8a86e), skinI=grpOf(gB,P('skinIn'),0xe58fa0,{transparent:true,opacity:0.85,clippingPlanes:[fill]});
+    const cB=new THREE.Group(); gB.add(cB); const cBt=cutOf(cB,P('tapIn'),0xc8a86e,0x9a7d48,[cut]); cBt.visible=true; cutOf(cB,P('cajaIn'),0x7fa6c8,0x4d7f93,[cut]).visible=true; cutOf(cB,P('skinIn'),0xe58fa0,0xd2667f,[fill,cut],true).visible=true; cB.visible=false;
+    const cupO=grpOf(gC,P('skin'),0xe58fa0,{transparent:true,opacity:0.5,depthWrite:false}), cupI=grpOf(gC,P('skinIn'),0xe58fa0,{transparent:true,opacity:0.85});
+    const mort=potGroup(THREE,s,b,{tree:false,cut:false}); mort.traverse(o=>{ if(o.material){ o.material=o.material.clone(); o.material.clippingPlanes=[fill]; } }); gC.add(mort);
+    const lift=(g,list)=>{ const bb=new THREE.Box3(); list.forEach(o=>bb.expandByObject(o)); g.position.y=-bb.min.y; return bb; };
+    const bA=lift(gA,[tapa,...exts]), bB=lift(gB,[caja]), bC=lift(gC,[cupO]); const yA0=bA.min.y+gA.position.y, yA1=bA.max.y+gA.position.y, yB0=bB.min.y+gB.position.y, yB1=bB.max.y+gB.position.y;
+    const lC=gC.position.y, yC0=lC, yLev=H-MD.skin.level+lC, yRim=H+lC, pb=new THREE.Box3().setFromObject(mort), Hp=pb.max.y-pb.min.y, potX=bA.max.x+Math.max(s.L,s.W)/2+40;
+    const e=x=>x<=0?0:x>=1?1:x*x*(3-2*x), N=CU_STEPS.length, up=Math.max(60,H*1.3), m1=x=>Math.round(x/1000*1.1);
+    const txt=CU_STEPS.map(x=>x.replace('{A}',m1(MD.skin.out)).replace('{B}',m1(MD.skin.inn)).replace('{T}',MD.skin.t).replace('{L}',String(Math.round(MD.skin.level)/10).replace('.',',')));
+    const set=U=>{ const k=Math.floor(U)%N, pr=U-Math.floor(U), q=e(pr/0.8);
+      gA.visible=k<=3; gB.visible=k>=4&&k<=6; gC.visible=k>=7;
+      exts.forEach(G=>{ G.position.copy(G.userData.v).multiplyScalar(k===0?1-q:k===3?q:0); }); clips.visible=k===1;
+      const mY=k<=1?up:k===2?up*(1-q):k===3?up*q:0; madre.position.y=mY; cAm.position.y=mY;
+      skinO.visible=k>=1&&k!==2; fill.constant=1e6; if(k===1) fill.constant=yA0+(yA1-yA0)*0.3*q; if(k===2) fill.constant=yA0+(yA1-yA0)*(0.3+0.7*q);
+      cA.visible=k===2; madre.visible=k!==2; tapa.visible=k!==2; exts.forEach(G=>{ G.visible=k!==2; }); if(k===2) skinO.visible=false;
+      const tY=k<=4?up:k===5?up*(1-q):k===6?up*q:0; tapIn.position.y=tY; cBt.position.y=tY;
+      if(k===4) fill.constant=yB0+(yB1-yB0)*0.3*q; if(k===5) fill.constant=yB0+(yB1-yB0)*(0.3+0.7*q);
+      cB.visible=k===5; caja.visible=k!==5; tapIn.visible=k!==5; skinI.visible=k===4||k===6; skinI.position.y=k===6?up*0.8*e((pr-0.4)/0.5):0;
+      mort.visible=k>=7; mort.traverse(o=>{ if(o.material) o.material.clippingPlanes=k===7||k===8?[fill]:[]; }); if(k===7) fill.constant=yC0+(yLev-yC0)*q; if(k===8) fill.constant=yLev+(yRim-yLev)*q;
+      cupI.visible=k>=8&&k<=9; cupI.position.y=k===8?up*(1-q):k===9?up*q:0; cupO.visible=k>=7&&k<=9; cupO.traverse(o=>{ if(o.material) o.material.opacity=k===9?0.5*(1-q):0.5; });
+      const f=k===10?e(pr/0.6):0; mort.position.set(f*potX,-lC*f,0);
+      $('skTxt').textContent=txt[k]; };
+    set(1.9); grp.updateMatrixWorld(true); const vA=new THREE.Box3(); [tapa,...exts].forEach(o=>vA.expandByObject(o)); set(4.9); grp.updateMatrixWorld(true); const vB=new THREE.Box3().setFromObject(caja); set(0);
+    const box=new THREE.Box3(); [tapa,...exts].forEach(o=>box.expandByObject(o)); box.expandByPoint(new THREE.Vector3(0,yA1+up*0.5,0));
+    const vw=bx=>({c:bx.getCenter(new THREE.Vector3()),r:bx.getSize(new THREE.Vector3()).length()/2,dir:new THREE.Vector3(0.18,0.32,-1).normalize()});
+    return {grp,set,N,box,focus:{c:new THREE.Vector3(potX,Hp/2,0),r:pb.getSize(new THREE.Vector3()).length()/2+12},views:{2:vw(vA),5:vw(vB)}}; }
   function skinScene(THREE,s,b){
-    const MD=buildMold(THREE,s,b); if(MD.skin&&MD.skin.glove) return gloveScene(THREE,s,b,MD); const H=s.H, grp=new THREE.Group(), all=new THREE.Group(); grp.add(all);
+    const MD=buildMold(THREE,s,b); if(MD.skin&&MD.skin.cups) return cupsScene(THREE,s,b,MD); if(MD.skin&&MD.skin.glove) return gloveScene(THREE,s,b,MD); const H=s.H, grp=new THREE.Group(), all=new THREE.Group(); grp.add(all);
     const mesh=(T,color,mat={})=>{ const pos=new Float32Array(T.length); for(let i=0;i<T.length;i+=3){ pos[i]=T[i]; pos[i+1]=H-T[i+1]; pos[i+2]=-T[i+2]; }
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.computeVertexNormals();
       return new THREE.Mesh(g,new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.6,metalness:0.05,side:THREE.DoubleSide,flatShading:true},mat))); };
