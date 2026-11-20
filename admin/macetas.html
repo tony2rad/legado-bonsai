@@ -4683,7 +4683,7 @@
       'Una sola armada y dos coladas. La carcasa (dos mitades) rodea la madre: la maceta agrandada, boca abajo, impresa con su placa. Colada 1 = cuerpo del molde de yeso; colada 2 = fondo, encima, en la misma carcasa. Las dos piezas de yeso encajan exactas porque se cuelan una contra la otra.',
       `La maceta va agrandada un ${(Math.round((PM.k-1)*1000)/10).toString().replace('.',',')} % (la barbotina encoge ${Math.round((1-1/PM.k)*100)} % al secar y cocer). Pared de yeso de ${PM.TH} mm.`,'',
       'PIEZAS QUE SE IMPRIMEN (una vez; sirven para muchos moldes de yeso)',...PM.parts.map(p=>'  - '+p.name),
-      '  La carcasa en PETG (el yeso se calienta a 40–50 °C al fraguar); la madre y el aro pueden ir en PLA. Si una pieza vino en trozos, junta los trozos con las espigas y pégalos una sola vez.','',
+      '  La carcasa en PETG (el yeso se calienta a 40–50 °C al fraguar); la madre y el aro pueden ir en PLA. Relleno: madre con 3 perímetros y CÚBICO ADAPTATIVO al 10 % (no lightning: en una pieza alta sus ramitas sueltas se despegan y la boquilla las tumba; el cúbico es una red continua amarrada a las paredes en cada capa); carcasa con 2 perímetros y 15 %; aro al 100 %. El 3MF ya trae esos ajustes. Si una pieza vino en trozos, junta los trozos con las espigas y pégalos una sola vez.','',
       'MATERIALES',`  - Yeso cerámico: colada 1 ≈ ${f1(P.vB)} L de yeso líquido y colada 2 ≈ ${f1(P.vF)} L (en total ≈ ${f1((P.vB+P.vF)*0.9)} kg de yeso con ${f1((P.vB+P.vF)*0.63)} L de agua; 100 de yeso por 63–70 de agua).`,
       `  - ${P.clips} ganchos de presión (pinzas tipo binder de 25 mm): ${P.ncl} en cada una de las 4 pestañas.`,'  - Jabón de moldes (o vaselina), cinta doble faz, una regla para enrasar y un poco de plastilina.','',
       'ARMAR (unos 5 minutos)','  1. Pasa jabón de moldes por la madre, por la placa y por dentro de la carcasa.',
@@ -5210,13 +5210,13 @@
         info('Copas','exterior de 12 mm (se para sola) e interior de 8 mm con reborde, labio y espigas de drenaje');
         row('Unión de la carcasa','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
         info('Logotipo','en relieve: la copa exterior lo copia y de la silicona sale sin partirse');
-        info('Imprimir','las matrices UNA vez: madre, caja interior y tapón interior con 3 perímetros y lightning al 5 %; carcasa con 2 perímetros y 15 %; fondo plano con lightning al 5 %; perfiles al 40 %');
+        info('Imprimir','las matrices UNA vez: madre, caja interior y tapón interior con 3 perímetros y relleno cúbico adaptativo al 10 % (el lightning se despega en piezas altas); carcasa con 2 perímetros y 15 %; fondo plano con lightning al 5 %; perfiles al 40 %');
       } else if(s.skinMode&&s.skinGlove){
         row('Núcleo','en casco (se imprime aparte, liviano)',s.moldCore==='casco','Núcleo',s.moldCore);
         row('Unión de las mitades','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
         row('Guante','8 mm (lo sostienen la carcasa y la tapa)',s.skin===8,'Grosor de la piel',s.skin+' mm');
         info('Logotipo','en relieve: el guante lo copia y de la silicona sale sin partirse');
-        info('Imprimir','madre con 3 perímetros y lightning al 5 %; carcasa con 2 perímetros y 15 %; tapa y base con lightning al 5 %; perfiles al 40 %');
+        info('Imprimir','madre con 3 perímetros y cúbico adaptativo al 10 %; carcasa con 2 perímetros y 15 %; tapa y base con lightning al 5 %; perfiles al 40 %');
       } else if(s.mode==='mold'){
         row('Base con núcleo','4 cuartos con piso',s.moldBase==='cuartos','Base con núcleo',s.moldBase==='entera'?'entera':'2 mitades');
         if(s.feet>0) row('Placa de patas','entera (base a nivel)',s.moldPlate!=='calada','Placa de patas','calada');
@@ -5397,13 +5397,19 @@
   // totales: camas = área de apoyo de las piezas / 70 % de la cama (al menos una); 6 min de preparación por cama
   // Ajustes recomendados por pieza (casilla «Ajustes recomendados»): las placas solo apoyan y forman una cara, así que van
   // livianas; pasadores y cuñas trabajan a presión y van macizos. Bambu Studio los admite por objeto (clic derecho → Ajustes).
+  // EXCEPCIÓN (el usuario imprimió la madre del contramolde de yeso con lightning y las ramitas sueltas se despegaron y la
+  // boquilla las tumbó; prefiere gastar filamento a perder la pieza): las piezas ALTAS que solo dan perfil (madres, caja y
+  // tapón interior) van con CÚBICO ADAPTATIVO al 10 % y 3 perímetros: una red continua, más densa junto a las paredes y
+  // amarrada a ellas en cada capa. Medido en Bambu (madre de la rectangular 20 × 15 × 5,5): lightning 5 % 266 g y 5 h 50;
+  // cúbico adaptativo 10 % 3 perímetros 484 g y 7 h 34; cúbico 10 % 542 g y 8 h 19; rejilla 10 % 541 g y 8 h 10; giroide
+  // 10 % 532–557 g y 17 h (lento por las curvas). Las planas y bajas siguen con lightning.
   // Todo lo que solo da PERFIL (cajas de yeso, base, placa, madre, caja de vertido) va con relleno «lightning» al 5 %: el laminador
   // levanta columnas ramificadas desde el piso solo bajo las superficies (lo que el usuario dibujó como «piso y columnas»);
   // dibujar esas columnas en el STL costaría más que el lightning y las pieles son el gasto real.
   const L5={infill:5,walls:2,pattern:'lightning'};
-  const REC={feet:L5,tapa:L5,cajaIn:{infill:5,walls:3,pattern:'lightning'},tapIn:{infill:5,walls:3,pattern:'lightning'},base:L5,madre:{infill:5,walls:3,pattern:'lightning'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},desague:{infill:100,walls:3},escKit:{infill:40,walls:5},madreY:{infill:5,walls:2,pattern:'lightning'},carcasaY:{infill:15,walls:2},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},plantilla:{infill:15,walls:2},guiaCem:{infill:10,walls:3},perfilCem:{infill:40,walls:3},baseMano:{infill:15,walls:3},perfilMano:{infill:40,walls:3},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
+  const REC={feet:L5,tapa:L5,cajaIn:{infill:10,walls:3,pattern:'adaptivecubic'},tapIn:{infill:10,walls:3,pattern:'adaptivecubic'},base:L5,madre:{infill:10,walls:3,pattern:'adaptivecubic'},cajaA:L5,cajaB:L5,cajaAB:L5,cajaC:L5,cajaCuerpo:L5,sprig:L5,cajaCol:L5,colNucleo:{infill:15,walls:4},desague:{infill:100,walls:3},escKit:{infill:40,walls:5},madreY:{infill:10,walls:3,pattern:'adaptivecubic'},carcasaY:{infill:15,walls:2},aroZocalo:{infill:100,walls:2},tablaCab:{infill:15,walls:3},tablaExt:{infill:15,walls:3},anillo:{infill:15,walls:3},paredMod:{infill:15,walls:3},loseta:{infill:15,walls:3},paredU:{infill:15,walls:3},numKit:{infill:100,walls:2,layer:0.12},pared:{infill:5,walls:2,pattern:'lightning'},escuadra:{infill:15,walls:3},kit:{infill:100,walls:3},cierre:{infill:40,walls:3},sello:{infill:100,walls:2,layer:0.12},plantilla:{infill:15,walls:2},guiaCem:{infill:10,walls:3},perfilCem:{infill:40,walls:3},baseMano:{infill:15,walls:3},perfilMano:{infill:40,walls:3},sello3d:{infill:20,walls:3,layer:0.12},nucleo:{infill:5,walls:4,pattern:'lightning'},ext:{infill:15,walls:2},caja:L5,casco:{infill:5,walls:3,pattern:'lightning'},labio:{infill:5,walls:3,pattern:'lightning'}};
   const recOf=k=>REC[k]||REC[String(k||'').replace(/\d+$/,'')], pieceOpts=(p,o)=>o.rec&&recOf(p.key)?Object.assign({},o,recOf(p.key)):o;
-  function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
+  function totals(P,s,o){ const rows=P.map(p=>{ const po=pieceOpts(p,o); return Object.assign({},p,estimate(p,po),{set:`${po.walls} p · ${po.infill} %${po.pattern==='lightning'?' lightning':po.pattern==='gyroid'?' giroide':po.pattern==='adaptivecubic'?' cúbico adaptativo':''}`}); }), g=rows.reduce((t,r)=>t+r.g,0), m=rows.reduce((t,r)=>t+r.m,0);
     const beds=Math.max(1,Math.ceil(rows.reduce((t,r)=>t+r.size[0]*r.size[1]*(r.n||1),0)/(0.7*s.bedX*s.bedY))), h=rows.reduce((t,r)=>t+r.h,0)+beds*0.1;
     const fit=rows.every(r=>((r.size[0]<=s.bedX-1&&r.size[1]<=s.bedY-1)||(r.size[0]<=s.bedY-1&&r.size[1]<=s.bedX-1))&&r.size[2]<=s.bedZ-0.5);
     const kwh=h*o.W/1000, luz=kwh*o.kwh; // luz = potencia media × horas (incluye la preparación de camas) × tarifa
@@ -5660,7 +5666,7 @@
       wraps.push(`  <object id="${wid}" p:UUID="${uid()}" type="model">\n   <components>\n    <component p:path="/${path}" objectid="${sid}" p:UUID="${uid()}" transform="${I}"/>\n   </components>\n  </object>`);
       items.push(`  <item objectid="${wid}" p:UUID="${uid()}" transform="${IT}" printable="1"/>`);
       rels.push(` <Relationship Target="/${path}" Id="rel-${sid}" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>`);
-      const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${st.pattern==='lightning'?'lightning':'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>${st.fuzzy?`\n    <metadata key="fuzzy_skin" value="external"/>\n    <metadata key="fuzzy_skin_thickness" value="0.3"/>\n    <metadata key="fuzzy_skin_point_distance" value="0.8"/>`:''}${st.layer&&st.layer!==0.2?`\n    <metadata key="layer_height" value="${st.layer}"/>`:''}`:'';
+      const st=o.set, sm=st?`\n    <metadata key="sparse_infill_density" value="${Math.round(st.infill)}%"/>\n    <metadata key="sparse_infill_pattern" value="${['lightning','gyroid','cubic','adaptivecubic','supportcubic','grid'].includes(st.pattern)?st.pattern:'grid'}"/>\n    <metadata key="wall_loops" value="${st.walls}"/>${st.fuzzy?`\n    <metadata key="fuzzy_skin" value="external"/>\n    <metadata key="fuzzy_skin_thickness" value="0.3"/>\n    <metadata key="fuzzy_skin_point_distance" value="0.8"/>`:''}${st.layer&&st.layer!==0.2?`\n    <metadata key="layer_height" value="${st.layer}"/>`:''}`:'';
       oc.push(`  <object id="${wid}">\n    <metadata key="name" value="${esc3(o.name)}"/>\n    <metadata key="extruder" value="1"/>${sm}\n    <part id="${sid}" subtype="normal_part">\n      <metadata key="name" value="${esc3(o.name)}"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n    </part>\n  </object>`);
       inst[p].push(`    <model_instance>\n      <metadata key="object_id" value="${wid}"/>\n      <metadata key="instance_id" value="0"/>\n      <metadata key="identify_id" value="${101+k}"/>\n    </model_instance>`); });
     const day=new Date().toISOString().slice(0,10);
@@ -6106,7 +6112,7 @@
   }
   async function exportPieces(s,b,kit){
     let THREE=V3&&V3.THREE; if(!THREE) THREE=await import('three'); await prepareSeal(s);
-    const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&recOf(key); return r?`${name} — ${r.walls} perímetros, ${r.infill} %`:name; }, out=[];
+    const o=calcOpts(), named=(name,key)=>{ const r=o.rec&&recOf(key); return r?`${name} — ${r.walls} perímetros, ${r.infill} %${r.pattern==='gyroid'?' giroide':r.pattern==='adaptivecubic'?' cúbico adaptativo':r.pattern==='lightning'?' lightning':''}`:name; }, out=[];
     const add=(name,T,key)=>{ const R=stlOrient(T); out.push({name:named(name,key),V:R.V,F:R.F,set:pieceOpts({key},o)}); };
     if(s.obj==='mesa'&&(s.mode==='print'||s.mode==='mold')){ add(s.mode==='mold'?'Madre de la mesa (boca abajo)':'Mesa (boca abajo)',tablePrintTris(THREE,s)); if(s.mode==='mold'){ const C=tableCup(s), T=[]; for(let i=0;i<C.T.length;i+=3) T.push(C.T[i],-C.T[i+2],C.T[i+1]); add('Caja de vertido',T,'caja'); } return out; }
     if(kit==='plantillas'){ const R2=plantillaParts(THREE,s,b,$('plantDots').checked,$('plantWin').checked); R2.parts.forEach(q=>add(q.name,q.T,'plantilla')); out.notes=R2.notes; return out; }
