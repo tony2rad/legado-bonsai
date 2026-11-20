@@ -461,7 +461,7 @@
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="moldClick" checked><span>Clic y sellado de la placa: ranura de sellado en el canto de los gajos (la placa lleva una lengüeta que la centra y cierra la junta) y ranura exterior donde hacen clic cuatro pestillos de la placa. Desmárcalo para usar gajos ya impresos sin ranuras.</span></label>
         <label class="check" style="grid-column:1/-1"><input type="checkbox" id="moldClip" checked><span>Perfiles de cierre en cola de milano: las pestañas de los gajos engordan 2 mm en el borde y un perfil en C impreso se desliza sobre cada junta y las aprieta a todo lo largo (alinea y sella; los pernos quedan de seguro).</span></label>
         <label class="f"><span>Base con núcleo</span><select id="moldBase"><option value="cuartos" selected>4 cuartos con piso (se embonan)</option><option value="mitades">2 mitades con piso</option><option value="entera">Entera</option></select><small class="hint">Partida: impresiones cortas en vez de un bloque; espigas de unión en las juntas, los gajos atornillados la cierran y el drenaje y los alambres son espigas que traban los trozos.</small></label>
-        <label class="f"><span>Placa de patas</span><select id="moldPlate"><option value="maciza" selected>Entera: base cerrada y a nivel, con respiraderos</option><option value="calada">Calada: más liviana, el fondo se alisa con espátula</option></select><small class="hint">Entera: la base sale plana y el mortero no se sale; por dentro el laminador la rellena con una malla ligera. Calada: ahorra filamento, pero el fondo se alisa a mano por las ventanas.</small></label>
+        <label class="f"><span>Placa de patas</span><select id="moldPlate"><option value="patas" selected>Plantilla abierta: enrasas el fondo y llenas las patas por arriba (recomendada)</option><option value="maciza">Entera: base cerrada, con respiraderos</option><option value="calada">Calada: el fondo se alisa con espátula</option></select><small class="hint">Plantilla abierta: el fondo se enrasa con regla en el canto de los gajos y lo que sobra vuelve al balde; después la plantilla (marco, camisas de las patas y medallón del logotipo) se apoya en el canto y cada pata se llena por arriba, sin aire encerrado. La más liviana de imprimir.</small></label>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="btnMold3mf" type="button">Abrir en Bambu Studio (3MF)</button><button class="btn ghost" id="btnMold" type="button">STL sueltos (ZIP)</button><button class="btn ghost" id="btnLink" type="button">Enlace a este diseño</button></div>
       <div id="moldOut" class="mold-out"></div>
@@ -2815,6 +2815,12 @@
       // cada RW (desde 22 mm, creciendo hasta que ninguna pata cruce el borde de una ventana): (A) una ventana con el
       // medallón del sello dentro, corrida hasta ±(RW − 12) si hace falta; (B) si el medallón no cabe, el sello se talla en
       // el macizo y la ventana se parte en tres (encima del sello y a sus dos lados). Si nada sirve, placa entera con nota.
+      // PLANTILLA ABIERTA (s.moldPlate='patas', por defecto; el usuario coló con la entera: el fondo no se llenaba, el aire quedaba
+      // bajo la placa, las patas salían incompletas y se gastaba mucho filamento): el fondo se enrasa ANTES con la regla en el canto
+      // de los gajos (lo que sobra vuelve al balde) y encima se apoya, sobre el canto, una plantilla de marco + camisas de 3 mm
+      // abiertas arriba y abajo alrededor de cada pata + medallón del logotipo (apoya en el mortero y lo marca rehundido) +
+      // travesaños de BH mm solo por arriba (no tocan el fondo). Las patas se llenan por arriba: no queda aire encerrado.
+      const abierta=s.moldPlate==='patas'&&ft>0;
       const calada=(()=>{ if(!(s.moldPlate==='calada'&&ft>0)) return null; const cw=3, bw=10, half=Math.min(s.L,s.W)/2, sh=(L,t)=>L.map(p=>[p[0]+t[0],p[1]+t[1]]);
         const clipHP=(P,nx,nz,c)=>{ const out=[], n=P.length, f=p=>nx*p[0]+nz*p[1]-c; for(let i=0;i<n;i++){ const a=P[i], b2=P[(i+1)%n], fa=f(a), fb=f(b2); if(fa>=0) out.push(a); if((fa>=0)!==(fb>=0)){ const u=fa/(fa-fb); out.push([a[0]+(b2[0]-a[0])*u,a[1]+(b2[1]-a[1])*u]); } } return out; };
         const area=P=>{ let a=0; for(let i=0;i<P.length;i++){ const p=P[i], q=P[(i+1)%P.length]; a+=p[0]*q[1]-q[0]*p[1]; } return Math.abs(a)/2; };
@@ -2846,14 +2852,41 @@
       // largo del eje largo, lejos de las patas (6 mm), del logotipo, de los orificios de drenaje y alambre y del faldón. Medido en
       // Bambu (rectangular 28,6 × 20,1 × 9): entera con lightning 201 g y 4 h 26; una piel de 1,2 mm con rejilla dibujada cada 25 mm
       // salía peor (251 g y 6 h 05): el relleno lightning ya es esa malla bajo la piel. La calada abierta: 125 g y 3 h 04.
-      const vts=[]; if(!calada){ const fin=ringC(xs+CLR-12,SK), avoid=fh.map(Q=>offLoop(Q,6)), hp=[...P.drains,...P.wires];
+      const vts=[]; if(!calada&&!abierta){ const fin=ringC(xs+CLR-12,SK), avoid=fh.map(Q=>offLoop(Q,6)), hp=[...P.drains,...P.wires];
         let sb=null; if(seal){ sb=[1e9,1e9,-1e9,-1e9]; seal.regions.forEach(r=>r.L.forEach(([x,z])=>{ sb[0]=Math.min(sb[0],x-6); sb[1]=Math.min(sb[1],z-6); sb[2]=Math.max(sb[2],x+6); sb[3]=Math.max(sb[3],z+6); })); }
         const okp=p=>pip(fin,p)&&!avoid.some(O=>pip(O,p))&&!(sb&&p[0]>sb[0]&&p[0]<sb[2]&&p[1]>sb[1]&&p[1]<sb[3])&&hp.every(h=>Math.hypot(p[0]-h[0],p[1]-h[1])>10)&&vts.every(v=>Math.hypot(p[0]-v[0],p[1]-v[1])>25);
         const lng=s.L>=s.W, Lh=(lng?s.L:s.W)/2, tg=[[0,0],[-0.45*Lh,0],[0.45*Lh,0]].map(([a,b2])=>lng?[a,b2]:[b2,a]);
         tg.forEach(t=>{ let best=null, bd=1e9; for(let dx=-40;dx<=40;dx+=4) for(let dz=-40;dz<=40;dz+=4){ const p=[t[0]+dx,t[1]+dz], d=Math.hypot(dx,dz); if(d<bd&&okp(p)){ bd=d; best=p; } } if(best) vts.push(best); }); }
       const vh=vts.map(v=>circle(v,2,20));
-      if(!calada&&ft>0) notes.push(`Placa entera: la base de la maceta sale plana y a nivel (el laminador la rellena por dentro con una malla ligera, lightning). ${vts.length?`${vts.length} respiradero${vts.length>1?'s':''} de Ø 4 mm dejan salir el aire y el mortero que sobra; las puntitas se cortan al desmoldar.`:'No hay sitio para respiraderos: el aire sale por los huecos de las patas.'}`);
+      if(!calada&&!abierta&&ft>0) notes.push(`Placa entera: la base de la maceta sale plana y a nivel (el laminador la rellena por dentro con una malla ligera, lightning). ${vts.length?`${vts.length} respiradero${vts.length>1?'s':''} de Ø 4 mm dejan salir el aire y el mortero que sobra; las puntitas se cortan al desmoldar.`:'No hay sitio para respiraderos: el aire sale por los huecos de las patas.'}`);
       if(calada){ }
+      else if(abierta){ plateKind='patas';
+        const fin=ringC(ext[ext.length-1][0]+0.5), cw=3, bw=10, BH=Math.max(2,Math.min(5,ft-1.5));
+        const dens=Q=>{ const o=[]; for(let i=0;i<Q.length;i++){ const a=Q[i], c=Q[(i+1)%Q.length], n=Math.max(1,Math.ceil(Math.hypot(c[0]-a[0],c[1]-a[1])/2)); for(let j=0;j<n;j++) o.push([a[0]+(c[0]-a[0])*j/n,a[1]+(c[1]-a[1])*j/n]); } return o; }, HD=fh.map(dens);
+        // un travesaño no puede pasar por encima de la boca de otra pata
+        const blocked=(s0,d,t2,self)=>{ const nn=[-d[1],d[0]]; return HD.some((Q,k)=>k!==self&&Q.some(p=>{ const u=(p[0]-s0[0])*d[0]+(p[1]-s0[1])*d[1], v=(p[0]-s0[0])*nn[0]+(p[1]-s0[1])*nn[1]; return u>-1&&u<t2+1&&Math.abs(v)<bw/2+1; })); };
+        // travesaños desde el punto más lejano del contorno en esa dirección (así no tapan la boca de su propia pata) hasta el marco
+        const bridge=(P,dirs,need,self,gap)=>{ const c=cen2D(P); let made=0; for(const d of dirs){ if(made>=need) break; const h=Math.max(...P.map(p=>(p[0]-c[0])*d[0]+(p[1]-c[1])*d[1])), s0=[c[0]+d[0]*(h+gap),c[1]+d[1]*(h+gap)];
+            if(!pip(fin,s0)) continue; const t2=rayLoop(fin,s0,d); if(!isFinite(t2)||blocked(s0,d,t2+3,self)) continue; prism(A,bar2D(s0,d,t2+3,bw),[],y0,y0+BH,XZ); made++; } return made; };
+        prism(A,lo,[fin],y0,ft,XZ);
+        // contorno de cada camisa = la pata dilatada cw mm en un lienzo (offLoop se cruza en las cintas de las esquinas mokko o curvas)
+        const sleeveOf=P=>{ const kp=8, X=P.map(p=>p[0]), Z=P.map(p=>p[1]), x0=Math.min(...X)-cw-2, z0=Math.min(...Z)-cw-2, cv=document.createElement('canvas');
+          cv.width=Math.ceil((Math.max(...X)-x0+cw+2)*kp); cv.height=Math.ceil((Math.max(...Z)-z0+cw+2)*kp); const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,cv.width,cv.height);
+          g.fillStyle=g.strokeStyle='#000'; g.lineJoin='round'; g.lineWidth=2*cw*kp; g.beginPath(); P.forEach(([x,z],i)=>{ const u=(x-x0)*kp, v=(z-z0)*kp; if(i) g.lineTo(u,v); else g.moveTo(u,v); }); g.closePath(); g.fill(); g.stroke();
+          const ar=L=>{ let s2=0; for(let i=0;i<L.length;i++){ const q=L[i], r2=L[(i+1)%L.length]; s2+=q[0]*r2[1]-r2[0]*q[1]; } return Math.abs(s2)/2; };
+          const Ls=nestLoops(rasterLoops(cv).map(L=>L.map(([u,v])=>[x0+u/kp,z0+v/kp]))).filter(r=>r.d===0).map(r=>r.L).sort((a2,b2)=>ar(b2)-ar(a2)); return Ls[0]||offLoop(P,cw); };
+        let loose=0; fh.forEach((P,k)=>{ const S=sleeveOf(P); prism(A,S,[P],y0,ft,XZ); const c=cen2D(P), sx=Math.sign(c[0])||1, sz=Math.sign(c[1])||1, touch=S.some(p=>!pip(fin,p));
+          const made=bridge(P,[[sx,0],[0,sz],[-sx,0],[0,-sz]],touch?1:2,k,cw-1); if(!made&&!touch) loose++; });
+        let med=null; if(seal){ let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9; seal.regions.filter(r=>r.d===0).forEach(r=>r.L.forEach(([x,z])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); z0=Math.min(z0,z); z1=Math.max(z1,z); }));
+          for(const m of [6,4.5,3.5]){ const M=rrect(x0-m,z0-m,x1+m,z1+m,Math.min(5,m)); if(!HD.some(Q=>Q.some(p=>pip(M,p)))&&!dens(M).some(p=>fh.some(Q=>pip(Q,p)))){ med=M; break; } }
+          if(med){ if(INS){ prism(A,med,[],y0,ft-PD,XZ); prism(A,med,[POC],ft-PD-0.2,ft,XZ); insUsed=true; }
+            else { prism(A,med,[],y0,ft,XZ); seal.regions.filter(r=>r.d%2===0).forEach(r=>prism(A,r.L,r.kids,ft-0.3,ft+dp,XZ)); }
+            if(!bridge(med,s.L>=s.W?[[0,1],[0,-1],[1,0],[-1,0]]:[[1,0],[-1,0],[0,1],[0,-1]],2,-1,-1)) loose++; } }
+        notes.push(`Plantilla abierta de patas: marco que apoya en el canto de los gajos, ${fh.length} camisa${fh.length>1?'s':''} de ${cw} mm abiertas arriba y abajo${med?', medallón con el logotipo':''} y travesaños de ${BH} mm solo por arriba (no tocan el fondo). El fondo se enrasa ANTES con la regla en el canto (lo que sobra vuelve al balde); después se asienta la plantilla y cada pata se llena por arriba: no queda aire encerrado.`);
+        if(seal&&!med) notes.push('El logotipo no cupo entre las patas: márcalo con el sello de mano en el fondo fresco.');
+        if(seal&&med&&s.sealMode==='up') notes.push('Con la plantilla abierta el logotipo va rehundido: el medallón lo marca en el mortero fresco (uno en relieve no se llenaría).');
+        if(loose) notes.push(`${loose} pieza${loose>1?'s':''} de la plantilla no encontró travesaño libre hasta el marco: revisa la vista 3D.`);
+      }
       else if(seal&&s.sealMode==='up'){
         // en relieve sobre la maceta: el logotipo va hundido en la placa
         prism(A,lo,[...fh,...vh],y0,ft-dp,XZ);
@@ -2894,7 +2927,7 @@
       if(s.moldClick){ const tw=14, tk=1.2, hk=CLR+MOLD.SKIRT+0.65; for(let q=0;q<4;q++){ const a=Math.PI/4+q*Math.PI/2, d=[Math.cos(a),Math.sin(a)], tn=[-d[1],d[0]], r0=radii(lo,[d])[0];
           const poly=[[r0-0.2,ft-0.5],[r0+tk,ft-0.5],[r0+tk,ft+12.5],[r0-0.2,ft+12.5],[r0-0.2,ft+10.4],[r0-hk,ft+10.4],[r0-hk,ft+9.55],[r0-0.2,ft+5.6]];
           prism(A,poly,[],-tw/2,tw/2,(u,v,w)=>[u*d[0]+w*tn[0],v,u*d[1]+w*tn[1]]); } }
-      parts.push({key:'feet',name:ft>0?'Placa de patas':'Placa de fondo',file:ft>0?'molde-placa-patas':'molde-placa-fondo',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
+      parts.push({key:'feet',name:plateKind==='patas'?'Plantilla de patas (abierta)':ft>0?'Placa de patas':'Placa de fondo',file:plateKind==='patas'?'molde-plantilla-patas':ft>0?'molde-placa-patas':'molde-placa-fondo',T:A.T,print:'ground',color:0x9c8fbe,explode:[0,-45,0]});
     }
 
     // --- piezas que no caben en la cama de la impresora: se parten en trozos con espigas de unión
@@ -4913,8 +4946,8 @@
       '  3. Acerca los gajos del molde exterior: el nervio de abajo de cada gajo entra en la ranura del canto de la base.',
       `  4. Une los gajos por sus pestañas: ${hw.bolt?'un perno por cada par de agujeros, arandela a cada lado y tuerca mariposa apretada a mano (la punta de la gota deja pasar el perno aunque la impresión cierre un poco el agujero)':'pasa un pasador por cada par de agujeros y clava su cuña hasta que apriete'}.`,
       '  5. Mezcla el mortero (1 cemento : 2 arena fina tamizada, fibra, agua 0,45) y llena por arriba hasta el borde del molde. Golpea o vibra para sacar el aire. Enrasa con una regla apoyada en el canto de los gajos: ese es el nivel de la base.',
-      ...(s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde${MD.click?', la lengüeta entra en la ranura del canto de los gajos (centra y sella la junta) y los cuatro pestillos hacen clic en la ranura exterior; para soltarla, separa los pestillos con el pulgar':''}. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.${MD.plate==='calada'?' Es calada: alisa el mortero de las ventanas con la espátula apoyada en el marco.':' La placa entera deja la base plana y a nivel; el aire y el poco mortero que sobra salen por los respiraderos.'}`:s.feet>0?(MD.plate==='calada'?'Es calada: llena las copas de las patas con mortero firme y alisa el mortero de las ventanas con una espátula apoyada en el marco y en las copas; esa cara es el fondo de la maceta y el medallón deja el sello.':'La placa entera deja la base plana y a nivel: llena por arriba los huecos de las patas con mortero firme, apretando con una espátula, y enrásalos; el aire y el poco mortero que sobra salen por los respiraderos (corta las puntitas al desmoldar).'):'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
-      `  7. Cubre con plástico. Desmolda a las 24–48 h: quita la placa, ${hw.bolt?'afloja las mariposas y saca los pernos':'saca cuñas y pasadores'}, abre los gajos y levanta la maceta del núcleo.`,
+      ...(MD.plate==='patas'?[`  6. Plantilla de patas: con el fondo ya enrasado (paso 5; el mortero que sobra vuelve al balde), asiéntala sobre el canto de los gajos${MD.click?' (la lengüeta entra en la ranura y los pestillos hacen clic)':''}. Las camisas y el medallón apoyan en el mortero sin hundirse; el medallón deja el logotipo marcado. Antes de 30 min, llena cada camisa por arriba con el mismo mortero en dos capas, pinchando cada capa con un palito y dando golpecitos al marco para que suba el aire; enrasa con una regla apoyada en el marco. Todo se llena desde arriba: las patas salen completas.`]:s.feet>0||MD.seal?[`  6. Asienta la ${s.feet>0?'placa de patas':'placa de fondo'}: su faldón calza por fuera del molde${MD.click?', la lengüeta entra en la ranura del canto de los gajos (centra y sella la junta) y los cuatro pestillos hacen clic en la ranura exterior; para soltarla, separa los pestillos con el pulgar':''}. ${s.feet>0&&footRibbons(s)?`Patas ${FOOT_NAME[s.foot]}: antes de asentarla, con la cara del sello hacia arriba, llena con mortero firme los huecos de las patas apretando con una espátula; voltéala y asiéntala presionando: el sobrante sale por las aberturas de las patas; enrásalas.${MD.plate==='calada'?' Es calada: alisa el mortero de las ventanas con la espátula apoyada en el marco.':' La placa entera deja la base plana y a nivel; el aire y el poco mortero que sobra salen por los respiraderos.'}`:s.feet>0?(MD.plate==='calada'?'Es calada: llena las copas de las patas con mortero firme y alisa el mortero de las ventanas con una espátula apoyada en el marco y en las copas; esa cara es el fondo de la maceta y el medallón deja el sello.':'La placa entera deja la base plana y a nivel: llena por arriba los huecos de las patas con mortero firme, apretando con una espátula, y enrásalos; el aire y el poco mortero que sobra salen por los respiraderos (corta las puntitas al desmoldar).'):'Presiónala hasta que apoye en el borde del molde.'}`]:['  6. Enrasa con regla: esa cara es el fondo de la maceta.']),
+      `  7. Cubre con plástico. Desmolda a las 24–48 h: ${MD.plate==='patas'?'levanta la plantilla recta hacia arriba (golpecitos en el marco si se traba)':'quita la placa'}, ${hw.bolt?'afloja las mariposas y saca los pernos':'saca cuñas y pasadores'}, abre los gajos y levanta la maceta del núcleo.`,
       '  8. Curado húmedo 7 días; después 3 días en agua para lavar la alcalinidad.']));
     if(MD.notes.length) L.push('','NOTAS',...MD.notes.map(t=>'  - '+t));
     files.push({name:'LEEME.txt',data:new TextEncoder().encode('﻿'+L.join('\r\n')+'\r\n')});
@@ -5219,7 +5252,7 @@
         info('Imprimir','madre con 3 perímetros y cúbico adaptativo al 10 %; carcasa con 2 perímetros y 15 %; tapa y base con lightning al 5 %; perfiles al 40 %');
       } else if(s.mode==='mold'){
         row('Base con núcleo','4 cuartos con piso',s.moldBase==='cuartos','Base con núcleo',s.moldBase==='entera'?'entera':'2 mitades');
-        if(s.feet>0) row('Placa de patas','entera (base a nivel)',s.moldPlate!=='calada','Placa de patas','calada');
+        if(s.feet>0) row('Placa de patas','plantilla abierta (fondo enrasado, patas llenas por arriba)',s.moldPlate==='patas','Placa de patas',s.moldPlate==='calada'?'calada':'entera');
         row('Unión de los gajos','pernos con tuerca mariposa',!!s.moldBolt,'Unión de los gajos','pasadores impresos');
         row('Clic y sellado de la placa','activado (con gajos nuevos)',!!s.moldClick,'Clic y sellado de la placa','desactivado');
         row('Logotipo','rehundido (no se parte)',s.sealMode==='down','Relieve del sello','en relieve');
