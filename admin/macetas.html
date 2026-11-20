@@ -692,7 +692,10 @@
       if(s.panel){ if(PAN.where==='todas') s.plasterNotes.push('Panel solo en las paredes largas: en las cortas quedaría enganchado al abrir las mitades.'); if(PAN.mode!=='relieve') s.plasterNotes.push('Panel en relieve: rehundido o inciso no salen del molde; si los quieres, tállalos en la maceta en cuero.'); PAN.where='largas'; PAN.mode='relieve'; }
       if(s.studs==='rivets'&&s.body!=='cinturon') s.plasterNotes.push('Remaches: sin cinturón van como una fila de tachones a media altura.');
       if(s.v2Mode){ s.v2Drain=$('v2Drain').checked; s.pCollar='integrada'; s.pSplit='dos'; s.pModel='macizo'; s.pFloor='impreso'; s.pWalls='impresas'; }
-      if(s.pskinMode){ s.pNumDWas=s.pNumD; s.pCollar='integrada'; s.sealPart=false; s.pNumD='none'; s.studs='none'; s.panel=false; s.pSplit='auto'; s.pModel='macizo'; }
+      if(s.pskinMode){ s.pNumDWas=s.pNumD; s.pCollar='integrada'; s.sealPart=false; s.pNumD='none'; s.studs='none'; s.panel=false; s.pSplit='auto'; s.pModel='macizo';
+        // panza o cinturón (hexagonal, octogonal, cascada, tambor…): el cuerpo de yeso de UNA pieza no saldría hacia arriba de la madre;
+        // el contramolde hace el cuerpo recto y lo avisa (para conservarlos, «Molde de yeso» con el cuerpo en dos mitades)
+        if(s.body!=='liso'){ s.plasterNotes.push(`Cuerpo recto: la ${s.body==='panza'?'panza':'el cinturón'} no sale de un cuerpo de yeso de una pieza, así que el contramolde hace las paredes rectas (la maceta terminada del visor ya se ve así). Para conservar ${s.body==='panza'?'la panza':'el cinturón'}, usa «Molde de yeso», que parte el cuerpo en dos mitades.`); s.body='liso'; } }
       s.sprig={motif:$('spMotif').value,w:Math.max(20,Math.min(200,+$('spW').value||60)),d:Math.max(0.5,Math.min(6,+$('spD').value||2)),frame:$('spFrame').value,curve:$('spCurve').value==='pot',inv:$('spInv').checked,soft:({fino:0.4,medio:0.6,suave:1.6})[$('spSoft').value]||0.8,text:$('spText').value.trim()}; if(s.pskinMode) s.sprig={motif:'none'}; }
     if(!s.plasterMode&&!s.printable&&s.mat==='clay'&&s.body==='cinturon'&&$('rivets').value==='rivets') s.studs='rivets';   // en arcilla se pegan a mano
     s.pLip=$('pLip').value; s.pFeet=$('pFeet').value; s.pFit=$('pFit').value; s.pIn=$('pIn').value; s.inSeal=$('pSeal').value==='none'?'C':$('pSeal').value; s.tClay=s.t;
